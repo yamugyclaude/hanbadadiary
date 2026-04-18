@@ -799,7 +799,7 @@ select option { background: #181c24; }
 
     <div class="bottom-actions">
       <button class="btn btn-secondary" onclick="exportCurrentMD()">⬇ MD다운</button>
-      <button class="btn btn-danger" onclick="deleteLog()">삭제</button>
+      <button class="btn btn-danger" id="formDeleteBtn" onclick="deleteLog()" style="display:none">삭제</button>
       <button class="btn btn-primary" onclick="saveAndSync()">✓ 저장</button>
     </div>
   </div>
@@ -904,6 +904,8 @@ function showForm() {
   p.style.display = 'flex'; p.classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   p.querySelector('.form-scroll').scrollTop = 0;
+  const fb = document.getElementById('formDeleteBtn');
+  if (fb) fb.style.display = isAdmin ? 'block' : 'none';
 }
 
 // ── 관리자 ──
@@ -913,6 +915,8 @@ function toggleAdmin() {
     document.getElementById('adminBtn').style.color = 'var(--text-muted)';
     document.getElementById('adminBtn').style.borderColor = 'var(--border2)';
     document.getElementById('adminBtn').textContent = '관리자';
+    const fb = document.getElementById('formDeleteBtn');
+    if (fb) fb.style.display = 'none';
     renderList();
     showToast('관리자 로그아웃');
     return;
@@ -923,6 +927,8 @@ function toggleAdmin() {
     document.getElementById('adminBtn').style.color = 'var(--accent2)';
     document.getElementById('adminBtn').style.borderColor = 'var(--accent2)';
     document.getElementById('adminBtn').textContent = '관리자 ✓';
+    const fb = document.getElementById('formDeleteBtn');
+    if (fb) fb.style.display = 'block';
     renderList();
     showToast('✓ 관리자 로그인');
   } else if (pw !== null) {
