@@ -10,21 +10,25 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
---bg: #0a0c10;
---surface: #111318;
---surface2: #181c24;
---surface3: #1e2430;
---border: #252d3d;
---border2: #2e3a50;
---accent: #4fc3a1;
---accent-dim: rgba(79,195,161,0.12);
---accent2: #e07b54;
---accent2-dim: rgba(224,123,84,0.12);
+--bg: #080a0e;
+--surface: #0f1218;
+--surface2: #141820;
+--surface3: #1a2030;
+--border: #1e2636;
+--border2: #253248;
+--accent: #3dba96;
+--accent-dim: rgba(61,186,150,0.15);
+--accent-selected: rgba(61,186,150,0.22);
+--accent2: #d97248;
+--accent2-dim: rgba(217,114,72,0.13);
+--accent2-selected: rgba(217,114,72,0.22);
 --gold: #c9a84c;
 --gold-dim: rgba(201,168,76,0.12);
---text: #dde3ef;
---text2: #a8b2c8;
---text-muted: #5a6478;
+--text: #e2e8f4;
+--text2: #9aaac0;
+--text-muted: #4a5568;
+--unselected-bg: #0d1018;
+--unselected-border: #1e2636;
 --safe-top: env(safe-area-inset-top, 0px);
 --safe-bot: env(safe-area-inset-bottom, 0px);
 --radius: 10px;
@@ -201,7 +205,11 @@ input[type=text], input[type=tel], select, textarea {
   width: 100%;
   -webkit-appearance: none;
   appearance: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
+}
+textarea:not(:placeholder-shown) {
+  border-color: var(--accent);
+  background: rgba(61,186,150,0.05);
 }
 input[type=time] {
   background: var(--surface2);
@@ -239,8 +247,8 @@ select option { background: #181c24; }
   align-items: center;
   gap: 4px;
   padding: 9px 5px;
-  background: var(--surface2);
-  border: 1.5px solid var(--border2);
+  background: var(--unselected-bg);
+  border: 1.5px solid var(--unselected-border);
   border-radius: 8px;
   cursor: pointer;
   user-select: none;
@@ -251,7 +259,7 @@ select option { background: #181c24; }
   font-weight: 600;
 }
 .weather-opt:active { opacity: 0.75; }
-.weather-opt.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.weather-opt.selected { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
 .weather-emoji { font-size: 20px; }
 
 /* ─── TOGGLE ─── */
@@ -260,8 +268,8 @@ select option { background: #181c24; }
   display: flex; align-items: center; gap: 7px;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1.5px solid var(--border2);
-  background: var(--surface2);
+  border: 1.5px solid var(--unselected-border);
+  background: var(--unselected-bg);
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
@@ -272,8 +280,8 @@ select option { background: #181c24; }
   justify-content: center;
 }
 .toggle-opt:active { opacity: 0.8; }
-.toggle-opt.selected-yes { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
-.toggle-opt.selected-no  { border-color: var(--accent2); background: var(--accent2-dim); color: var(--accent2); }
+.toggle-opt.selected-yes { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
+.toggle-opt.selected-no  { border-color: var(--accent2); background: var(--accent2-selected); color: var(--accent2); box-shadow: 0 0 0 1px rgba(217,114,72,0.2); }
 .toggle-check { width: 19px; height: 19px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; }
 
 .sub-form {
@@ -297,8 +305,8 @@ select option { background: #181c24; }
 .stair-item {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px;
-  background: var(--surface2);
-  border: 1.5px solid var(--border2);
+  background: var(--unselected-bg);
+  border: 1.5px solid var(--unselected-border);
   border-radius: 8px;
   cursor: pointer;
   user-select: none; -webkit-user-select: none;
@@ -307,7 +315,7 @@ select option { background: #181c24; }
   transition: all 0.15s;
 }
 .stair-item:active { opacity: 0.8; }
-.stair-item.checked { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.stair-item.checked { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
 .stair-check { width: 18px; height: 18px; border-radius: 4px; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; }
 
 /* ─── TIMELINE ─── */
@@ -334,8 +342,8 @@ select option { background: #181c24; }
 .equip-opt {
   display: flex; align-items: center; gap: 8px;
   padding: 11px 12px;
-  background: var(--surface2);
-  border: 1.5px solid var(--border2);
+  background: var(--unselected-bg);
+  border: 1.5px solid var(--unselected-border);
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px; font-weight: 600;
@@ -344,20 +352,21 @@ select option { background: #181c24; }
   user-select: none; -webkit-user-select: none;
 }
 .equip-opt:active { opacity: 0.8; }
-.equip-opt.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.equip-opt.selected { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.25); }
+.equip-opt.selected-model { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); box-shadow: 0 0 0 1px rgba(201,168,76,0.2); }
 .equip-opt-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; }
 .equip-custom-input { margin-top: 8px; }
 
 /* ─── 모니터 스피커 세팅 ─── */
 .monitor-check-list { display: flex; flex-direction: column; gap: 10px; }
 .monitor-check-item {
-  background: var(--surface2);
-  border: 1.5px solid var(--border2);
+  background: var(--unselected-bg);
+  border: 1.5px solid var(--unselected-border);
   border-radius: 8px;
   overflow: hidden;
-  transition: border-color 0.15s;
+  transition: all 0.15s;
 }
-.monitor-check-item.checked { border-color: var(--accent); }
+.monitor-check-item.checked { border-color: var(--accent); background: var(--accent-selected); box-shadow: 0 0 0 1px rgba(61,186,150,0.15); }
 .monitor-check-row {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px;
@@ -453,6 +462,21 @@ select option { background: #181c24; }
 .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--accent); color: #0a0c10; padding: 10px 26px; border-radius: 24px; font-weight: 700; font-size: 13px; z-index: 999; opacity: 0; transition: all 0.25s; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+.tl-day-btn {
+  background: var(--unselected-bg);
+  border: 1.5px solid var(--unselected-border);
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.15s;
+}
+.tl-day-btn:active { opacity: 0.75; }
+.tl-day-btn.active { background: var(--accent-selected); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
+
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 </style>
@@ -462,12 +486,12 @@ select option { background: #181c24; }
   <header>
     <div class="logo">SOUND<span>LOG</span></div>
     <span id="headerDate" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);"></span>
+    <button onclick="toggleAdmin()" id="adminBtn" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">관리자</button>
   </header>
 
   <!-- NAV TABS -->
   <div class="nav-tabs">
-    <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 작업일지</div>
-    <div class="nav-tab" id="tab-mdstore" onclick="switchTab('mdstore')">📂 MD 저장소</div>
+    <div class="nav-tab active" id="tab-list">📋 작업일지</div>
   </div>
 
   <!-- LIST PAGE -->
@@ -477,15 +501,6 @@ select option { background: #181c24; }
       <button class="btn btn-secondary" onclick="gistLoad()" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️ 불러오기</button>
     </div>
     <div class="log-cards" id="logCards"></div>
-  </div>
-
-  <!-- MD STORAGE PAGE -->
-  <div class="page" id="pageMdStore">
-    <div class="md-storage-toolbar">
-      <span class="md-storage-title" id="mdStoreCount">저장된 MD 없음</span>
-      <button class="btn btn-secondary" onclick="clearAllMdStore()" style="font-size:12px;padding:8px 12px;">전체 삭제</button>
-    </div>
-    <div class="md-file-cards" id="mdFileCards"></div>
   </div>
 
   <!-- FORM PAGE -->
@@ -509,7 +524,7 @@ select option { background: #181c24; }
             <!-- 날짜 + 날씨 복수선택 -->
             <div class="field" style="margin-bottom:13px">
               <label>날짜</label>
-              <input id="f_date" type="date" oninput="updateTitle()">
+              <input id="f_date" type="date" oninput="updateTitle()" style="color-scheme:dark;">
             </div>
             <div class="field" style="margin-bottom:13px">
               <label>날씨 (복수 선택 가능)</label>
@@ -591,8 +606,30 @@ select option { background: #181c24; }
           </div>
           <div class="section-content">
             <div class="tl-group-label">콜타임</div>
-            <div class="timeline-item"><span class="timeline-label">🔊 음향설치시작</span><input id="f_callTimeSound" type="time"></div>
-            <div class="timeline-item" style="margin-bottom:10px"><span class="timeline-label">🎪 무대설치시작</span><input id="f_callTimeStage" type="time"></div>
+            <div class="timeline-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+              <span class="timeline-label" style="white-space:nowrap;width:auto;font-size:13px;">🔊 음향설치시작</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+                <button class="tl-day-btn" onclick="setInstallDay('sound','당일')" id="snd_today">당일</button>
+                <button class="tl-day-btn" onclick="setInstallDay('sound','전날')" id="snd_prev">전날</button>
+                <button class="tl-day-btn" onclick="setInstallDay('sound','직접선택')" id="snd_custom">날짜선택</button>
+              </div>
+              <div id="snd_date_wrap" style="display:none;width:100%">
+                <input id="f_callDateSound" type="date" style="width:100%;color-scheme:dark;">
+              </div>
+              <input id="f_callTimeSound" type="time" style="width:100%">
+            </div>
+            <div class="timeline-item" style="flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:10px">
+              <span class="timeline-label" style="white-space:nowrap;width:auto;font-size:13px;">🎪 무대설치시작</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+                <button class="tl-day-btn" onclick="setInstallDay('stage','당일')" id="stg_today">당일</button>
+                <button class="tl-day-btn" onclick="setInstallDay('stage','전날')" id="stg_prev">전날</button>
+                <button class="tl-day-btn" onclick="setInstallDay('stage','직접선택')" id="stg_custom">날짜선택</button>
+              </div>
+              <div id="stg_date_wrap" style="display:none;width:100%">
+                <input id="f_callDateStage" type="date" style="width:100%;color-scheme:dark;">
+              </div>
+              <input id="f_callTimeStage" type="time" style="width:100%">
+            </div>
             <div class="tl-group-label">리허설</div>
             <div id="rehearsalList"></div>
             <button class="add-row-btn" onclick="addRehearsal()" style="margin-bottom:10px">＋ 리허설 팀 추가</button>
@@ -603,31 +640,46 @@ select option { background: #181c24; }
           </div>
         </div>
 
-        <!-- 설치 체크리스트 -->
+        <!-- 설치 음향장비 목록 -->
         <div class="section-block collapsed" id="sec3">
           <div class="section-header" onclick="toggleSection('sec3')">
-            <div class="section-header-left"><span class="section-icon">✅</span><span class="section-title">설치 체크리스트</span></div>
+            <div class="section-header-left"><span class="section-icon">✅</span><span class="section-title">설치 음향장비 목록</span></div>
             <span class="section-chevron">▼</span>
           </div>
           <div class="section-content">
             <div class="equip-select-block">
-              <div class="equip-select-label">🎛️ 콘솔</div>
-              <div class="equip-option-grid" id="consoleGrid">
-                <div class="equip-opt" data-val="Midas" onclick="selectEquipOpt(this,'console')"><div class="equip-opt-dot"></div>Midas</div>
-                <div class="equip-opt" data-val="Allen &amp; Heath" onclick="selectEquipOpt(this,'console')"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
-                <div class="equip-opt" data-val="Wing" onclick="selectEquipOpt(this,'console')"><div class="equip-opt-dot"></div>Wing</div>
-                <div class="equip-opt" data-val="Yamaha" onclick="selectEquipOpt(this,'console')"><div class="equip-opt-dot"></div>Yamaha</div>
+              <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
+              <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
+                <div class="equip-opt" data-val="Midas" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
+                <div class="equip-opt" data-val="Behringer" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
+                <div class="equip-opt" data-val="Allen &amp; Heath" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
+                <div class="equip-opt" data-val="Yamaha" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
+              </div>
+              <!-- 모델 선택 -->
+              <div id="consoleModelWrap" style="display:none;margin-top:10px">
+                <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
+                <div class="equip-option-grid" id="consoleModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+                <div id="consoleCustomWrap" style="display:none;margin-top:8px">
+                  <input id="f_consoleCustom" type="text" placeholder="모델명 직접 입력">
+                </div>
               </div>
             </div>
             <div class="equip-select-block">
-              <div class="equip-select-label">🔊 스피커</div>
-              <div class="equip-option-grid" id="speakerGrid">
-                <div class="equip-opt" data-val="d&amp;b" onclick="selectEquipOpt(this,'speaker')"><div class="equip-opt-dot"></div>d&amp;b</div>
-                <div class="equip-opt" data-val="JBL" onclick="selectEquipOpt(this,'speaker')"><div class="equip-opt-dot"></div>JBL</div>
-                <div class="equip-opt" data-val="custom" onclick="selectEquipOpt(this,'speaker')"><div class="equip-opt-dot"></div>직접입력</div>
+              <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
+              <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
+                <div class="equip-opt" data-val="d&b" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
+                <div class="equip-opt" data-val="JBL" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
+                <div class="equip-opt" data-val="L-Acoustics" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>L-Acoustics</div>
+                <div class="equip-opt" data-val="Meyer Sound" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Meyer Sound</div>
+                <div class="equip-opt" data-val="Nexo" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Nexo</div>
+                <div class="equip-opt" data-val="QSC" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>QSC</div>
               </div>
-              <div class="equip-custom-input" id="speakerCustomWrap" style="display:none">
-                <input id="f_speakerCustom" type="text" placeholder="스피커 브랜드/모델 직접 입력">
+              <div id="speakerModelWrap" style="display:none;margin-top:10px">
+                <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
+                <div class="equip-option-grid" id="speakerModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+                <div id="speakerCustomWrap" style="display:none;margin-top:8px">
+                  <input id="f_speakerCustom" type="text" placeholder="모델명 직접 입력">
+                </div>
               </div>
             </div>
           </div>
@@ -746,7 +798,6 @@ select option { background: #181c24; }
     </div>
 
     <div class="bottom-actions">
-      <button class="btn btn-secondary" onclick="toggleMDPreview()">📄 MD보기</button>
       <button class="btn btn-secondary" onclick="exportCurrentMD()">⬇ MD다운</button>
       <button class="btn btn-danger" onclick="deleteLog()">삭제</button>
       <button class="btn btn-primary" onclick="saveAndSync()">✓ 저장</button>
@@ -754,16 +805,26 @@ select option { background: #181c24; }
   </div>
 </div>
 
-<!-- 덮어쓰기 확인 모달 -->
-<div class="modal-overlay" id="overwriteModal">
+
+
+<!-- 날짜 범위 선택 모달 -->
+<div class="modal-overlay" id="dateRangeModal">
   <div class="modal-sheet">
-    <div class="modal-title">📄 이미 저장된 MD가 있습니다</div>
-    <div class="modal-desc">동일한 이름의 MD 파일이 저장소에 있습니다.<br>덮어쓰기하거나 새 버전으로 저장할 수 있습니다.</div>
-    <div class="modal-filename" id="modalFilename"></div>
+    <div class="modal-title">📅 불러올 기간 선택</div>
+    <div class="modal-desc" style="margin-bottom:14px">클라우드에서 가져올 날짜 범위를 선택하세요.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">시작 날짜</label>
+        <input type="date" id="drFrom" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:15px;padding:12px 13px;outline:none;color-scheme:dark;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">종료 날짜</label>
+        <input type="date" id="drTo" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:15px;padding:12px 13px;outline:none;color-scheme:dark;">
+      </div>
+    </div>
     <div class="modal-actions">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">취소</button>
-      <button class="modal-btn modal-btn-overwrite" onclick="doMDSave('overwrite')">덮어쓰기</button>
-      <button class="modal-btn modal-btn-new" onclick="doMDSave('new')">새 버전</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeDateModal()">취소</button>
+      <button class="modal-btn modal-btn-new" onclick="doDateLoad()">☁️ 불러오기</button>
     </div>
   </div>
 </div>
@@ -786,6 +847,9 @@ let mdStore     = JSON.parse(localStorage.getItem('mdStore')    || '[]');
 // mdStore 항목: { id, filename, content, savedAt, logId }
 
 let currentId       = null;
+let isAdmin         = false;
+let soundInstallDay = '당일';
+let stageInstallDay = '당일';
 let monitorChecks   = {};
 let consoleSelected = '';
 let speakerSelected = '';
@@ -842,6 +906,30 @@ function showForm() {
   p.querySelector('.form-scroll').scrollTop = 0;
 }
 
+// ── 관리자 ──
+function toggleAdmin() {
+  if (isAdmin) {
+    isAdmin = false;
+    document.getElementById('adminBtn').style.color = 'var(--text-muted)';
+    document.getElementById('adminBtn').style.borderColor = 'var(--border2)';
+    document.getElementById('adminBtn').textContent = '관리자';
+    renderList();
+    showToast('관리자 로그아웃');
+    return;
+  }
+  const pw = prompt('관리자 비밀번호를 입력하세요:');
+  if (pw === '6293') {
+    isAdmin = true;
+    document.getElementById('adminBtn').style.color = 'var(--accent2)';
+    document.getElementById('adminBtn').style.borderColor = 'var(--accent2)';
+    document.getElementById('adminBtn').textContent = '관리자 ✓';
+    renderList();
+    showToast('✓ 관리자 로그인');
+  } else if (pw !== null) {
+    showToast('❌ 비밀번호가 틀렸습니다');
+  }
+}
+
 // ── 리스트 렌더 ──
 function renderList() {
   const el = document.getElementById('logCards');
@@ -850,13 +938,16 @@ function renderList() {
     return;
   }
   el.innerHTML = [...logs].reverse().map(l => `
-    <div class="log-card" onclick="editLog('${l.id}')">
-      <div class="log-card-top">
+    <div class="log-card">
+      <div class="log-card-top" onclick="editLog('${l.id}')">
         <span class="log-card-date">${fmtDate(l.date)}</span>
         <span class="log-card-type">${l.eventType||'기타'}</span>
       </div>
-      <div class="log-card-name">${l.eventName||'(행사명 없음)'}</div>
-      <div class="log-card-venue">${l.venue||''}</div>
+      <div class="log-card-name" onclick="editLog('${l.id}')">${l.eventName||'(행사명 없음)'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+        <div class="log-card-venue" onclick="editLog('${l.id}')">${l.venue||''}</div>
+        ${isAdmin ? `<button onclick="deleteLogById('${l.id}')" style="background:var(--accent2-dim);color:var(--accent2);border:1px solid rgba(224,123,84,0.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">삭제</button>` : ''}
+      </div>
     </div>
   `).join('');
 }
@@ -1011,7 +1102,16 @@ function editLog(id) {
   const log = logs.find(l => l.id === id);
   monitorChecks   = JSON.parse(JSON.stringify(log.monitorChecks||{}));
   consoleSelected = log.consoleSelected||'';
+  // consoleBrand 복원 (브랜드명이 consoleSelected 앞에 있음)
+  consoleBrand = '';
+  for (const brand of Object.keys(typeof CONSOLE_MODELS !== 'undefined' ? CONSOLE_MODELS : {})) {
+    if (consoleSelected.startsWith(brand)) { consoleBrand = brand; break; }
+  }
   speakerSelected = log.speakerSelected||'';
+  speakerBrand = '';
+  for (const brand of Object.keys(typeof SPEAKER_MODELS !== 'undefined' ? SPEAKER_MODELS : {})) {
+    if (speakerSelected.startsWith(brand)) { speakerBrand = brand; break; }
+  }
   weatherSelected = Array.isArray(log.weather) ? [...log.weather] : (log.weather ? [log.weather] : []);
   announcerHas    = log.announcerHas ?? null;
   bannerHas       = log.bannerHas   ?? null;
@@ -1052,6 +1152,9 @@ function fillForm(log) {
   document.getElementById('f_trussH').value          = log.trussH||'';
   document.getElementById('f_speakerCustom').value   = log.speakerCustom||'';
 
+  soundInstallDay = log.soundInstallDay || '당일';
+  stageInstallDay = log.stageInstallDay || '당일';
+  refreshInstallDayUI();
   refreshWeatherUI();
   refreshAnnouncerUI();
   refreshBannerUI();
@@ -1138,32 +1241,157 @@ function toggleStairPos(el) {
 }
 
 // ── 콘솔/스피커 선택 ──
-function selectEquipOpt(el, type) {
-  el.closest('.equip-option-grid').querySelectorAll('.equip-opt').forEach(o => {
+// 브랜드별 모델 목록
+const CONSOLE_MODELS = {
+  'Midas': ['PRO1','PRO2','PRO2C','PRO3','PRO6','PRO9','M32','M32R','M32C','HD96','HD96-AIR','직접입력'],
+  'Behringer': ['X32','X32 COMPACT','X32 RACK','X32 PRODUCER','WING','WING COMPACT','WING RACK','직접입력'],
+  'Allen & Heath': ['SQ-5','SQ-6','SQ-7','Avantis','Avantis Solo','dLive C1500','dLive C2500','dLive S3000','dLive S5000','dLive S7000','직접입력'],
+  'Yamaha': ['QL1','QL5','CL3','CL5','DM7','DM7 Compact','RIVAGE PM3','RIVAGE PM5','RIVAGE PM7','RIVAGE PM10','직접입력']
+};
+
+let consoleBrand = '';
+let consoleModel = '';
+
+function selectConsoleBrand(el) {
+  document.querySelectorAll('#consoleBrandGrid .equip-opt').forEach(o => {
     o.classList.remove('selected'); o.querySelector('.equip-opt-dot').textContent = '';
   });
   el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
-  if (type === 'console') {
-    consoleSelected = el.dataset.val;
+  consoleBrand = el.dataset.val;
+  consoleModel = '';
+  consoleSelected = consoleBrand;
+  // 모델 목록 렌더
+  const models = CONSOLE_MODELS[consoleBrand] || [];
+  const grid = document.getElementById('consoleModelGrid');
+  grid.innerHTML = models.map(m =>
+    `<div class="equip-opt" data-val="${m}" onclick="selectConsoleModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
+  ).join('');
+  document.getElementById('consoleModelWrap').style.display = 'block';
+  document.getElementById('consoleCustomWrap').style.display = 'none';
+}
+
+function selectConsoleModel(el) {
+  document.querySelectorAll('#consoleModelGrid .equip-opt').forEach(o => {
+    o.classList.remove('selected'); o.classList.remove('selected-model'); o.querySelector('.equip-opt-dot').textContent = '';
+  });
+  el.classList.add('selected-model'); el.querySelector('.equip-opt-dot').textContent = '●';
+  consoleModel = el.dataset.val;
+  if (consoleModel === '직접입력') {
+    document.getElementById('consoleCustomWrap').style.display = 'block';
+    consoleSelected = consoleBrand;
   } else {
-    speakerSelected = el.dataset.val;
-    document.getElementById('speakerCustomWrap').style.display = speakerSelected === 'custom' ? 'block' : 'none';
+    document.getElementById('consoleCustomWrap').style.display = 'none';
+    consoleSelected = consoleBrand + ' ' + consoleModel;
   }
 }
-function refreshConsoleUI() {
-  document.querySelectorAll('#consoleGrid .equip-opt').forEach(o => {
-    const sel = o.dataset.val === consoleSelected;
-    o.classList.toggle('selected', sel);
-    o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
+
+// 브랜드별 스피커 모델 목록
+const SPEAKER_MODELS = {
+  'd&b': ['V-Series (V8/V12)','Y-Series (Y8/Y12)','J-Series (J8/J12)','SL-Series (SL-GSub)','KSL-Series','xS-Series','T-Series','E-Series','직접입력'],
+  'JBL': ['VTX A8','VTX A12','VTX V20','SRX906LA','SRX912LA','SRX918S','SRX828SP','VRX932LA','PRX835W','직접입력'],
+  'L-Acoustics': ['K1','K2','K3','Kara II','Kara','Syva','X15 HiQ','X12','직접입력'],
+  'Meyer Sound': ['LEOPARD','LYON','PANTHER','MILO','ULTRA-X40','UPA-1P','1100-LFC','직접입력'],
+  'Nexo': ['GEO M10','GEO M6','STM M28','PS15 R2','ID24','직접입력'],
+  'QSC': ['KS212C','KS118','K12.2','KW153','TouchMix','직접입력']
+};
+
+let speakerBrand = '';
+let speakerModel = '';
+
+function selectSpeakerBrand(el) {
+  document.querySelectorAll('#speakerBrandGrid .equip-opt').forEach(o => {
+    o.classList.remove('selected'); o.querySelector('.equip-opt-dot').textContent = '';
   });
+  el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
+  speakerBrand = el.dataset.val;
+  speakerModel = '';
+  speakerSelected = speakerBrand;
+  const models = SPEAKER_MODELS[speakerBrand] || [];
+  const grid = document.getElementById('speakerModelGrid');
+  grid.innerHTML = models.map(m =>
+    `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
+  ).join('');
+  document.getElementById('speakerModelWrap').style.display = 'block';
+  document.getElementById('speakerCustomWrap').style.display = 'none';
+}
+
+function selectSpeakerModel(el) {
+  document.querySelectorAll('#speakerModelGrid .equip-opt').forEach(o => {
+    o.classList.remove('selected'); o.classList.remove('selected-model'); o.querySelector('.equip-opt-dot').textContent = '';
+  });
+  el.classList.add('selected-model'); el.querySelector('.equip-opt-dot').textContent = '●';
+  speakerModel = el.dataset.val;
+  if (speakerModel === '직접입력') {
+    document.getElementById('speakerCustomWrap').style.display = 'block';
+    speakerSelected = speakerBrand;
+  } else {
+    document.getElementById('speakerCustomWrap').style.display = 'none';
+    speakerSelected = speakerBrand + ' ' + speakerModel;
+  }
+}
+
+function refreshConsoleUI() {
+  // 브랜드 선택 복원
+  document.querySelectorAll('#consoleBrandGrid .equip-opt').forEach(o => {
+    const isBrand = consoleBrand && consoleSelected && consoleSelected.startsWith(o.dataset.val);
+    o.classList.toggle('selected', isBrand);
+    o.querySelector('.equip-opt-dot').textContent = isBrand ? '●' : '';
+  });
+  if (consoleBrand && CONSOLE_MODELS[consoleBrand]) {
+    const models = CONSOLE_MODELS[consoleBrand];
+    const grid = document.getElementById('consoleModelGrid');
+    grid.innerHTML = models.map(m =>
+      `<div class="equip-opt" data-val="${m}" onclick="selectConsoleModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
+    ).join('');
+    document.getElementById('consoleModelWrap').style.display = 'block';
+    // 모델 선택 복원
+    grid.querySelectorAll('.equip-opt').forEach(o => {
+      const modelPart = consoleSelected ? consoleSelected.replace(consoleBrand + ' ', '') : '';
+      const sel = o.dataset.val === modelPart;
+      o.classList.remove('selected'); o.classList.toggle('selected-model', sel);
+      o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
+    });
+  }
 }
 function refreshSpeakerUI() {
-  document.querySelectorAll('#speakerGrid .equip-opt').forEach(o => {
-    const sel = o.dataset.val === speakerSelected;
-    o.classList.toggle('selected', sel);
-    o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
+  document.querySelectorAll('#speakerBrandGrid .equip-opt').forEach(o => {
+    const isBrand = speakerBrand && speakerSelected && speakerSelected.startsWith(o.dataset.val);
+    o.classList.toggle('selected', isBrand);
+    o.querySelector('.equip-opt-dot').textContent = isBrand ? '●' : '';
   });
-  document.getElementById('speakerCustomWrap').style.display = speakerSelected === 'custom' ? 'block' : 'none';
+  if (speakerBrand && SPEAKER_MODELS[speakerBrand]) {
+    const grid = document.getElementById('speakerModelGrid');
+    grid.innerHTML = SPEAKER_MODELS[speakerBrand].map(m =>
+      `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
+    ).join('');
+    document.getElementById('speakerModelWrap').style.display = 'block';
+    grid.querySelectorAll('.equip-opt').forEach(o => {
+      const modelPart = speakerSelected ? speakerSelected.replace(speakerBrand + ' ', '') : '';
+      const sel = o.dataset.val === modelPart;
+      o.classList.remove('selected'); o.classList.toggle('selected-model', sel);
+      o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
+    });
+  }
+}
+
+// ── 설치 날짜 선택 ──
+function setInstallDay(type, val) {
+  if (type === 'sound') {
+    soundInstallDay = val;
+    ['today','prev','custom'].forEach(k => document.getElementById('snd_' + k).classList.remove('active'));
+    document.getElementById('snd_' + (val==='당일'?'today':val==='전날'?'prev':'custom')).classList.add('active');
+    document.getElementById('snd_date_wrap').style.display = val === '직접선택' ? 'block' : 'none';
+  } else {
+    stageInstallDay = val;
+    ['today','prev','custom'].forEach(k => document.getElementById('stg_' + k).classList.remove('active'));
+    document.getElementById('stg_' + (val==='당일'?'today':val==='전날'?'prev':'custom')).classList.add('active');
+    document.getElementById('stg_date_wrap').style.display = val === '직접선택' ? 'block' : 'none';
+  }
+}
+
+function refreshInstallDayUI() {
+  setInstallDay('sound', soundInstallDay);
+  setInstallDay('stage', stageInstallDay);
 }
 
 // ── 모니터 스피커 체크리스트 ──
@@ -1253,7 +1481,7 @@ function getFormData() {
     'callTimeSound','callTimeStage','showTime','endTime','teardownEnd',
     'preIssues','duringIssues','resolution','clientFeedback','memo',
     'announcerName','announcerTel',
-    'stageW','stageD','bannerW','bannerH','trussW','trussH','speakerCustom'];
+    'stageW','stageD','bannerW','bannerH','trussW','trussH','speakerCustom','consoleCustom','callDateSound','callDateStage'];
   fields.forEach(f => { log[f] = document.getElementById('f_'+f)?.value||''; });
 
   log.weather         = [...weatherSelected];
@@ -1263,8 +1491,20 @@ function getFormData() {
   log.stairHas        = stairHas;
   log.stairPos        = [];
   document.querySelectorAll('#stairGrid .stair-item.checked').forEach(el => log.stairPos.push(el.dataset.pos));
+  if (consoleModel === '직접입력') {
+    const custom = document.getElementById('f_consoleCustom')?.value || '';
+    log.consoleSelected = consoleBrand + (custom ? ' ' + custom : '');
+  } else {
+    log.soundInstallDay = soundInstallDay;
+  log.stageInstallDay = stageInstallDay;
   log.consoleSelected = consoleSelected;
-  log.speakerSelected = speakerSelected;
+  }
+  if (speakerModel === '직접입력') {
+    const custom = document.getElementById('f_speakerCustom')?.value || '';
+    log.speakerSelected = speakerBrand + (custom ? ' ' + custom : '');
+  } else {
+    log.speakerSelected = speakerSelected;
+  }
 
   log.monitorChecks = {};
   document.querySelectorAll('.monitor-check-item').forEach((el, i) => {
@@ -1296,10 +1536,20 @@ function saveLog() {
   showToast('✓ 저장 완료');
 }
 function deleteLog() {
+  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
   if (!confirm('이 일지를 삭제할까요?')) return;
   logs = logs.filter(l => l.id !== currentId);
   localStorage.setItem('soundlogs', JSON.stringify(logs));
   showList();
+}
+
+function deleteLogById(id) {
+  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+  if (!confirm('이 일지를 삭제할까요?')) return;
+  logs = logs.filter(l => l.id !== id);
+  localStorage.setItem('soundlogs', JSON.stringify(logs));
+  renderList();
+  showToast('삭제 완료');
 }
 
 // ── MD 생성 ──
@@ -1317,7 +1567,7 @@ function generateMD(log) {
   const spkDisplay    = log.speakerSelected === 'custom' ? (log.speakerCustom||'직접입력') : (log.speakerSelected||'-');
   const weatherStr    = Array.isArray(log.weather) ? log.weather.join(', ') : (log.weather||'-');
 
-  return `# 음향 작업일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.callTimeSound} |\n| 무대설치시작 | ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 체크리스트\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
+  return `# 음향 작업일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
 }
 
 function toggleMDPreview() {
@@ -1341,76 +1591,90 @@ function showToast(msg) {
   el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// ── GitHub Gist 설정 ──
-const GIST_TOKEN  = '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';
-const GIST_ID_KEY = 'gistId';
+// ── Supabase 설정 ──
+const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
 
-// 저장 + 클라우드 동기화 (버튼 하나로 통합)
+// 일지 하나를 Supabase에 저장 (개별 upsert)
+async function sbUpsertLog(log) {
+  const mdContent = generateMD(log);
+  const payload = {
+    id:         log.id,
+    date:       log.date,
+    event_name: log.eventName || '',
+    data:       JSON.stringify(log),
+    md_content: mdContent
+  };
+  // PATCH 먼저 시도
+  let res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${log.id}`, {
+    method: 'PATCH',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify(payload)
+  });
+  const patched = await res.json();
+  // 없으면 POST로 새로 생성
+  if (Array.isArray(patched) && patched.length === 0) {
+    res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  }
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// 저장 버튼: 해당 일지만 저장/수정
 async function saveAndSync() {
   const log = getFormData();
   if (!log) return;
   localStorage.setItem('soundlogs', JSON.stringify(logs));
   updateTitle();
   showToast('저장 중...');
-  await gistPush();
-}
-
-async function gistPush() {
-  const storedId = localStorage.getItem(GIST_ID_KEY);
-  const data = { logs, mdStore };
-  const body = {
-    description: 'SoundLog Backup',
-    public: false,
-    files: { 'soundlog_data.json': { content: JSON.stringify(data) } }
-  };
   try {
-    let res, json;
-    if (storedId && storedId !== 'undefined' && storedId !== 'null') {
-      res  = await fetch(`https://api.github.com/gists/${storedId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `token ${GIST_TOKEN}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      json = await res.json();
-      if (!res.ok) throw new Error(json.message);
-    } else {
-      res  = await fetch('https://api.github.com/gists', {
-        method: 'POST',
-        headers: { Authorization: `token ${GIST_TOKEN}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      json = await res.json();
-      if (!res.ok || !json.id) throw new Error(json.message || 'Gist 생성 실패');
-      localStorage.setItem(GIST_ID_KEY, json.id);
-    }
+    await sbUpsertLog(log);
     showToast('✓ 저장 + ☁️ 클라우드 완료');
   } catch(e) {
-    // 클라우드 실패해도 로컬은 저장됨
     showToast('✓ 로컬저장 완료 (클라우드 실패)');
+    console.error(e);
   }
 }
 
-async function gistLoad() {
-  const storedId = localStorage.getItem(GIST_ID_KEY);
-  if (!storedId || storedId === 'undefined' || storedId === 'null') {
-    showToast('⚠️ 저장된 클라우드 데이터 없음'); return;
-  }
+// 불러오기: 날짜 범위 모달 열기
+function gistLoad() {
+  const t = today();
+  const firstDay = t.substring(0,7) + '-01';
+  document.getElementById('drFrom').value = firstDay;
+  document.getElementById('drTo').value   = t;
+  document.getElementById('dateRangeModal').classList.add('show');
+}
+
+function closeDateModal() {
+  document.getElementById('dateRangeModal').classList.remove('show');
+}
+
+async function doDateLoad() {
+  const from = document.getElementById('drFrom').value;
+  const to   = document.getElementById('drTo').value;
+  if (!from || !to) { showToast('⚠️ 날짜를 선택해주세요'); return; }
+  closeDateModal();
   showToast('☁️ 불러오는 중...');
   try {
-    const res  = await fetch(`https://api.github.com/gists/${storedId}`, {
-      headers: { Authorization: `token ${GIST_TOKEN}` }
+    const res = await fetch(
+      `${SB_URL}/rest/v1/soundlogs?select=id,data&date=gte.${from}&date=lte.${to}&order=date.desc`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+    );
+    if (!res.ok) throw new Error('불러오기 실패');
+    const rows = await res.json();
+    if (!rows.length) { showToast('⚠️ 해당 기간 데이터 없음'); return; }
+    const cloudLogs = rows.map(r => JSON.parse(r.data));
+    cloudLogs.forEach(cl => {
+      const idx = logs.findIndex(l => l.id === cl.id);
+      if (idx >= 0) logs[idx] = cl;
+      else logs.push(cl);
     });
-    if (!res.ok) throw new Error('인증 실패 또는 데이터 없음');
-    const json    = await res.json();
-    const content = json.files['soundlog_data.json']?.content;
-    if (!content) throw new Error('파일 없음');
-    const data = JSON.parse(content);
-    logs    = data.logs    || [];
-    mdStore = data.mdStore || [];
     localStorage.setItem('soundlogs', JSON.stringify(logs));
-    localStorage.setItem('mdStore',   JSON.stringify(mdStore));
     renderList();
-    showToast('☁️ 불러오기 완료');
+    showToast(`☁️ ${rows.length}개 일지 불러오기 완료`);
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -1426,12 +1690,7 @@ function exportCurrentMD() {
 }
 
 // ── 초기화 ──
-// 잘못 저장된 gistId 정리
-const _gid = localStorage.getItem(GIST_ID_KEY);
-if (_gid === 'undefined' || _gid === 'null' || _gid === '') localStorage.removeItem(GIST_ID_KEY);
-
 document.getElementById('pageList').style.display = 'flex';
-document.getElementById('pageMdStore').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
 renderList();
 </script>
