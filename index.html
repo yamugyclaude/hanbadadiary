@@ -1541,21 +1541,35 @@ function saveLog() {
   updateTitle();
   showToast('✓ 저장 완료');
 }
-function deleteLog() {
+async function sbDeleteLog(id) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+  } catch(e) { console.error('클라우드 삭제 실패:', e); }
+}
+
+async function deleteLog() {
   if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
-  if (!confirm('이 일지를 삭제할까요?')) return;
+  if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
+  showToast('삭제 중...');
+  await sbDeleteLog(currentId);
   logs = logs.filter(l => l.id !== currentId);
   localStorage.setItem('soundlogs', JSON.stringify(logs));
   showList();
+  showToast('✓ 삭제 완료');
 }
 
-function deleteLogById(id) {
+async function deleteLogById(id) {
   if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
-  if (!confirm('이 일지를 삭제할까요?')) return;
+  if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
+  showToast('삭제 중...');
+  await sbDeleteLog(id);
   logs = logs.filter(l => l.id !== id);
   localStorage.setItem('soundlogs', JSON.stringify(logs));
   renderList();
-  showToast('삭제 완료');
+  showToast('✓ 삭제 완료');
 }
 
 // ── MD 생성 ──
