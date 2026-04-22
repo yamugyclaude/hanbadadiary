@@ -479,6 +479,104 @@ select option { background: #181c24; }
 
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ─── TASK PAGE ─── */
+.task-toolbar { padding: 14px 16px 10px; display: flex; gap: 8px; align-items: center; }
+.task-filter-group { display: flex; gap: 6px; flex: 1; overflow-x: auto; }
+.task-filter-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--unselected-border);
+  background: var(--unselected-bg);
+  color: var(--text-muted);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.task-filter-btn.active { background: var(--accent-selected); border-color: var(--accent); color: var(--accent); }
+.task-filter-btn.active-prog { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+.task-filter-btn.active-done { background: var(--surface2); border-color: var(--border2); color: var(--text-muted); }
+
+.task-cards { padding: 0 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-bottom: 28px; }
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+.task-card.status-todo { border-left: 3px solid var(--accent2); }
+.task-card.status-progress { border-left: 3px solid var(--gold); }
+.task-card.status-done { border-left: 3px solid var(--border2); opacity: 0.6; }
+.task-card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+.task-status-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; margin-top: 2px;
+}
+.badge-todo { background: var(--accent2-dim); color: var(--accent2); border: 1px solid rgba(217,114,72,0.3); }
+.badge-progress { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+.badge-done { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border2); }
+.task-title { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+.task-card.status-done .task-title { text-decoration: line-through; color: var(--text-muted); }
+.task-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.task-priority-high { color: var(--accent2); font-weight: 700; }
+.task-priority-mid { color: var(--gold); font-weight: 700; }
+.task-priority-low { color: var(--text-muted); }
+.task-body { font-size: 13px; color: var(--text2); line-height: 1.6; white-space: pre-wrap; }
+.task-actions { display: flex; gap: 6px; margin-top: 10px; }
+.task-act-btn {
+  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
+  border: 1px solid var(--border2); background: var(--surface2); color: var(--text-muted);
+  cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+}
+.task-act-btn:active { opacity: 0.75; }
+.task-act-btn.primary { color: var(--accent); border-color: rgba(61,186,150,0.35); }
+.task-act-btn.danger { color: var(--accent2); border-color: rgba(217,114,72,0.3); }
+
+/* ─── TASK FORM MODAL ─── */
+.task-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 900;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.task-modal-overlay.show { opacity: 1; pointer-events: all; }
+.task-modal-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  padding-bottom: calc(20px + var(--safe-bot));
+  width: 100%; max-width: 640px;
+  transform: translateY(40px); transition: transform 0.25s;
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: 90dvh; overflow-y: auto;
+}
+.task-modal-overlay.show .task-modal-sheet { transform: translateY(0); }
+.task-modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.task-status-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.task-status-opt {
+  padding: 9px; text-align: center; border-radius: 8px;
+  border: 1.5px solid var(--unselected-border); background: var(--unselected-bg);
+  color: var(--text-muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+}
+.task-status-opt.sel-todo { border-color: var(--accent2); background: var(--accent2-dim); color: var(--accent2); }
+.task-status-opt.sel-progress { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+.task-status-opt.sel-done { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); }
+.task-priority-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.task-pri-opt {
+  padding: 9px; text-align: center; border-radius: 8px;
+  border: 1.5px solid var(--unselected-border); background: var(--unselected-bg);
+  color: var(--text-muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+}
+.task-pri-opt.sel-high { border-color: var(--accent2); background: var(--accent2-dim); color: var(--accent2); }
+.task-pri-opt.sel-mid { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+.task-pri-opt.sel-low { border-color: var(--border2); background: var(--surface2); color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -491,7 +589,8 @@ select option { background: #181c24; }
 
   <!-- NAV TABS -->
   <div class="nav-tabs">
-    <div class="nav-tab active" id="tab-list">📋 작업일지</div>
+    <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 작업일지</div>
+    <div class="nav-tab" id="tab-tasks" onclick="switchTab('tasks')">📌 업무관리</div>
   </div>
 
   <!-- LIST PAGE -->
@@ -501,6 +600,20 @@ select option { background: #181c24; }
       <button class="btn btn-secondary" onclick="gistLoad()" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️ 불러오기</button>
     </div>
     <div class="log-cards" id="logCards"></div>
+  </div>
+
+  <!-- TASK PAGE -->
+  <div class="page" id="pageTask">
+    <div class="task-toolbar">
+      <div class="task-filter-group">
+        <button class="task-filter-btn active" id="tf-all" onclick="filterTasks('all')">전체</button>
+        <button class="task-filter-btn" id="tf-todo" onclick="filterTasks('todo')">🔴 예정</button>
+        <button class="task-filter-btn" id="tf-progress" onclick="filterTasks('progress')">🟡 진행중</button>
+        <button class="task-filter-btn" id="tf-done" onclick="filterTasks('done')">✅ 완료</button>
+      </div>
+      <button class="btn btn-new" onclick="openTaskModal()" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+    </div>
+    <div class="task-cards" id="taskCards"></div>
   </div>
 
   <!-- FORM PAGE -->
@@ -825,6 +938,45 @@ select option { background: #181c24; }
     <div class="modal-actions">
       <button class="modal-btn modal-btn-cancel" onclick="closeDateModal()">취소</button>
       <button class="modal-btn modal-btn-new" onclick="doDateLoad()">☁️ 불러오기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 업무 추가/수정 모달 -->
+<div class="task-modal-overlay" id="taskModal">
+  <div class="task-modal-sheet">
+    <div class="task-modal-title" id="taskModalTitle">업무 추가</div>
+    <div>
+      <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">제목</label>
+      <input id="t_title" type="text" placeholder="업무 제목">
+    </div>
+    <div>
+      <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">상태</label>
+      <div class="task-status-row">
+        <div class="task-status-opt" id="ts-todo" onclick="setTaskStatus('todo')">🔴 예정</div>
+        <div class="task-status-opt" id="ts-progress" onclick="setTaskStatus('progress')">🟡 진행중</div>
+        <div class="task-status-opt" id="ts-done" onclick="setTaskStatus('done')">✅ 완료</div>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">우선순위</label>
+      <div class="task-priority-row">
+        <div class="task-pri-opt" id="tp-high" onclick="setTaskPriority('high')">🔥 높음</div>
+        <div class="task-pri-opt" id="tp-mid" onclick="setTaskPriority('mid')">📌 보통</div>
+        <div class="task-pri-opt" id="tp-low" onclick="setTaskPriority('low')">💤 낮음</div>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">마감일 (선택)</label>
+      <input id="t_due" type="date" style="color-scheme:dark;">
+    </div>
+    <div>
+      <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">내용</label>
+      <textarea id="t_body" placeholder="업무 내용을 자유롭게 작성하세요" style="min-height:100px"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="modal-btn modal-btn-cancel" onclick="closeTaskModal()">취소</button>
+      <button class="modal-btn modal-btn-new" onclick="saveTask()">저장</button>
     </div>
   </div>
 </div>
@@ -1709,8 +1861,153 @@ function exportCurrentMD() {
   showToast('⬇ MD 다운로드 완료');
 }
 
+// ── 업무관리 ──
+let tasks       = JSON.parse(localStorage.getItem('soundtasks') || '[]');
+let taskFilter  = 'all';
+let editTaskId  = null;
+let curTaskStatus   = 'todo';
+let curTaskPriority = 'mid';
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+  if (tab === 'list') {
+    document.getElementById('tab-list').classList.add('active');
+    const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
+    renderList();
+  } else {
+    document.getElementById('tab-tasks').classList.add('active');
+    const p = document.getElementById('pageTask'); p.style.display='flex'; p.classList.add('active');
+    renderTasks();
+  }
+}
+
+function filterTasks(f) {
+  taskFilter = f;
+  document.querySelectorAll('.task-filter-btn').forEach(b => {
+    b.classList.remove('active','active-prog','active-done');
+  });
+  const btn = document.getElementById('tf-' + f);
+  if (f === 'progress') btn.classList.add('active-prog');
+  else if (f === 'done') btn.classList.add('active-done');
+  else btn.classList.add('active');
+  renderTasks();
+}
+
+function renderTasks() {
+  const el = document.getElementById('taskCards');
+  const filtered = taskFilter === 'all' ? tasks : tasks.filter(t => t.status === taskFilter);
+  // 우선순위 정렬: high > mid > low, 완료는 맨 아래
+  const order = {high:0, mid:1, low:2};
+  const statusOrder = {todo:0, progress:1, done:2};
+  const sorted = [...filtered].sort((a,b) => {
+    if (a.status !== b.status) return statusOrder[a.status] - statusOrder[b.status];
+    return (order[a.priority]||1) - (order[b.priority]||1);
+  });
+  if (!sorted.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📌</div><div>업무가 없습니다</div></div>`;
+    return;
+  }
+  const priLabel = {high:'🔥 높음', mid:'📌 보통', low:'💤 낮음'};
+  const priClass = {high:'task-priority-high', mid:'task-priority-mid', low:'task-priority-low'};
+  const statusLabel = {todo:'예정', progress:'진행중', done:'완료'};
+  const badgeClass  = {todo:'badge-todo', progress:'badge-progress', done:'badge-done'};
+  el.innerHTML = sorted.map(t => `
+    <div class="task-card status-${t.status}">
+      <div class="task-card-top">
+        <span class="task-status-badge ${badgeClass[t.status]}">${statusLabel[t.status]}</span>
+        <span class="task-title">${t.title||'(제목 없음)'}</span>
+      </div>
+      <div class="task-meta">
+        <span class="${priClass[t.priority]}">${priLabel[t.priority]}</span>
+        ${t.due ? `<span>📅 ${t.due}</span>` : ''}
+        <span>${new Date(t.createdAt).toLocaleDateString('ko-KR')}</span>
+      </div>
+      ${t.body ? `<div class="task-body">${t.body}</div>` : ''}
+      <div class="task-actions">
+        ${t.status !== 'progress' && t.status !== 'done' ? `<button class="task-act-btn" onclick="quickStatus('${t.id}','progress')">진행중으로</button>` : ''}
+        ${t.status !== 'done' ? `<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done')">완료</button>` : ''}
+        <button class="task-act-btn" onclick="openTaskModal('${t.id}')">수정</button>
+        ${isAdmin ? `<button class="task-act-btn danger" onclick="deleteTask('${t.id}')">삭제</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function quickStatus(id, status) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  t.status = status;
+  saveTasksLocal();
+  renderTasks();
+}
+
+function openTaskModal(id) {
+  editTaskId = id || null;
+  if (id) {
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    document.getElementById('taskModalTitle').textContent = '업무 수정';
+    document.getElementById('t_title').value = t.title || '';
+    document.getElementById('t_body').value  = t.body  || '';
+    document.getElementById('t_due').value   = t.due   || '';
+    curTaskStatus   = t.status   || 'todo';
+    curTaskPriority = t.priority || 'mid';
+  } else {
+    document.getElementById('taskModalTitle').textContent = '업무 추가';
+    document.getElementById('t_title').value = '';
+    document.getElementById('t_body').value  = '';
+    document.getElementById('t_due').value   = '';
+    curTaskStatus   = 'todo';
+    curTaskPriority = 'mid';
+  }
+  refreshTaskModalUI();
+  document.getElementById('taskModal').classList.add('show');
+}
+
+function closeTaskModal() { document.getElementById('taskModal').classList.remove('show'); }
+
+function setTaskStatus(s)   { curTaskStatus   = s; refreshTaskModalUI(); }
+function setTaskPriority(p) { curTaskPriority = p; refreshTaskModalUI(); }
+
+function refreshTaskModalUI() {
+  ['todo','progress','done'].forEach(s => {
+    document.getElementById('ts-'+s).className = 'task-status-opt' + (curTaskStatus===s ? ` sel-${s}` : '');
+  });
+  ['high','mid','low'].forEach(p => {
+    document.getElementById('tp-'+p).className = 'task-pri-opt' + (curTaskPriority===p ? ` sel-${p}` : '');
+  });
+}
+
+function saveTask() {
+  const title = document.getElementById('t_title').value.trim();
+  if (!title) { showToast('⚠️ 제목을 입력하세요'); return; }
+  if (editTaskId) {
+    const t = tasks.find(t => t.id === editTaskId);
+    if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); }
+  } else {
+    tasks.push({ id:Date.now().toString(), title, body:document.getElementById('t_body').value, due:document.getElementById('t_due').value, status:curTaskStatus, priority:curTaskPriority, createdAt:new Date().toISOString() });
+  }
+  saveTasksLocal();
+  closeTaskModal();
+  renderTasks();
+  showToast('✓ 저장 완료');
+}
+
+function deleteTask(id) {
+  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+  if (!confirm('이 업무를 삭제할까요?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasksLocal();
+  renderTasks();
+  showToast('삭제 완료');
+}
+
+function saveTasksLocal() { localStorage.setItem('soundtasks', JSON.stringify(tasks)); }
+
 // ── 초기화 ──
 document.getElementById('pageList').style.display = 'flex';
+document.getElementById('pageTask').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
 renderList();
 </script>
