@@ -2111,6 +2111,13 @@ function saveTask() {
   }
   saveTasksLocal();
   closeTaskModal();
+  // 필터를 '전체'로 리셋하여 새 항목이 반드시 보이도록
+  taskFilter[currentTaskType] = 'all';
+  const _prefix = currentTaskType === 'warehouse' ? 'wf' : currentTaskType === 'office' ? 'of' : 'df';
+  const _pageId = currentTaskType === 'warehouse' ? 'Warehouse' : currentTaskType === 'office' ? 'Office' : 'Directive';
+  document.querySelectorAll('#page' + _pageId + ' .task-filter-btn').forEach(b => b.classList.remove('active'));
+  const _allBtn = document.getElementById(_prefix + '-all');
+  if (_allBtn) _allBtn.classList.add('active');
   renderTasks(currentTaskType);
   showToast('✓ 저장 완료');
 }
