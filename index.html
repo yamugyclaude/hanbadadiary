@@ -2035,14 +2035,14 @@ function renderTasks(type) {
         ${t.status !== 'progress' && t.status !== 'done' ? `<button class="task-act-btn" onclick="quickStatus('${t.id}','progress','${type}')">진행중으로</button>` : ''}
         ${t.status !== 'done' ? `<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done','${type}')">완료</button>` : ''}
         <button class="task-act-btn" onclick="openTaskModal('${type}','${t.id}')">수정</button>
-        ${isAdmin ? `<button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>` : ''}
+        <button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>
       </div>
     </div>
   `).join('');
 }
 
 function quickStatus(id, status, type) {
-  const tasks = type === 'warehouse' ? warehouseTasks : officeTasks;
+  const tasks = type === 'warehouse' ? warehouseTasks : type === 'office' ? officeTasks : directiveTasks;
   const t = tasks.find(t => t.id === id);
   if (!t) return;
   t.status = status;
@@ -2115,7 +2115,6 @@ function saveTask() {
 }
 
 async function deleteTask(id, type) {
-  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
   if (!confirm('이 업무를 삭제할까요?')) return;
   if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
   else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
