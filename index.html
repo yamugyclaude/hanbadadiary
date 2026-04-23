@@ -655,6 +655,7 @@ select option { background: #181c24; }
         <button class="task-filter-btn" id="wf-progress" onclick="filterTasks('warehouse','progress')">🟡 진행중</button>
         <button class="task-filter-btn" id="wf-done" onclick="filterTasks('warehouse','done')">✅ 완료</button>
       </div>
+      <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
       <button class="btn btn-new" onclick="openTaskModal('warehouse')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
     </div>
     <div class="task-cards" id="warehouseCards"></div>
@@ -669,6 +670,7 @@ select option { background: #181c24; }
         <button class="task-filter-btn" id="of-progress" onclick="filterTasks('office','progress')">🟡 진행중</button>
         <button class="task-filter-btn" id="of-done" onclick="filterTasks('office','done')">✅ 완료</button>
       </div>
+      <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
       <button class="btn btn-new" onclick="openTaskModal('office')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
     </div>
     <div class="task-cards" id="officeCards"></div>
@@ -683,6 +685,7 @@ select option { background: #181c24; }
         <button class="task-filter-btn" id="df-progress" onclick="filterTasks('directive','progress')">🟡 진행중</button>
         <button class="task-filter-btn" id="df-done" onclick="filterTasks('directive','done')">✅ 완료</button>
       </div>
+      <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
       <button class="btn btn-new" onclick="openTaskModal('directive')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
     </div>
     <div class="task-cards" id="directiveCards"></div>
@@ -2098,21 +2101,80 @@ function saveTask() {
   showToast('✓ 저장 완료');
 }
 
-function deleteTask(id, type) {
+async function deleteTask(id, type) {
   if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
   if (!confirm('이 업무를 삭제할까요?')) return;
   if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
   else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
   else directiveTasks = directiveTasks.filter(t => t.id !== id);
-  saveTasksLocal();
+  localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+  localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+  localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+  try {
+    await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+  } catch(e) {}
   renderTasks(type);
-  showToast('삭제 완료');
+  showToast('✓ 삭제 완료');
 }
 
 function saveTasksLocal() {
   localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
   localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
   localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+  syncTasksToCloud();
+}
+
+async function syncTasksToCloud() {
+  const all = [
+    ...warehouseTasks.map(t => ({...t, type:'warehouse'})),
+    ...officeTasks.map(t => ({...t, type:'office'})),
+    ...directiveTasks.map(t => ({...t, type:'directive'}))
+  ];
+  for (const t of all) {
+    const payload = { id:t.id, type:t.type, title:t.title||'', body:t.body||'', status:t.status||'todo', priority:t.priority||'mid', due:t.due||'', data:JSON.stringify(t) };
+    try {
+      let res = await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${t.id}`, {
+        method: 'PATCH',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+      const patched = await res.json();
+      if (Array.isArray(patched) && patched.length === 0) {
+        await fetch(`${SB_URL}/rest/v1/tasks`, {
+          method: 'POST',
+          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+    } catch(e) { console.error('업무 클라우드 저장 실패:', e); }
+  }
+}
+
+async function loadTasksFromCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/tasks?select=type,data&order=created_at.desc`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) throw new Error('불러오기 실패');
+    const rows = await res.json();
+    if (!rows.length) { showToast('⚠️ 클라우드 업무 데이터 없음'); return; }
+    warehouseTasks  = [];
+    officeTasks     = [];
+    directiveTasks  = [];
+    rows.forEach(r => {
+      const t = JSON.parse(r.data);
+      if (r.type === 'warehouse') warehouseTasks.push(t);
+      else if (r.type === 'office') officeTasks.push(t);
+      else if (r.type === 'directive') directiveTasks.push(t);
+    });
+    localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+    localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+    localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+    showToast(`☁️ 업무 ${rows.length}개 불러오기 완료`);
+  } catch(e) { showToast('❌ 업무 불러오기 실패'); }
 }
 
 // ── 테마 ──
