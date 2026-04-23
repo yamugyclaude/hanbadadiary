@@ -480,6 +480,45 @@ select option { background: #181c24; }
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
+/* ─── THEME MODAL ─── */
+.theme-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 950;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.theme-modal-overlay.show { opacity: 1; pointer-events: all; }
+.theme-modal-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  padding-bottom: calc(20px + var(--safe-bot));
+  width: 100%; max-width: 640px;
+  transform: translateY(40px); transition: transform 0.25s;
+}
+.theme-modal-overlay.show .theme-modal-sheet { transform: translateY(0); }
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+.theme-card {
+  border-radius: 10px;
+  border: 2px solid transparent;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.theme-card.active { border-color: white; box-shadow: 0 0 0 1px white; }
+.theme-card-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.theme-swatches { display: flex; gap: 5px; }
+.theme-swatch { width: 18px; height: 18px; border-radius: 50%; }
+
 /* ─── TASK PAGE ─── */
 .task-toolbar { padding: 14px 16px 10px; display: flex; gap: 8px; align-items: center; }
 .task-filter-group { display: flex; gap: 6px; flex: 1; overflow-x: auto; }
@@ -585,6 +624,7 @@ select option { background: #181c24; }
     <div class="logo">SOUND<span>LOG</span></div>
     <span id="headerDate" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);"></span>
     <button onclick="location.reload(true)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">↺</button>
+    <button onclick="openThemeModal()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">🎨</button>
     <button onclick="toggleAdmin()" id="adminBtn" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">관리자</button>
   </header>
 
@@ -940,6 +980,15 @@ select option { background: #181c24; }
       <button class="modal-btn modal-btn-cancel" onclick="closeDateModal()">취소</button>
       <button class="modal-btn modal-btn-new" onclick="doDateLoad()">☁️ 불러오기</button>
     </div>
+  </div>
+</div>
+
+<!-- 테마 선택 모달 -->
+<div class="theme-modal-overlay" id="themeModal">
+  <div class="theme-modal-sheet">
+    <div style="font-size:16px;font-weight:700;color:var(--text)">🎨 테마 선택</div>
+    <div class="theme-grid" id="themeGrid"></div>
+    <button class="modal-btn modal-btn-cancel" onclick="closeThemeModal()" style="margin-top:14px;width:100%">닫기</button>
   </div>
 </div>
 
@@ -2006,7 +2055,138 @@ function deleteTask(id) {
 
 function saveTasksLocal() { localStorage.setItem('soundtasks', JSON.stringify(tasks)); }
 
+// ── 테마 ──
+const THEMES = [
+  {
+    id: 'dark-green',
+    name: '🌲 다크 그린',
+    bg: '#080a0e', surface: '#0f1218', surface2: '#141820', surface3: '#1a2030',
+    border: '#1e2636', border2: '#253248',
+    accent: '#3dba96', accentDim: 'rgba(61,186,150,0.15)', accentSel: 'rgba(61,186,150,0.22)',
+    accent2: '#d97248', accent2Dim: 'rgba(217,114,72,0.13)', accent2Sel: 'rgba(217,114,72,0.22)',
+    gold: '#c9a84c', goldDim: 'rgba(201,168,76,0.12)',
+    text: '#e2e8f4', text2: '#9aaac0', textMuted: '#4a5568',
+    swatches: ['#080a0e','#3dba96','#d97248','#c9a84c']
+  },
+  {
+    id: 'dark-blue',
+    name: '🌊 다크 블루',
+    bg: '#07090f', surface: '#0d1220', surface2: '#121928', surface3: '#182035',
+    border: '#1c2840', border2: '#243455',
+    accent: '#4a9eff', accentDim: 'rgba(74,158,255,0.15)', accentSel: 'rgba(74,158,255,0.22)',
+    accent2: '#ff6b9d', accent2Dim: 'rgba(255,107,157,0.13)', accent2Sel: 'rgba(255,107,157,0.22)',
+    gold: '#ffd166', goldDim: 'rgba(255,209,102,0.12)',
+    text: '#e0e8ff', text2: '#8899cc', textMuted: '#445577',
+    swatches: ['#07090f','#4a9eff','#ff6b9d','#ffd166']
+  },
+  {
+    id: 'dark-purple',
+    name: '🔮 다크 퍼플',
+    bg: '#09070f', surface: '#120f1e', surface2: '#181528', surface3: '#1e1a34',
+    border: '#251f3d', border2: '#302850',
+    accent: '#a78bfa', accentDim: 'rgba(167,139,250,0.15)', accentSel: 'rgba(167,139,250,0.22)',
+    accent2: '#f472b6', accent2Dim: 'rgba(244,114,182,0.13)', accent2Sel: 'rgba(244,114,182,0.22)',
+    gold: '#fbbf24', goldDim: 'rgba(251,191,36,0.12)',
+    text: '#ede9ff', text2: '#9988cc', textMuted: '#554477',
+    swatches: ['#09070f','#a78bfa','#f472b6','#fbbf24']
+  },
+  {
+    id: 'dark-red',
+    name: '🔥 다크 레드',
+    bg: '#0f0808', surface: '#1a0f0f', surface2: '#221414', surface3: '#2a1a1a',
+    border: '#3d2020', border2: '#502828',
+    accent: '#ff6b6b', accentDim: 'rgba(255,107,107,0.15)', accentSel: 'rgba(255,107,107,0.22)',
+    accent2: '#ffa94d', accent2Dim: 'rgba(255,169,77,0.13)', accent2Sel: 'rgba(255,169,77,0.22)',
+    gold: '#ffe066', goldDim: 'rgba(255,224,102,0.12)',
+    text: '#ffe8e8', text2: '#cc9999', textMuted: '#775555',
+    swatches: ['#0f0808','#ff6b6b','#ffa94d','#ffe066']
+  },
+  {
+    id: 'midnight',
+    name: '🌙 미드나잇',
+    bg: '#000000', surface: '#0a0a0a', surface2: '#111111', surface3: '#1a1a1a',
+    border: '#222222', border2: '#333333',
+    accent: '#00ff88', accentDim: 'rgba(0,255,136,0.12)', accentSel: 'rgba(0,255,136,0.2)',
+    accent2: '#ff4444', accent2Dim: 'rgba(255,68,68,0.12)', accent2Sel: 'rgba(255,68,68,0.2)',
+    gold: '#ffcc00', goldDim: 'rgba(255,204,0,0.12)',
+    text: '#ffffff', text2: '#aaaaaa', textMuted: '#555555',
+    swatches: ['#000000','#00ff88','#ff4444','#ffcc00']
+  },
+  {
+    id: 'slate',
+    name: '🩶 슬레이트',
+    bg: '#0e1117', surface: '#161b27', surface2: '#1c2333', surface3: '#222d42',
+    border: '#2a3650', border2: '#354460',
+    accent: '#58a6ff', accentDim: 'rgba(88,166,255,0.15)', accentSel: 'rgba(88,166,255,0.22)',
+    accent2: '#f78166', accent2Dim: 'rgba(247,129,102,0.13)', accent2Sel: 'rgba(247,129,102,0.22)',
+    gold: '#e3b341', goldDim: 'rgba(227,179,65,0.12)',
+    text: '#c9d1d9', text2: '#8b949e', textMuted: '#484f58',
+    swatches: ['#0e1117','#58a6ff','#f78166','#e3b341']
+  },
+];
+
+let currentTheme = localStorage.getItem('soundTheme') || 'dark-green';
+
+function applyTheme(id) {
+  const t = THEMES.find(t => t.id === id);
+  if (!t) return;
+  const root = document.documentElement;
+  root.style.setProperty('--bg', t.bg);
+  root.style.setProperty('--surface', t.surface);
+  root.style.setProperty('--surface2', t.surface2);
+  root.style.setProperty('--surface3', t.surface3);
+  root.style.setProperty('--border', t.border);
+  root.style.setProperty('--border2', t.border2);
+  root.style.setProperty('--accent', t.accent);
+  root.style.setProperty('--accent-dim', t.accentDim);
+  root.style.setProperty('--accent-selected', t.accentSel);
+  root.style.setProperty('--accent2', t.accent2);
+  root.style.setProperty('--accent2-dim', t.accent2Dim);
+  root.style.setProperty('--accent2-selected', t.accent2Sel);
+  root.style.setProperty('--gold', t.gold);
+  root.style.setProperty('--gold-dim', t.goldDim);
+  root.style.setProperty('--text', t.text);
+  root.style.setProperty('--text2', t.text2);
+  root.style.setProperty('--text-muted', t.textMuted);
+  root.style.setProperty('--unselected-bg', t.bg);
+  root.style.setProperty('--unselected-border', t.border);
+  currentTheme = id;
+  localStorage.setItem('soundTheme', id);
+}
+
+function openThemeModal() {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = THEMES.map(t => `
+    <div class="theme-card ${currentTheme === t.id ? 'active' : ''}"
+      style="background:${t.surface};border-color:${currentTheme===t.id?t.accent:'transparent'}"
+      onclick="applyTheme('${t.id}');renderThemeGrid()">
+      <div class="theme-card-name" style="color:${t.text}">${t.name}</div>
+      <div class="theme-swatches">
+        ${t.swatches.map(s=>`<div class="theme-swatch" style="background:${s}"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('themeModal').classList.add('show');
+}
+
+function renderThemeGrid() {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = THEMES.map(t => `
+    <div class="theme-card ${currentTheme === t.id ? 'active' : ''}"
+      style="background:${t.surface};border-color:${currentTheme===t.id?t.accent:'transparent'}"
+      onclick="applyTheme('${t.id}');renderThemeGrid()">
+      <div class="theme-card-name" style="color:${t.text}">${t.name}</div>
+      <div class="theme-swatches">
+        ${t.swatches.map(s=>`<div class="theme-swatch" style="background:${s}"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function closeThemeModal() { document.getElementById('themeModal').classList.remove('show'); }
+
 // ── 초기화 ──
+applyTheme(currentTheme);
 document.getElementById('pageList').style.display = 'flex';
 document.getElementById('pageTask').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
