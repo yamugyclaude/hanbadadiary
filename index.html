@@ -196,6 +196,7 @@ label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 
 input[type=text], input[type=tel], select, textarea {
   background: var(--surface2);
   border: 1px solid var(--border2);
+  color: var(--text);
   border-radius: 8px;
   color: var(--text);
   font-family: 'Noto Sans KR', sans-serif;
@@ -629,39 +630,69 @@ select option { background: #181c24; }
   </header>
 
   <!-- NAV TABS -->
-  <div class="nav-tabs">
-    <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 작업일지</div>
-    <div class="nav-tab" id="tab-tasks" onclick="switchTab('tasks')">📌 업무관리</div>
+  <div class="nav-tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 행사일지</div>
+    <div class="nav-tab" id="tab-warehouse" onclick="switchTab('warehouse')">🏭 창고업무</div>
+    <div class="nav-tab" id="tab-office" onclick="switchTab('office')">🏢 사무실업무</div>
+    <div class="nav-tab" id="tab-directive" onclick="switchTab('directive')">👔 대표지시</div>
   </div>
 
   <!-- LIST PAGE -->
   <div class="page active" id="pageList">
     <div class="list-toolbar">
-      <button class="btn btn-new" onclick="newLog()">＋ 새 작업일지</button>
+      <button class="btn btn-new" onclick="newLog()">＋ 새 행사일지</button>
       <button class="btn btn-secondary" onclick="gistLoad()" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️ 불러오기</button>
     </div>
     <div class="log-cards" id="logCards"></div>
   </div>
 
-  <!-- TASK PAGE -->
-  <div class="page" id="pageTask">
+  <!-- 창고업무 PAGE -->
+  <div class="page" id="pageWarehouse">
     <div class="task-toolbar">
       <div class="task-filter-group">
-        <button class="task-filter-btn active" id="tf-all" onclick="filterTasks('all')">전체</button>
-        <button class="task-filter-btn" id="tf-todo" onclick="filterTasks('todo')">🔴 예정</button>
-        <button class="task-filter-btn" id="tf-progress" onclick="filterTasks('progress')">🟡 진행중</button>
-        <button class="task-filter-btn" id="tf-done" onclick="filterTasks('done')">✅ 완료</button>
+        <button class="task-filter-btn active" id="wf-all" onclick="filterTasks('warehouse','all')">전체</button>
+        <button class="task-filter-btn" id="wf-todo" onclick="filterTasks('warehouse','todo')">🔴 예정</button>
+        <button class="task-filter-btn" id="wf-progress" onclick="filterTasks('warehouse','progress')">🟡 진행중</button>
+        <button class="task-filter-btn" id="wf-done" onclick="filterTasks('warehouse','done')">✅ 완료</button>
       </div>
-      <button class="btn btn-new" onclick="openTaskModal()" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+      <button class="btn btn-new" onclick="openTaskModal('warehouse')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
     </div>
-    <div class="task-cards" id="taskCards"></div>
+    <div class="task-cards" id="warehouseCards"></div>
+  </div>
+
+  <!-- 사무실업무 PAGE -->
+  <div class="page" id="pageOffice">
+    <div class="task-toolbar">
+      <div class="task-filter-group">
+        <button class="task-filter-btn active" id="of-all" onclick="filterTasks('office','all')">전체</button>
+        <button class="task-filter-btn" id="of-todo" onclick="filterTasks('office','todo')">🔴 예정</button>
+        <button class="task-filter-btn" id="of-progress" onclick="filterTasks('office','progress')">🟡 진행중</button>
+        <button class="task-filter-btn" id="of-done" onclick="filterTasks('office','done')">✅ 완료</button>
+      </div>
+      <button class="btn btn-new" onclick="openTaskModal('office')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+    </div>
+    <div class="task-cards" id="officeCards"></div>
+  </div>
+
+  <!-- 대표지시 PAGE -->
+  <div class="page" id="pageDirective">
+    <div class="task-toolbar">
+      <div class="task-filter-group">
+        <button class="task-filter-btn active" id="df-all" onclick="filterTasks('directive','all')">전체</button>
+        <button class="task-filter-btn" id="df-todo" onclick="filterTasks('directive','todo')">🔴 미완료</button>
+        <button class="task-filter-btn" id="df-progress" onclick="filterTasks('directive','progress')">🟡 진행중</button>
+        <button class="task-filter-btn" id="df-done" onclick="filterTasks('directive','done')">✅ 완료</button>
+      </div>
+      <button class="btn btn-new" onclick="openTaskModal('directive')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+    </div>
+    <div class="task-cards" id="directiveCards"></div>
   </div>
 
   <!-- FORM PAGE -->
   <div class="page" id="pageForm">
     <div class="form-top-bar">
       <button class="back-btn" onclick="showList()">‹</button>
-      <div class="form-top-title" id="formTopTitle">새 작업일지</div>
+      <div class="form-top-title" id="formTopTitle">새 행사일지</div>
       <button class="save-btn-top" onclick="saveAndSync()">저장</button>
     </div>
 
@@ -1142,7 +1173,7 @@ function toggleAdmin() {
 function renderList() {
   const el = document.getElementById('logCards');
   if (!logs.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎛️</div><div>저장된 작업일지가 없습니다<br>새 일지를 작성해보세요</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎛️</div><div>저장된 행사일지가 없습니다<br>새 일지를 작성해보세요</div></div>`;
     return;
   }
   el.innerHTML = [...logs].reverse().map(l => `
@@ -1166,7 +1197,7 @@ function renderMdStore() {
   const cards = document.getElementById('mdFileCards');
   if (!mdStore.length) {
     count.textContent = '저장된 MD 없음';
-    cards.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><div>저장된 MD 파일이 없습니다<br>작업일지에서 MD저장을 눌러보세요</div></div>`;
+    cards.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><div>저장된 MD 파일이 없습니다<br>행사일지에서 MD저장을 눌러보세요</div></div>`;
     return;
   }
   count.textContent = `총 ${mdStore.length}개 파일`;
@@ -1232,7 +1263,7 @@ function saveMDToStore() {
   const log = getFormData();
   if (!log) return;
   const content  = generateMD(log);
-  const filename = `${log.date}_${(log.eventName||'작업일지').replace(/\s/g,'_')}.md`;
+  const filename = `${log.date}_${(log.eventName||'행사일지').replace(/\s/g,'_')}.md`;
 
   _pendingMDContent  = content;
   _pendingMDFilename = filename;
@@ -1380,7 +1411,7 @@ function fillForm(log) {
 function updateTitle() {
   const name = document.getElementById('f_eventName').value;
   const date = document.getElementById('f_date').value;
-  document.getElementById('formTopTitle').textContent = name || fmtDate(date) || '새 작업일지';
+  document.getElementById('formTopTitle').textContent = name || fmtDate(date) || '새 행사일지';
 }
 function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
 
@@ -1789,7 +1820,7 @@ function generateMD(log) {
   const spkDisplay    = log.speakerSelected === 'custom' ? (log.speakerCustom||'직접입력') : (log.speakerSelected||'-');
   const weatherStr    = Array.isArray(log.weather) ? log.weather.join(', ') : (log.weather||'-');
 
-  return `# 음향 작업일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
+  return `# 음향 행사일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
 }
 
 function toggleMDPreview() {
@@ -1904,7 +1935,7 @@ function exportCurrentMD() {
   const log = getFormData();
   if (!log) return;
   const content  = generateMD(log);
-  const filename = `${log.date}_${(log.eventName||'작업일지').replace(/\s/g,'_')}.md`;
+  const filename = `${log.date}_${(log.eventName||'행사일지').replace(/\s/g,'_')}.md`;
   const blob = new Blob([content], {type:'text/markdown'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = filename; a.click();
@@ -1912,9 +1943,12 @@ function exportCurrentMD() {
 }
 
 // ── 업무관리 ──
-let tasks       = JSON.parse(localStorage.getItem('soundtasks') || '[]');
-let taskFilter  = 'all';
-let editTaskId  = null;
+let warehouseTasks  = JSON.parse(localStorage.getItem('warehouseTasks')  || '[]');
+let officeTasks     = JSON.parse(localStorage.getItem('officeTasks')     || '[]');
+let directiveTasks  = JSON.parse(localStorage.getItem('directiveTasks')  || '[]');
+let taskFilter      = { warehouse: 'all', office: 'all', directive: 'all' };
+let currentTaskType = 'warehouse';
+let editTaskId      = null;
 let curTaskStatus   = 'todo';
 let curTaskPriority = 'mid';
 
@@ -1925,28 +1959,42 @@ function switchTab(tab) {
     document.getElementById('tab-list').classList.add('active');
     const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
     renderList();
-  } else {
-    document.getElementById('tab-tasks').classList.add('active');
-    const p = document.getElementById('pageTask'); p.style.display='flex'; p.classList.add('active');
-    renderTasks();
+  } else if (tab === 'warehouse') {
+    document.getElementById('tab-warehouse').classList.add('active');
+    const p = document.getElementById('pageWarehouse'); p.style.display='flex'; p.classList.add('active');
+    renderTasks('warehouse');
+  } else if (tab === 'office') {
+    document.getElementById('tab-office').classList.add('active');
+    const p = document.getElementById('pageOffice'); p.style.display='flex'; p.classList.add('active');
+    renderTasks('office');
+  } else if (tab === 'directive') {
+    document.getElementById('tab-directive').classList.add('active');
+    const p = document.getElementById('pageDirective'); p.style.display='flex'; p.classList.add('active');
+    renderTasks('directive');
   }
 }
 
-function filterTasks(f) {
-  taskFilter = f;
-  document.querySelectorAll('.task-filter-btn').forEach(b => {
+function filterTasks(type, f) {
+  taskFilter[type] = f;
+  const prefix = type === 'warehouse' ? 'wf' : type === 'office' ? 'of' : 'df';
+  const pageId = type === 'warehouse' ? 'Warehouse' : type === 'office' ? 'Office' : 'Directive';
+  document.querySelectorAll(`#page${pageId} .task-filter-btn`).forEach(b => {
     b.classList.remove('active','active-prog','active-done');
   });
-  const btn = document.getElementById('tf-' + f);
+  const btn = document.getElementById(prefix + '-' + f);
   if (f === 'progress') btn.classList.add('active-prog');
   else if (f === 'done') btn.classList.add('active-done');
   else btn.classList.add('active');
-  renderTasks();
+  renderTasks(type);
 }
 
-function renderTasks() {
-  const el = document.getElementById('taskCards');
-  const filtered = taskFilter === 'all' ? tasks : tasks.filter(t => t.status === taskFilter);
+function renderTasks(type) {
+  type = type || currentTaskType;
+  currentTaskType = type;
+  const tasks = type === 'warehouse' ? warehouseTasks : type === 'office' ? officeTasks : directiveTasks;
+  const el = document.getElementById(type === 'warehouse' ? 'warehouseCards' : type === 'office' ? 'officeCards' : 'directiveCards');
+  const f = taskFilter[type] || 'all';
+  const filtered = f === 'all' ? tasks : tasks.filter(t => t.status === f);
   // 우선순위 정렬: high > mid > low, 완료는 맨 아래
   const order = {high:0, mid:1, low:2};
   const statusOrder = {todo:0, progress:1, done:2};
@@ -1975,36 +2023,41 @@ function renderTasks() {
       </div>
       ${t.body ? `<div class="task-body">${t.body}</div>` : ''}
       <div class="task-actions">
-        ${t.status !== 'progress' && t.status !== 'done' ? `<button class="task-act-btn" onclick="quickStatus('${t.id}','progress')">진행중으로</button>` : ''}
-        ${t.status !== 'done' ? `<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done')">완료</button>` : ''}
-        <button class="task-act-btn" onclick="openTaskModal('${t.id}')">수정</button>
-        ${isAdmin ? `<button class="task-act-btn danger" onclick="deleteTask('${t.id}')">삭제</button>` : ''}
+        ${t.status !== 'progress' && t.status !== 'done' ? `<button class="task-act-btn" onclick="quickStatus('${t.id}','progress','${type}')">진행중으로</button>` : ''}
+        ${t.status !== 'done' ? `<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done','${type}')">완료</button>` : ''}
+        <button class="task-act-btn" onclick="openTaskModal('${type}','${t.id}')">수정</button>
+        ${isAdmin ? `<button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>` : ''}
       </div>
     </div>
   `).join('');
 }
 
-function quickStatus(id, status) {
+function quickStatus(id, status, type) {
+  const tasks = type === 'warehouse' ? warehouseTasks : officeTasks;
   const t = tasks.find(t => t.id === id);
   if (!t) return;
   t.status = status;
   saveTasksLocal();
-  renderTasks();
+  renderTasks(type);
 }
 
-function openTaskModal(id) {
+function openTaskModal(type, id) {
+  currentTaskType = type || currentTaskType;
   editTaskId = id || null;
   if (id) {
+    const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
     const t = tasks.find(t => t.id === id);
     if (!t) return;
-    document.getElementById('taskModalTitle').textContent = '업무 수정';
+    const typeLabel2 = currentTaskType==='warehouse'?'🏭 창고업무':currentTaskType==='office'?'🏢 사무실업무':'👔 대표지시';
+    document.getElementById('taskModalTitle').textContent = typeLabel2 + ' 수정';
     document.getElementById('t_title').value = t.title || '';
     document.getElementById('t_body').value  = t.body  || '';
     document.getElementById('t_due').value   = t.due   || '';
     curTaskStatus   = t.status   || 'todo';
     curTaskPriority = t.priority || 'mid';
   } else {
-    document.getElementById('taskModalTitle').textContent = '업무 추가';
+    const typeLabel = currentTaskType==='warehouse'?'🏭 창고업무':currentTaskType==='office'?'🏢 사무실업무':'👔 대표지시';
+    document.getElementById('taskModalTitle').textContent = typeLabel + ' 추가';
     document.getElementById('t_title').value = '';
     document.getElementById('t_body').value  = '';
     document.getElementById('t_due').value   = '';
@@ -2032,6 +2085,7 @@ function refreshTaskModalUI() {
 function saveTask() {
   const title = document.getElementById('t_title').value.trim();
   if (!title) { showToast('⚠️ 제목을 입력하세요'); return; }
+  const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
   if (editTaskId) {
     const t = tasks.find(t => t.id === editTaskId);
     if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); }
@@ -2040,23 +2094,30 @@ function saveTask() {
   }
   saveTasksLocal();
   closeTaskModal();
-  renderTasks();
+  renderTasks(currentTaskType);
   showToast('✓ 저장 완료');
 }
 
-function deleteTask(id) {
+function deleteTask(id, type) {
   if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
   if (!confirm('이 업무를 삭제할까요?')) return;
-  tasks = tasks.filter(t => t.id !== id);
+  if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
+  else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
+  else directiveTasks = directiveTasks.filter(t => t.id !== id);
   saveTasksLocal();
-  renderTasks();
+  renderTasks(type);
   showToast('삭제 완료');
 }
 
-function saveTasksLocal() { localStorage.setItem('soundtasks', JSON.stringify(tasks)); }
+function saveTasksLocal() {
+  localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+  localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+  localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+}
 
 // ── 테마 ──
 const THEMES = [
+  // ── 다크 계열 ──
   {
     id: 'dark-green',
     name: '🌲 다크 그린',
@@ -2069,39 +2130,6 @@ const THEMES = [
     swatches: ['#080a0e','#3dba96','#d97248','#c9a84c']
   },
   {
-    id: 'dark-blue',
-    name: '🌊 다크 블루',
-    bg: '#07090f', surface: '#0d1220', surface2: '#121928', surface3: '#182035',
-    border: '#1c2840', border2: '#243455',
-    accent: '#4a9eff', accentDim: 'rgba(74,158,255,0.15)', accentSel: 'rgba(74,158,255,0.22)',
-    accent2: '#ff6b9d', accent2Dim: 'rgba(255,107,157,0.13)', accent2Sel: 'rgba(255,107,157,0.22)',
-    gold: '#ffd166', goldDim: 'rgba(255,209,102,0.12)',
-    text: '#e0e8ff', text2: '#8899cc', textMuted: '#445577',
-    swatches: ['#07090f','#4a9eff','#ff6b9d','#ffd166']
-  },
-  {
-    id: 'dark-purple',
-    name: '🔮 다크 퍼플',
-    bg: '#09070f', surface: '#120f1e', surface2: '#181528', surface3: '#1e1a34',
-    border: '#251f3d', border2: '#302850',
-    accent: '#a78bfa', accentDim: 'rgba(167,139,250,0.15)', accentSel: 'rgba(167,139,250,0.22)',
-    accent2: '#f472b6', accent2Dim: 'rgba(244,114,182,0.13)', accent2Sel: 'rgba(244,114,182,0.22)',
-    gold: '#fbbf24', goldDim: 'rgba(251,191,36,0.12)',
-    text: '#ede9ff', text2: '#9988cc', textMuted: '#554477',
-    swatches: ['#09070f','#a78bfa','#f472b6','#fbbf24']
-  },
-  {
-    id: 'dark-red',
-    name: '🔥 다크 레드',
-    bg: '#0f0808', surface: '#1a0f0f', surface2: '#221414', surface3: '#2a1a1a',
-    border: '#3d2020', border2: '#502828',
-    accent: '#ff6b6b', accentDim: 'rgba(255,107,107,0.15)', accentSel: 'rgba(255,107,107,0.22)',
-    accent2: '#ffa94d', accent2Dim: 'rgba(255,169,77,0.13)', accent2Sel: 'rgba(255,169,77,0.22)',
-    gold: '#ffe066', goldDim: 'rgba(255,224,102,0.12)',
-    text: '#ffe8e8', text2: '#cc9999', textMuted: '#775555',
-    swatches: ['#0f0808','#ff6b6b','#ffa94d','#ffe066']
-  },
-  {
     id: 'midnight',
     name: '🌙 미드나잇',
     bg: '#000000', surface: '#0a0a0a', surface2: '#111111', surface3: '#1a1a1a',
@@ -2112,16 +2140,84 @@ const THEMES = [
     text: '#ffffff', text2: '#aaaaaa', textMuted: '#555555',
     swatches: ['#000000','#00ff88','#ff4444','#ffcc00']
   },
+  // ── 밝은 계열 ──
   {
-    id: 'slate',
-    name: '🩶 슬레이트',
-    bg: '#0e1117', surface: '#161b27', surface2: '#1c2333', surface3: '#222d42',
-    border: '#2a3650', border2: '#354460',
-    accent: '#58a6ff', accentDim: 'rgba(88,166,255,0.15)', accentSel: 'rgba(88,166,255,0.22)',
-    accent2: '#f78166', accent2Dim: 'rgba(247,129,102,0.13)', accent2Sel: 'rgba(247,129,102,0.22)',
-    gold: '#e3b341', goldDim: 'rgba(227,179,65,0.12)',
-    text: '#c9d1d9', text2: '#8b949e', textMuted: '#484f58',
-    swatches: ['#0e1117','#58a6ff','#f78166','#e3b341']
+    id: 'light-clean',
+    name: '☀️ 라이트',
+    bg: '#f5f7fa', surface: '#ffffff', surface2: '#eef1f6', surface3: '#e4e8f0',
+    border: '#d0d8e8', border2: '#b8c4da',
+    accent: '#2563eb', accentDim: 'rgba(37,99,235,0.1)', accentSel: 'rgba(37,99,235,0.18)',
+    accent2: '#e05a2b', accent2Dim: 'rgba(224,90,43,0.1)', accent2Sel: 'rgba(224,90,43,0.18)',
+    gold: '#b45309', goldDim: 'rgba(180,83,9,0.1)',
+    text: '#1e293b', text2: '#475569', textMuted: '#94a3b8',
+    swatches: ['#f5f7fa','#2563eb','#e05a2b','#b45309']
+  },
+  {
+    id: 'light-warm',
+    name: '🌤 웜 화이트',
+    bg: '#faf8f5', surface: '#ffffff', surface2: '#f5f0e8', surface3: '#ede5d8',
+    border: '#ddd5c5', border2: '#c8bca8',
+    accent: '#c2410c', accentDim: 'rgba(194,65,12,0.1)', accentSel: 'rgba(194,65,12,0.18)',
+    accent2: '#0369a1', accent2Dim: 'rgba(3,105,161,0.1)', accent2Sel: 'rgba(3,105,161,0.18)',
+    gold: '#92400e', goldDim: 'rgba(146,64,14,0.1)',
+    text: '#292524', text2: '#57534e', textMuted: '#a8a29e',
+    swatches: ['#faf8f5','#c2410c','#0369a1','#92400e']
+  },
+  // ── 파스텔 계열 ──
+  {
+    id: 'pastel-mint',
+    name: '🌿 파스텔 민트',
+    bg: '#f0faf6', surface: '#ffffff', surface2: '#e6f7f0', surface3: '#d4f0e4',
+    border: '#b8e4d0', border2: '#96d4bc',
+    accent: '#0d9488', accentDim: 'rgba(13,148,136,0.12)', accentSel: 'rgba(13,148,136,0.22)',
+    accent2: '#db7093', accent2Dim: 'rgba(219,112,147,0.12)', accent2Sel: 'rgba(219,112,147,0.22)',
+    gold: '#d97706', goldDim: 'rgba(217,119,6,0.12)',
+    text: '#134e4a', text2: '#2d6a62', textMuted: '#7fb5ac',
+    swatches: ['#f0faf6','#0d9488','#db7093','#d97706']
+  },
+  {
+    id: 'pastel-pink',
+    name: '🌸 파스텔 핑크',
+    bg: '#fff0f6', surface: '#ffffff', surface2: '#ffe4ef', surface3: '#ffd6e7',
+    border: '#fbbdd5', border2: '#f9a8c9',
+    accent: '#db2777', accentDim: 'rgba(219,39,119,0.12)', accentSel: 'rgba(219,39,119,0.22)',
+    accent2: '#7c3aed', accent2Dim: 'rgba(124,58,237,0.12)', accent2Sel: 'rgba(124,58,237,0.22)',
+    gold: '#b45309', goldDim: 'rgba(180,83,9,0.12)',
+    text: '#500724', text2: '#9d174d', textMuted: '#f9a8c9',
+    swatches: ['#fff0f6','#db2777','#7c3aed','#b45309']
+  },
+  {
+    id: 'pastel-sky',
+    name: '🩵 파스텔 스카이',
+    bg: '#f0f8ff', surface: '#ffffff', surface2: '#e0f0ff', surface3: '#cce4ff',
+    border: '#b3d4f5', border2: '#90beec',
+    accent: '#0ea5e9', accentDim: 'rgba(14,165,233,0.12)', accentSel: 'rgba(14,165,233,0.22)',
+    accent2: '#f97316', accent2Dim: 'rgba(249,115,22,0.12)', accent2Sel: 'rgba(249,115,22,0.22)',
+    gold: '#ca8a04', goldDim: 'rgba(202,138,4,0.12)',
+    text: '#0c4a6e', text2: '#0369a1', textMuted: '#93c5fd',
+    swatches: ['#f0f8ff','#0ea5e9','#f97316','#ca8a04']
+  },
+  {
+    id: 'pastel-lavender',
+    name: '💜 파스텔 라벤더',
+    bg: '#faf5ff', surface: '#ffffff', surface2: '#f3e8ff', surface3: '#e9d5ff',
+    border: '#d8b4fe', border2: '#c084fc',
+    accent: '#7c3aed', accentDim: 'rgba(124,58,237,0.12)', accentSel: 'rgba(124,58,237,0.22)',
+    accent2: '#ec4899', accent2Dim: 'rgba(236,72,153,0.12)', accent2Sel: 'rgba(236,72,153,0.22)',
+    gold: '#b45309', goldDim: 'rgba(180,83,9,0.12)',
+    text: '#3b0764', text2: '#6b21a8', textMuted: '#c084fc',
+    swatches: ['#faf5ff','#7c3aed','#ec4899','#b45309']
+  },
+  {
+    id: 'pastel-peach',
+    name: '🍑 파스텔 피치',
+    bg: '#fff7f0', surface: '#ffffff', surface2: '#ffede0', surface3: '#ffe0cc',
+    border: '#ffc9a8', border2: '#ffb088',
+    accent: '#ea580c', accentDim: 'rgba(234,88,12,0.12)', accentSel: 'rgba(234,88,12,0.22)',
+    accent2: '#0891b2', accent2Dim: 'rgba(8,145,178,0.12)', accent2Sel: 'rgba(8,145,178,0.22)',
+    gold: '#92400e', goldDim: 'rgba(146,64,14,0.12)',
+    text: '#431407', text2: '#9a3412', textMuted: '#fdba74',
+    swatches: ['#fff7f0','#ea580c','#0891b2','#92400e']
   },
 ];
 
@@ -2148,7 +2244,7 @@ function applyTheme(id) {
   root.style.setProperty('--text', t.text);
   root.style.setProperty('--text2', t.text2);
   root.style.setProperty('--text-muted', t.textMuted);
-  root.style.setProperty('--unselected-bg', t.bg);
+  root.style.setProperty('--unselected-bg', t.surface2);
   root.style.setProperty('--unselected-border', t.border);
   currentTheme = id;
   localStorage.setItem('soundTheme', id);
@@ -2188,7 +2284,9 @@ function closeThemeModal() { document.getElementById('themeModal').classList.rem
 // ── 초기화 ──
 applyTheme(currentTheme);
 document.getElementById('pageList').style.display = 'flex';
-document.getElementById('pageTask').style.display = 'none';
+document.getElementById('pageWarehouse').style.display = 'none';
+document.getElementById('pageOffice').style.display = 'none';
+document.getElementById('pageDirective').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
 renderList();
 </script>
