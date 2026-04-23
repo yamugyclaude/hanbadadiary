@@ -2374,6 +2374,52 @@ document.getElementById('pageForm').style.display = 'none';
 renderList();
 // 초기 히스토리 상태 등록
 history.replaceState({ page: 'list' }, '', '');
+
+// ── 앱 시작 시 클라우드 자동 동기화 ──
+(async function autoSync() {
+  try {
+    showToast('☁️ 동기화 중...');
+    // 행사일지: 최근 6개월 자동 불러오기
+    const t = today();
+    const from = new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString().split('T')[0];
+    const res = await fetch(
+      SB_URL + '/rest/v1/soundlogs?select=id,data&date=gte.' + from + '&date=lte.' + t + '&order=date.desc',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    if (res.ok) {
+      const rows = await res.json();
+      rows.forEach(r => {
+        const cl = JSON.parse(r.data);
+        const idx = logs.findIndex(l => l.id === cl.id);
+        if (idx >= 0) logs[idx] = cl;
+        else logs.push(cl);
+      });
+      localStorage.setItem('soundlogs', JSON.stringify(logs));
+      renderList();
+    }
+    // 업무(tasks) 자동 불러오기
+    const res2 = await fetch(
+      SB_URL + '/rest/v1/tasks?select=type,data&order=created_at.desc',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    if (res2.ok) {
+      const rows2 = await res2.json();
+      warehouseTasks = []; officeTasks = []; directiveTasks = [];
+      rows2.forEach(r => {
+        const t2 = JSON.parse(r.data);
+        if (r.type === 'warehouse') warehouseTasks.push(t2);
+        else if (r.type === 'office') officeTasks.push(t2);
+        else if (r.type === 'directive') directiveTasks.push(t2);
+      });
+      localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+      localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+      localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+    }
+    showToast('✅ 동기화 완료');
+  } catch(e) {
+    showToast('📵 오프라인 - 로컬 데이터 사용');
+  }
+})();
 </script>
 </body>
 </html>
