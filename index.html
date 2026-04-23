@@ -79,7 +79,7 @@ header {
   flex: 1;
   padding: 11px 0;
   text-align: center;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-muted);
   cursor: pointer;
@@ -481,6 +481,9 @@ select option { background: #181c24; }
 .add-row-btn { width:100%; margin-top:8px; padding:10px; background:var(--surface3); border:1px dashed var(--border2); border-radius:var(--radius); color:var(--text2); font-size:13px; cursor:pointer; }
 .add-row-btn:hover { background:var(--accent-dim); color:var(--accent); border-color:var(--accent); }
 .btn-primary { background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:var(--radius);padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%; }
+.subtab { flex:1; padding:10px 4px; background:none; border:none; border-bottom:2px solid transparent; color:var(--text-muted); font-size:15px; font-weight:600; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all .2s; }
+.subtab.active { color:var(--accent); border-bottom-color:var(--accent); background:var(--accent-dim); }
+.subtab:hover:not(.active) { color:var(--text2); background:var(--surface2); }
 .vmaint-card { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px; margin-bottom: 8px; }
 .vmaint-card:last-child { margin-bottom: 0; }
 .vmaint-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -644,12 +647,10 @@ select option { background: #181c24; }
   </header>
 
   <!-- NAV TABS -->
-  <div class="nav-tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+  <div class="nav-tabs">
     <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 행사일지</div>
-    <div class="nav-tab" id="tab-warehouse" onclick="switchTab('warehouse')">🏭 창고업무</div>
-    <div class="nav-tab" id="tab-office" onclick="switchTab('office')">🏢 사무실업무</div>
-    <div class="nav-tab" id="tab-directive" onclick="switchTab('directive')">👔 대표지시</div>
-    <div class="nav-tab" id="tab-vehicle" onclick="switchTab('vehicle')">🚛 차량관리</div>
+    <div class="nav-tab" id="tab-tasks" onclick="switchTab('tasks')">📌 업무관리</div>
+    <div class="nav-tab" id="tab-manage" onclick="switchTab('manage')">⚙️ 관리</div>
   </div>
 
   <!-- LIST PAGE -->
@@ -661,157 +662,114 @@ select option { background: #181c24; }
     <div class="log-cards" id="logCards"></div>
   </div>
 
-  <!-- 창고업무 PAGE -->
-  <div class="page" id="pageWarehouse">
-    <div class="task-toolbar">
-      <div class="task-filter-group">
-        <button class="task-filter-btn active" id="wf-all" onclick="filterTasks('warehouse','all')">전체</button>
-        <button class="task-filter-btn" id="wf-todo" onclick="filterTasks('warehouse','todo')">🔴 예정</button>
-        <button class="task-filter-btn" id="wf-progress" onclick="filterTasks('warehouse','progress')">🟡 진행중</button>
-        <button class="task-filter-btn" id="wf-done" onclick="filterTasks('warehouse','done')">✅ 완료</button>
-      </div>
-      <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
-      <button class="btn btn-new" onclick="openTaskModal('warehouse')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+  <!-- 업무관리 통합 PAGE -->
+  <div class="page" id="pageTasks" style="display:none;flex-direction:column;">
+    <!-- 서브탭 -->
+    <div style="display:flex;gap:0;flex-shrink:0;border-bottom:1px solid var(--border2);background:var(--surface);">
+      <button class="subtab active" id="stab-warehouse" onclick="switchSubTask('warehouse')">🏭 창고</button>
+      <button class="subtab" id="stab-office"    onclick="switchSubTask('office')">🏢 사무실</button>
+      <button class="subtab" id="stab-directive" onclick="switchSubTask('directive')">👔 대표지시</button>
     </div>
-    <div class="task-cards" id="warehouseCards"></div>
+    <!-- 각 서브 컨텐츠 -->
+    <div id="subpage-warehouse" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div class="task-toolbar">
+        <div class="task-filter-group">
+          <button class="task-filter-btn active" id="wf-all" onclick="filterTasks('warehouse','all')">전체</button>
+          <button class="task-filter-btn" id="wf-todo" onclick="filterTasks('warehouse','todo')">🔴 예정</button>
+          <button class="task-filter-btn" id="wf-progress" onclick="filterTasks('warehouse','progress')">🟡 진행중</button>
+          <button class="task-filter-btn" id="wf-done" onclick="filterTasks('warehouse','done')">✅ 완료</button>
+        </div>
+        <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
+        <button class="btn btn-new" onclick="openTaskModal('warehouse')" style="flex:none;padding:8px 14px;font-size:13px;">＋</button>
+      </div>
+      <div class="task-cards" id="warehouseCards"></div>
+    </div>
+    <div id="subpage-office" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+      <div class="task-toolbar">
+        <div class="task-filter-group">
+          <button class="task-filter-btn active" id="of-all" onclick="filterTasks('office','all')">전체</button>
+          <button class="task-filter-btn" id="of-todo" onclick="filterTasks('office','todo')">🔴 예정</button>
+          <button class="task-filter-btn" id="of-progress" onclick="filterTasks('office','progress')">🟡 진행중</button>
+          <button class="task-filter-btn" id="of-done" onclick="filterTasks('office','done')">✅ 완료</button>
+        </div>
+        <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
+        <button class="btn btn-new" onclick="openTaskModal('office')" style="flex:none;padding:8px 14px;font-size:13px;">＋</button>
+      </div>
+      <div class="task-cards" id="officeCards"></div>
+    </div>
+    <div id="subpage-directive" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+      <div class="task-toolbar">
+        <div class="task-filter-group">
+          <button class="task-filter-btn active" id="df-all" onclick="filterTasks('directive','all')">전체</button>
+          <button class="task-filter-btn" id="df-todo" onclick="filterTasks('directive','todo')">🔴 미완료</button>
+          <button class="task-filter-btn" id="df-progress" onclick="filterTasks('directive','progress')">🟡 진행중</button>
+          <button class="task-filter-btn" id="df-done" onclick="filterTasks('directive','done')">✅ 완료</button>
+        </div>
+        <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
+        <button class="btn btn-new" onclick="openTaskModal('directive')" style="flex:none;padding:8px 14px;font-size:13px;">＋</button>
+      </div>
+      <div class="task-cards" id="directiveCards"></div>
+    </div>
   </div>
 
-  <!-- 사무실업무 PAGE -->
-  <div class="page" id="pageOffice">
-    <div class="task-toolbar">
-      <div class="task-filter-group">
-        <button class="task-filter-btn active" id="of-all" onclick="filterTasks('office','all')">전체</button>
-        <button class="task-filter-btn" id="of-todo" onclick="filterTasks('office','todo')">🔴 예정</button>
-        <button class="task-filter-btn" id="of-progress" onclick="filterTasks('office','progress')">🟡 진행중</button>
-        <button class="task-filter-btn" id="of-done" onclick="filterTasks('office','done')">✅ 완료</button>
-      </div>
-      <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
-      <button class="btn btn-new" onclick="openTaskModal('office')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+  <!-- 관리 통합 PAGE -->
+  <div class="page" id="pageManage" style="display:none;flex-direction:column;">
+    <!-- 서브탭 -->
+    <div style="display:flex;gap:0;flex-shrink:0;border-bottom:1px solid var(--border2);background:var(--surface);">
+      <button class="subtab active" id="stab-vehicle"  onclick="switchSubManage('vehicle')">🚛 차량</button>
+      <button class="subtab" id="stab-mdstore" onclick="switchSubManage('mdstore')">📂 MD</button>
+      <button class="subtab" id="stab-backup"  onclick="switchSubManage('backup')">💾 백업</button>
     </div>
-    <div class="task-cards" id="officeCards"></div>
-  </div>
-
-  <!-- 대표지시 PAGE -->
-  <div class="page" id="pageDirective">
-    <div class="task-toolbar">
-      <div class="task-filter-group">
-        <button class="task-filter-btn active" id="df-all" onclick="filterTasks('directive','all')">전체</button>
-        <button class="task-filter-btn" id="df-todo" onclick="filterTasks('directive','todo')">🔴 미완료</button>
-        <button class="task-filter-btn" id="df-progress" onclick="filterTasks('directive','progress')">🟡 진행중</button>
-        <button class="task-filter-btn" id="df-done" onclick="filterTasks('directive','done')">✅ 완료</button>
+    <!-- 차량 -->
+    <div id="subpage-vehicle" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:14px 16px 0;display:flex;gap:8px;flex-shrink:0;">
+        <button class="task-filter-btn active" id="vf-1.5t" onclick="switchVehicle('1.5t')">🚐 1.5톤</button>
+        <button class="task-filter-btn" id="vf-3.5t" onclick="switchVehicle('3.5t')">🚛 3.5톤</button>
+        <button class="btn btn-secondary" onclick="loadVehicleFromCloud()" style="flex:none;margin-left:auto;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
       </div>
-      <button class="btn btn-secondary" onclick="loadTasksFromCloud()" style="flex:none;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
-      <button class="btn btn-new" onclick="openTaskModal('directive')" style="flex:none;padding:8px 14px;font-size:13px;">＋ 추가</button>
+      <div id="vehiclePanel_1.5t" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px;">
+        <div class="section-block" id="vsec_maint_1_5t"><div class="section-header" onclick="toggleSection('vsec_maint_1_5t')"><div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">정비 기록</span></div><span class="section-chevron">▼</span></div><div class="section-content"><div id="vmaintList_1_5t"></div><button class="add-row-btn" onclick="addVehicleMaint('1.5t')">＋ 정비 항목 추가</button></div></div>
+        <div class="section-block" id="vsec_insp_1_5t"><div class="section-header" onclick="toggleSection('vsec_insp_1_5t')"><div class="section-header-left"><span class="section-icon">📋</span><span class="section-title">정기검사</span></div><span class="section-chevron">▼</span></div><div class="section-content"><div class="field" style="margin-bottom:12px"><label>최근 검사일</label><input id="v_insp_date_1_5t" type="date" style="color-scheme:dark;"></div><div class="field" style="margin-bottom:12px"><label>다음 검사 예정일</label><input id="v_insp_next_1_5t" type="date" style="color-scheme:dark;"></div><div class="field" style="margin:0"><label>검사 메모</label><textarea id="v_insp_memo_1_5t" placeholder="검사 관련 메모"></textarea></div></div></div>
+        <div class="section-block" id="vsec_etc_1_5t"><div class="section-header" onclick="toggleSection('vsec_etc_1_5t')"><div class="section-header-left"><span class="section-icon">📝</span><span class="section-title">기타</span></div><span class="section-chevron">▼</span></div><div class="section-content"><div class="field" style="margin:0"><textarea id="v_etc_1_5t" placeholder="보험, 범칙금, 사고이력 등" style="min-height:100px;"></textarea></div></div></div>
+        <button class="btn btn-primary" style="flex:none;margin-bottom:16px;" onclick="saveVehicleData('1.5t')">✓ 저장</button>
+      </div>
+      <div id="vehiclePanel_3.5t" style="flex:1;overflow-y:auto;padding:14px 16px;display:none;flex-direction:column;gap:14px;">
+        <div class="section-block" id="vsec_maint_3_5t"><div class="section-header" onclick="toggleSection('vsec_maint_3_5t')"><div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">정비 기록</span></div><span class="section-chevron">▼</span></div><div class="section-content"><div id="vmaintList_3_5t"></div><button class="add-row-btn" onclick="addVehicleMaint('3.5t')">＋ 정비 항목 추가</button></div></div>
+        <div class="section-block" id="vsec_insp_3_5t"><div class="section-header" onclick="toggleSection('vsec_insp_3_5t')"><div class="section-header-left"><span class="section-icon">📋</span><span class="section-title">정기검사</span></div><span class="section-chevron">▼</span></div><div class="section-content"><div class="field" style="margin-bottom:12px"><label>최근 검사일</label><input id="v_insp_date_3_5t" type="date" style="color-scheme:dark;"></div><div class="field" style="margin-bottom:12px"><label>다음 검사 예정일</label><input id="v_insp_next_3_5t" type="date" style="color-scheme:dark;"></div><div class="field" style="margin:0"><label>검사 메모</label><textarea id="v_insp_memo_3_5t" placeholder="검사 관련 메모"></textarea></div></div></div>
+        <div class="section-block" id="vsec_etc_3_5t"><div class="section-header" onclick="toggleSection('vsec_etc_3_5t')"><div class="section-header-left"><span class="section-icon">📝</span><span class="section-title">기타</span></div><span class="section-chevron">▼</span></div><div class="section-content"><div class="field" style="margin:0"><textarea id="v_etc_3_5t" placeholder="보험, 범칙금, 사고이력 등" style="min-height:100px;"></textarea></div></div></div>
+        <button class="btn btn-primary" style="flex:none;margin-bottom:16px;" onclick="saveVehicleData('3.5t')">✓ 저장</button>
+      </div>
     </div>
-    <div class="task-cards" id="directiveCards"></div>
-  </div>
-
-  <!-- 차량관리 PAGE -->
-  <div class="page" id="pageVehicle">
-    <div style="padding:14px 16px 0;display:flex;gap:8px;flex-shrink:0;">
-      <button class="task-filter-btn active" id="vf-1.5t" onclick="switchVehicle('1.5t')">🚐 1.5톤</button>
-      <button class="task-filter-btn" id="vf-3.5t" onclick="switchVehicle('3.5t')">🚛 3.5톤</button>
-      <button class="btn btn-secondary" onclick="loadVehicleFromCloud()" style="flex:none;margin-left:auto;padding:8px 10px;font-size:12px;background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️</button>
+    <!-- MD저장소 -->
+    <div id="subpage-mdstore" style="flex:1;display:none;flex-direction:column;overflow:hidden;">
+      <div style="padding:14px 16px 0;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <span id="mdStoreCount" style="font-size:13px;color:var(--text2);flex:1;"></span>
+        <button onclick="exportAllMD()" style="background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;">⬇ MD</button>
+        <button onclick="clearAllMdStore()" style="background:var(--accent2-dim);color:var(--accent2);border:1px solid rgba(224,123,84,0.3);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;">🗑</button>
+      </div>
+      <div class="task-cards" id="mdFileCards" style="padding:14px 16px;"></div>
     </div>
-
-    <!-- 1.5톤 카드 -->
-    <div id="vehiclePanel_1.5t" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px;">
-      <!-- 정비 기록 -->
-      <div class="section-block" id="vsec_maint_1_5t">
-        <div class="section-header" onclick="toggleSection('vsec_maint_1_5t')">
-          <div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">정비 기록</span></div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <div id="vmaintList_1_5t"></div>
-          <button class="add-row-btn" onclick="addVehicleMaint('1.5t')">＋ 정비 항목 추가</button>
-        </div>
+    <!-- 백업 -->
+    <div id="subpage-backup" style="flex:1;display:none;flex-direction:column;overflow-y:auto;padding:14px 16px;gap:12px;">
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">📤 전체 데이터 내보내기</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">행사일지·업무·차량·MD 전부를 JSON으로 저장합니다.</div>
+        <button onclick="exportBackupJSON()" style="width:100%;padding:12px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">⬇ JSON 백업 다운로드</button>
       </div>
-      <!-- 정기검사 -->
-      <div class="section-block" id="vsec_insp_1_5t">
-        <div class="section-header" onclick="toggleSection('vsec_insp_1_5t')">
-          <div class="section-header-left"><span class="section-icon">📋</span><span class="section-title">정기검사</span></div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <div class="field" style="margin-bottom:12px">
-            <label>최근 검사일</label>
-            <input id="v_insp_date_1_5t" type="date" style="color-scheme:dark;">
-          </div>
-          <div class="field" style="margin-bottom:12px">
-            <label>다음 검사 예정일</label>
-            <input id="v_insp_next_1_5t" type="date" style="color-scheme:dark;">
-          </div>
-          <div class="field" style="margin:0">
-            <label>검사 메모</label>
-            <textarea id="v_insp_memo_1_5t" placeholder="검사 관련 메모"></textarea>
-          </div>
-        </div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">📥 백업 파일 복원</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">JSON 파일 선택 시 기존 데이터와 병합 복원됩니다.<br><span style="color:var(--accent2);">⚠ 중복 ID는 백업 우선</span></div>
+        <label style="display:block;width:100%;padding:12px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,0.4);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;box-sizing:border-box;">📂 JSON 파일 선택<input type="file" accept=".json" onchange="importBackupJSON(event)" style="display:none;"></label>
       </div>
-      <!-- 기타 -->
-      <div class="section-block" id="vsec_etc_1_5t">
-        <div class="section-header" onclick="toggleSection('vsec_etc_1_5t')">
-          <div class="section-header-left"><span class="section-icon">📝</span><span class="section-title">기타</span></div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <div class="field" style="margin:0">
-            <label>기타 메모</label>
-            <textarea id="v_etc_1_5t" placeholder="보험, 범칙금, 사고이력 등 자유롭게 입력하세요" style="min-height:120px;"></textarea>
-          </div>
-        </div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">📋 행사일지 전체 MD</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">모든 행사일지를 하나의 마크다운 파일로 내보냅니다.</div>
+        <button onclick="exportAllMD()" style="width:100%;padding:12px;background:var(--surface3);color:var(--text2);border:1px solid var(--border2);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">⬇ 전체 MD 다운로드</button>
       </div>
-      <button class="btn btn-primary" style="flex:none;margin-bottom:16px;" onclick="saveVehicleData('1.5t')">✓ 저장</button>
-    </div>
-
-    <!-- 3.5톤 카드 -->
-    <div id="vehiclePanel_3.5t" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px;display:none;">
-      <!-- 정비 기록 -->
-      <div class="section-block" id="vsec_maint_3_5t">
-        <div class="section-header" onclick="toggleSection('vsec_maint_3_5t')">
-          <div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">정비 기록</span></div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <div id="vmaintList_3_5t"></div>
-          <button class="add-row-btn" onclick="addVehicleMaint('3.5t')">＋ 정비 항목 추가</button>
-        </div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">📊 저장 현황</div>
+        <div id="backupStats" style="font-size:13px;color:var(--text2);line-height:2;"></div>
       </div>
-      <!-- 정기검사 -->
-      <div class="section-block" id="vsec_insp_3_5t">
-        <div class="section-header" onclick="toggleSection('vsec_insp_3_5t')">
-          <div class="section-header-left"><span class="section-icon">📋</span><span class="section-title">정기검사</span></div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <div class="field" style="margin-bottom:12px">
-            <label>최근 검사일</label>
-            <input id="v_insp_date_3_5t" type="date" style="color-scheme:dark;">
-          </div>
-          <div class="field" style="margin-bottom:12px">
-            <label>다음 검사 예정일</label>
-            <input id="v_insp_next_3_5t" type="date" style="color-scheme:dark;">
-          </div>
-          <div class="field" style="margin:0">
-            <label>검사 메모</label>
-            <textarea id="v_insp_memo_3_5t" placeholder="검사 관련 메모"></textarea>
-          </div>
-        </div>
-      </div>
-      <!-- 기타 -->
-      <div class="section-block" id="vsec_etc_3_5t">
-        <div class="section-header" onclick="toggleSection('vsec_etc_3_5t')">
-          <div class="section-header-left"><span class="section-icon">📝</span><span class="section-title">기타</span></div>
-          <span class="section-chevron">▼</span>
-        </div>
-        <div class="section-content">
-          <div class="field" style="margin:0">
-            <label>기타 메모</label>
-            <textarea id="v_etc_3_5t" placeholder="보험, 범칙금, 사고이력 등 자유롭게 입력하세요" style="min-height:120px;"></textarea>
-          </div>
-        </div>
-      </div>
-      <button class="btn btn-primary" style="flex:none;margin-bottom:16px;" onclick="saveVehicleData('3.5t')">✓ 저장</button>
     </div>
   </div>
 
@@ -2188,23 +2146,38 @@ function switchTab(tab) {
     document.getElementById('tab-list').classList.add('active');
     const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
     renderList();
-  } else if (tab === 'warehouse') {
-    document.getElementById('tab-warehouse').classList.add('active');
-    const p = document.getElementById('pageWarehouse'); p.style.display='flex'; p.classList.add('active');
-    renderTasks('warehouse');
-  } else if (tab === 'office') {
-    document.getElementById('tab-office').classList.add('active');
-    const p = document.getElementById('pageOffice'); p.style.display='flex'; p.classList.add('active');
-    renderTasks('office');
-  } else if (tab === 'directive') {
-    document.getElementById('tab-directive').classList.add('active');
-    const p = document.getElementById('pageDirective'); p.style.display='flex'; p.classList.add('active');
-    renderTasks('directive');
-  } else if (tab === 'vehicle') {
-    document.getElementById('tab-vehicle').classList.add('active');
-    const p = document.getElementById('pageVehicle'); p.style.display='flex'; p.classList.add('active');
-    switchVehicle(curVehicle);
+  } else if (tab === 'tasks') {
+    document.getElementById('tab-tasks').classList.add('active');
+    const p = document.getElementById('pageTasks'); p.style.display='flex'; p.classList.add('active');
+    switchSubTask(curSubTask);
+  } else if (tab === 'manage') {
+    document.getElementById('tab-manage').classList.add('active');
+    const p = document.getElementById('pageManage'); p.style.display='flex'; p.classList.add('active');
+    switchSubManage(curSubManage);
   }
+}
+
+let curSubTask   = 'warehouse';
+let curSubManage = 'vehicle';
+
+function switchSubTask(sub) {
+  curSubTask = sub;
+  ['warehouse','office','directive'].forEach(s => {
+    document.getElementById('stab-' + s).classList.toggle('active', s === sub);
+    document.getElementById('subpage-' + s).style.display = s === sub ? 'flex' : 'none';
+  });
+  renderTasks(sub);
+}
+
+function switchSubManage(sub) {
+  curSubManage = sub;
+  ['vehicle','mdstore','backup'].forEach(s => {
+    document.getElementById('stab-' + s).classList.toggle('active', s === sub);
+    document.getElementById('subpage-' + s).style.display = s === sub ? 'flex' : 'none';
+  });
+  if (sub === 'mdstore') renderMdStore();
+  if (sub === 'backup')  renderBackupStats();
+  if (sub === 'vehicle') switchVehicle(curVehicle);
 }
 
 function filterTasks(type, f) {
@@ -2698,17 +2671,106 @@ function closeThemeModal() { document.getElementById('themeModal').classList.rem
 // ── 초기화 ──
 applyTheme(currentTheme);
 document.getElementById('pageList').style.display = 'flex';
-document.getElementById('pageWarehouse').style.display = 'none';
-document.getElementById('pageOffice').style.display = 'none';
-document.getElementById('pageDirective').style.display = 'none';
-document.getElementById('pageVehicle').style.display = 'none';
+document.getElementById('pageTasks').style.display = 'none';
+document.getElementById('pageManage').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
-// 차량 패널 초기 상태
+// 서브페이지 초기 상태
+['office','directive'].forEach(s => document.getElementById('subpage-'+s).style.display='none');
+['mdstore','backup'].forEach(s => document.getElementById('subpage-'+s).style.display='none');
 document.getElementById('vehiclePanel_1.5t').style.display = 'flex';
 document.getElementById('vehiclePanel_3.5t').style.display = 'none';
 renderList();
 // 초기 히스토리 상태 등록
 history.replaceState({ page: 'list' }, '', '');
+
+// ── 백업/복원 ──
+function exportBackupJSON() {
+  const backup = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    logs:           logs,
+    mdStore:        mdStore,
+    warehouseTasks: warehouseTasks,
+    officeTasks:    officeTasks,
+    directiveTasks: directiveTasks,
+    vehicleData:    vehicleData
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `soundlog_backup_${today()}.json`;
+  a.click();
+  showToast('⬇ 백업 파일 다운로드 완료');
+}
+
+function importBackupJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const backup = JSON.parse(ev.target.result);
+      if (!backup.logs && !backup.warehouseTasks) throw new Error('올바른 백업 파일이 아닙니다');
+      let count = 0;
+      // 행사일지 병합
+      if (backup.logs) {
+        backup.logs.forEach(cl => {
+          const idx = logs.findIndex(l => l.id === cl.id);
+          if (idx >= 0) logs[idx] = cl; else logs.push(cl);
+          count++;
+        });
+        localStorage.setItem('soundlogs', JSON.stringify(logs));
+      }
+      // MD저장소 병합
+      if (backup.mdStore) {
+        backup.mdStore.forEach(m => {
+          if (!mdStore.find(x => x.id === m.id)) mdStore.push(m);
+        });
+        localStorage.setItem('mdStore', JSON.stringify(mdStore));
+      }
+      // 업무 병합
+      if (backup.warehouseTasks) {
+        backup.warehouseTasks.forEach(t => { if (!warehouseTasks.find(x=>x.id===t.id)) warehouseTasks.push(t); });
+        localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
+      }
+      if (backup.officeTasks) {
+        backup.officeTasks.forEach(t => { if (!officeTasks.find(x=>x.id===t.id)) officeTasks.push(t); });
+        localStorage.setItem('officeTasks', JSON.stringify(officeTasks));
+      }
+      if (backup.directiveTasks) {
+        backup.directiveTasks.forEach(t => { if (!directiveTasks.find(x=>x.id===t.id)) directiveTasks.push(t); });
+        localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
+      }
+      // 차량 데이터 덮어쓰기
+      if (backup.vehicleData) {
+        vehicleData = { ...vehicleData, ...backup.vehicleData };
+        localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+      }
+      showToast(`✅ 복원 완료 (일지 ${backup.logs?.length||0}개)`);
+      renderList();
+      renderBackupStats();
+    } catch(err) {
+      showToast('❌ 복원 실패: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // 같은 파일 재선택 가능하게
+}
+
+function renderBackupStats() {
+  const el = document.getElementById('backupStats');
+  if (!el) return;
+  const lsSize = new Blob([JSON.stringify(localStorage)]).size;
+  el.innerHTML = `
+    🗒 행사일지: <b style="color:var(--accent)">${logs.length}개</b><br>
+    📂 MD저장소: <b style="color:var(--accent)">${mdStore.length}개</b><br>
+    🏭 창고업무: <b style="color:var(--accent)">${warehouseTasks.length}개</b><br>
+    🏢 사무실업무: <b style="color:var(--accent)">${officeTasks.length}개</b><br>
+    👔 대표지시: <b style="color:var(--accent)">${directiveTasks.length}개</b><br>
+    🚛 차량관리: <b style="color:var(--accent)">${Object.keys(vehicleData).length}대 등록</b><br>
+    💾 로컬 용량: <b style="color:var(--gold)">${(lsSize/1024).toFixed(1)} KB</b>
+  `;
+}
 
 // ── 앱 시작 시 클라우드 자동 동기화 ──
 (async function autoSync() {
