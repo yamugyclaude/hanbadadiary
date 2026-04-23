@@ -2383,7 +2383,7 @@ history.replaceState({ page: 'list' }, '', '');
     const t = today();
     const from = new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString().split('T')[0];
     const res = await fetch(
-      SB_URL + '/rest/v1/soundlogs?select=id,data&date=gte.' + from + '&date=lte.' + t + '&order=date.desc',
+      SB_URL + '/rest/v1/soundlogs?select=id,date,data&order=date.desc',
       { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
     );
     if (res.ok) {
