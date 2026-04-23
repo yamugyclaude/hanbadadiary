@@ -969,6 +969,45 @@ select option { background: #181c24; }
           </div>
         </div>
 
+        <!-- 전기 -->
+        <div class="section-block collapsed" id="secElec">
+          <div class="section-header" onclick="toggleSection('secElec')">
+            <div class="section-header-left"><span class="section-icon">⚡</span><span class="section-title">전기</span></div>
+            <span class="section-chevron">▼</span>
+          </div>
+          <div class="section-content">
+            <div class="field" style="margin-bottom:14px">
+              <label>전원 유형</label>
+              <div class="toggle-group">
+                <div class="toggle-opt" id="elec_gen" onclick="selectElecType('generator')"><div class="toggle-check" id="elec_gen_check"></div>⚙️ 발전기</div>
+                <div class="toggle-opt" id="elec_panel" onclick="selectElecType('panel')"><div class="toggle-check" id="elec_panel_check"></div>🔌 판넬</div>
+              </div>
+            </div>
+            <!-- 발전기 서브폼 -->
+            <div id="elecGenForm" style="display:none">
+              <div class="sub-form">
+                <div class="field" style="margin:0"><label>발전기 용량 (kW)</label><input id="f_genKw" type="text" inputmode="decimal" placeholder="예: 100"></div>
+              </div>
+            </div>
+            <!-- 판넬 서브폼 -->
+            <div id="elecPanelForm" style="display:none">
+              <div class="sub-form">
+                <label style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.5px;">판넬 암페어 (A)</label>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px" id="panelAmpGrid">
+                  <div class="equip-opt" data-val="100" onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>100A</div>
+                  <div class="equip-opt" data-val="75"  onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>75A</div>
+                  <div class="equip-opt" data-val="50"  onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>50A</div>
+                  <div class="equip-opt" data-val="30"  onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>30A</div>
+                  <div class="equip-opt" style="grid-column:1/-1" data-val="직접입력" onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>직접 입력</div>
+                </div>
+                <div id="panelAmpCustomWrap" style="display:none;margin-top:8px">
+                  <input id="f_panelAmpCustom" type="text" inputmode="decimal" placeholder="암페어 직접 입력">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 메모 -->
         <div class="section-block collapsed" id="sec8">
           <div class="section-header" onclick="toggleSection('sec8')">
@@ -1095,6 +1134,8 @@ let announcerHas    = null;
 let bannerHas       = null;
 let trussHas        = null;
 let stairHas        = null;
+let elecType        = null; // 'generator' | 'panel' | null
+let panelAmpSel     = '';   // '100','75','50','30','직접입력'
 
 // 모달에서 사용할 임시 변수
 let _pendingMDContent  = '';
@@ -1333,6 +1374,7 @@ function newLog() {
   monitorChecks = {}; consoleSelected = ''; speakerSelected = '';
   weatherSelected = [];
   announcerHas = null; bannerHas = null; trussHas = null; stairHas = null;
+  elecType = null; panelAmpSel = '';
   const log = {
     id: currentId, date: today(), weather:[], eventName:'', clientManager:'', venue:'', eventType:'콘서트',
     engineer:'', stagedirector:'', staff1:'', staff2:'',
@@ -1345,6 +1387,7 @@ function newLog() {
     trussHas: null, trussW:'', trussH:'',
     stairHas: null, stairPos:[],
     equipment:[],
+    elecType: null, genKw:'', panelAmp:'',
     preIssues:'', duringIssues:'', resolution:'',
     clientFeedback:'', memo:'', createdAt: new Date().toISOString()
   };
@@ -1374,6 +1417,8 @@ function editLog(id) {
   bannerHas       = log.bannerHas   ?? null;
   trussHas        = log.trussHas    ?? null;
   stairHas        = log.stairHas    ?? null;
+  elecType        = log.elecType    ?? null;
+  panelAmpSel     = log.panelAmp    || '';
   fillForm(log);
   showForm();
 }
@@ -1417,6 +1462,9 @@ function fillForm(log) {
   refreshBannerUI();
   refreshTrussUI();
   refreshStairUI(log.stairPos||[]);
+  refreshElecUI();
+  refreshPanelAmpUI(log.panelAmp||'');
+  if (log.genKw) document.getElementById('f_genKw').value = log.genKw;
   refreshConsoleUI();
   refreshSpeakerUI();
   renderMonitorChecklist();
@@ -1495,6 +1543,46 @@ function refreshStairUI(savedPos) {
 function toggleStairPos(el) {
   el.classList.toggle('checked');
   el.querySelector('.stair-check').textContent = el.classList.contains('checked') ? '✓' : '';
+}
+
+// ── 전기 ──
+function selectElecType(val) {
+  elecType = val;
+  refreshElecUI();
+}
+function refreshElecUI() {
+  const isGen   = elecType === 'generator';
+  const isPanel = elecType === 'panel';
+  document.getElementById('elec_gen').className   = 'toggle-opt' + (isGen   ? ' selected-yes' : '');
+  document.getElementById('elec_panel').className = 'toggle-opt' + (isPanel ? ' selected-yes' : '');
+  document.getElementById('elec_gen_check').textContent   = isGen   ? '✓' : '';
+  document.getElementById('elec_panel_check').textContent = isPanel ? '✓' : '';
+  document.getElementById('elecGenForm').style.display   = isGen   ? 'block' : 'none';
+  document.getElementById('elecPanelForm').style.display = isPanel ? 'block' : 'none';
+}
+function selectPanelAmp(el) {
+  document.querySelectorAll('#panelAmpGrid .equip-opt').forEach(o => {
+    o.classList.remove('selected'); o.querySelector('.equip-opt-dot').textContent = '';
+  });
+  el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
+  panelAmpSel = el.dataset.val;
+  document.getElementById('panelAmpCustomWrap').style.display = panelAmpSel === '직접입력' ? 'block' : 'none';
+}
+function refreshPanelAmpUI(savedVal) {
+  panelAmpSel = savedVal || '';
+  document.querySelectorAll('#panelAmpGrid .equip-opt').forEach(o => {
+    const isCustom = savedVal && !['100','75','50','30'].includes(savedVal);
+    const sel = (o.dataset.val === savedVal) || (o.dataset.val === '직접입력' && isCustom);
+    o.classList.toggle('selected', sel);
+    o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
+  });
+  if (savedVal && !['100','75','50','30',''].includes(savedVal)) {
+    document.getElementById('panelAmpCustomWrap').style.display = 'block';
+    document.getElementById('f_panelAmpCustom').value = savedVal;
+    panelAmpSel = '직접입력';
+  } else {
+    document.getElementById('panelAmpCustomWrap').style.display = 'none';
+  }
 }
 
 // ── 콘솔/스피커 선택 ──
@@ -1748,6 +1836,14 @@ function getFormData() {
   log.stairHas        = stairHas;
   log.stairPos        = [];
   document.querySelectorAll('#stairGrid .stair-item.checked').forEach(el => log.stairPos.push(el.dataset.pos));
+
+  log.elecType = elecType;
+  log.genKw    = document.getElementById('f_genKw')?.value || '';
+  if (panelAmpSel === '직접입력') {
+    log.panelAmp = document.getElementById('f_panelAmpCustom')?.value || '';
+  } else {
+    log.panelAmp = panelAmpSel;
+  }
   if (consoleModel === '직접입력') {
     const custom = document.getElementById('f_consoleCustom')?.value || '';
     log.consoleSelected = consoleBrand + (custom ? ' ' + custom : '');
@@ -1838,7 +1934,7 @@ function generateMD(log) {
   const spkDisplay    = log.speakerSelected === 'custom' ? (log.speakerCustom||'직접입력') : (log.speakerSelected||'-');
   const weatherStr    = Array.isArray(log.weather) ? log.weather.join(', ') : (log.weather||'-');
 
-  return `# 음향 행사일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
+  return `# 음향 행사일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n- **전기**: ${log.elecType === 'generator' ? `발전기 ${log.genKw||'-'}kW` : log.elecType === 'panel' ? `판넬 ${log.panelAmp||'-'}A` : '-'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
 }
 
 function toggleMDPreview() {
