@@ -1867,29 +1867,21 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 // 일지 하나를 Supabase에 저장 (개별 upsert)
 async function sbUpsertLog(log) {
-  const mdContent = generateMD(log);
   const payload = {
-    id:         log.id,
-    date:       log.date,
-    event_name: log.eventName || '',
-    data:       JSON.stringify(log),
-    md_content: mdContent
+    id:   log.id,
+    date: log.date,
+    data: JSON.stringify(log)
   };
-  // PATCH 먼저 시도
-  let res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${log.id}`, {
-    method: 'PATCH',
-    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+  const res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates'
+    },
     body: JSON.stringify(payload)
   });
-  const patched = await res.json();
-  // 없으면 POST로 새로 생성
-  if (Array.isArray(patched) && patched.length === 0) {
-    res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  }
   if (!res.ok) throw new Error(await res.text());
 }
 
@@ -2155,21 +2147,18 @@ async function syncTasksToCloud() {
     ...directiveTasks.map(t => ({...t, type:'directive'}))
   ];
   for (const t of all) {
-    const payload = { id:t.id, type:t.type, title:t.title||'', body:t.body||'', status:t.status||'todo', priority:t.priority||'mid', due:t.due||'', data:JSON.stringify(t) };
+    const payload = { id: t.id, type: t.type, data: JSON.stringify(t) };
     try {
-      let res = await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${t.id}`, {
-        method: 'PATCH',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      await fetch(`${SB_URL}/rest/v1/tasks`, {
+        method: 'POST',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
         body: JSON.stringify(payload)
       });
-      const patched = await res.json();
-      if (Array.isArray(patched) && patched.length === 0) {
-        await fetch(`${SB_URL}/rest/v1/tasks`, {
-          method: 'POST',
-          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      }
     } catch(e) { console.error('업무 클라우드 저장 실패:', e); }
   }
 }
