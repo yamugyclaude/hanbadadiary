@@ -760,27 +760,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <div class="section-block" id="veh15sec" style="margin-bottom:12px;">
         <div class="section-header" onclick="toggleSection('veh15sec')">
           <div class="section-header-left"><span class="section-icon">🚐</span><span class="section-title">1.5톤 · 기아 포터3</span></div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span id="v15_inspect_badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
-            <span class="section-chevron">▼</span>
-          </div>
+          <span class="section-chevron">▼</span>
         </div>
         <div class="section-content">
-          <!-- 정기검사 -->
-          <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
-          <div class="field-row two" style="margin-bottom:6px">
-            <div class="field" style="margin-bottom:0"><label>최근 검사일</label><input id="v15_inspect_last" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>다음 검사일</label><input id="v15_inspect_next" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInspectBadge('v15')"></div>
-          </div>
-          <div id="v15_inspect_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
-
           <!-- 정비 기록 -->
           <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 <span id="v15_maint_count" style="font-weight:400;color:var(--text-muted);"></span></div>
           <div id="v15_maintenance_list"></div>
-          <button class="add-row-btn" onclick="addMaintenanceRow('v15')" style="margin-bottom:13px;">＋ 정비 기록 추가</button>
-
-          <!-- 메모 -->
-          <div class="field" style="margin-bottom:0"><label>기타 메모</label><textarea id="v15_memo" placeholder="기타 사항 자유 입력" style="min-height:60px;" oninput="saveVehicleData()"></textarea></div>
+          <button class="add-row-btn" onclick="addMaintenanceRow('v15')" style="margin-bottom:0;">＋ 정비 기록 추가</button>
         </div>
       </div>
 
@@ -788,27 +774,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <div class="section-block" id="veh35sec" style="margin-bottom:12px;">
         <div class="section-header" onclick="toggleSection('veh35sec')">
           <div class="section-header-left"><span class="section-icon">🚚</span><span class="section-title">3.5톤 · 현대 마이티</span></div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span id="v35_inspect_badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
-            <span class="section-chevron">▼</span>
-          </div>
+          <span class="section-chevron">▼</span>
         </div>
         <div class="section-content">
-          <!-- 정기검사 -->
-          <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
-          <div class="field-row two" style="margin-bottom:6px">
-            <div class="field" style="margin-bottom:0"><label>최근 검사일</label><input id="v35_inspect_last" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>다음 검사일</label><input id="v35_inspect_next" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInspectBadge('v35')"></div>
-          </div>
-          <div id="v35_inspect_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
-
           <!-- 정비 기록 -->
           <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 <span id="v35_maint_count" style="font-weight:400;color:var(--text-muted);"></span></div>
           <div id="v35_maintenance_list"></div>
-          <button class="add-row-btn" onclick="addMaintenanceRow('v35')" style="margin-bottom:13px;">＋ 정비 기록 추가</button>
-
-          <!-- 메모 -->
-          <div class="field" style="margin-bottom:0"><label>기타 메모</label><textarea id="v35_memo" placeholder="기타 사항 자유 입력" style="min-height:60px;" oninput="saveVehicleData()"></textarea></div>
+          <button class="add-row-btn" onclick="addMaintenanceRow('v35')" style="margin-bottom:0;">＋ 정비 기록 추가</button>
         </div>
       </div>
 
@@ -1203,6 +1175,14 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
       <button id="vhTab_v15" onclick="switchVehicleHistoryTab('v15')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);">🚐 1.5톤</button>
       <button id="vhTab_v35" onclick="switchVehicleHistoryTab('v35')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">🚚 3.5톤</button>
+    </div>
+    <!-- 날짜 필터 -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-shrink:0;">
+      <input type="date" id="vhFromDate" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;color-scheme:dark;">
+      <span style="color:var(--text-muted);font-size:12px;">~</span>
+      <input type="date" id="vhToDate" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;color-scheme:dark;">
+      <button onclick="applyVhDateFilter()" style="background:var(--accent);border:none;border-radius:8px;color:#0a0c10;font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">검색</button>
+      <button onclick="clearVhDateFilter()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text-muted);font-size:12px;font-weight:700;padding:8px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">전체</button>
     </div>
     <!-- 스크롤 영역 -->
     <div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bot));">
@@ -2080,12 +2060,8 @@ function renderVehiclePage() {
   ['v15','v35'].forEach(t => {
     const d = vehicleData[t];
     const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
-    setVal(t+'_current_km', d.current_km);
-    setVal(t+'_inspect_last', d.inspect_last);
-    setVal(t+'_inspect_next', d.inspect_next);
     setVal(t+'_memo', d.memo);
     renderMaintenanceList(t);
-    updateInspectBadge(t);
     const countEl = document.getElementById(t+'_maint_count');
     if (countEl) countEl.textContent = d.maintenance?.length ? `(${d.maintenance.length}건)` : '';
   });
@@ -2199,12 +2175,6 @@ function deleteMaintenance(type, idx) {
 }
 
 function saveVehicleData() {
-  ['v15','v35'].forEach(t => {
-    const getVal = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-    vehicleData[t].inspect_last = getVal(t+'_inspect_last');
-    vehicleData[t].inspect_next = getVal(t+'_inspect_next');
-    vehicleData[t].memo         = getVal(t+'_memo');
-  });
   localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
 }
 
@@ -2291,22 +2261,27 @@ function renderVehicleHistoryTab(type) {
   document.getElementById('vhSummary').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:13px;">
       <div><span style="color:var(--text-muted);">차종</span><br><strong style="color:var(--text)">${label}</strong></div>
-      <div><span style="color:var(--text-muted);">정기검사</span><br>${inspStr}</div>
-      <div style="grid-column:1/-1;"><span style="color:var(--text-muted);">총 정비 횟수</span> <strong style="color:var(--accent);font-size:15px;">${(d.maintenance||[]).length}건</strong></div>
+      <div><span style="color:var(--text-muted);">총 정비 횟수</span><br><strong style="color:var(--accent);font-size:15px;">${(d.maintenance||[]).length}건</strong></div>
     </div>`;
 
-  // 정비 목록 (최신순, 실제 인덱스 유지)
+  // 정비 목록 (최신순, 날짜 필터 적용)
   const list = document.getElementById('vhList');
   const original = d.maintenance || [];
-  const sorted = original
-    .map((m, realIdx) => ({ m, realIdx }))
-    .sort((a, b) => (b.m.date||'').localeCompare(a.m.date||''));
+  let filtered = original.map((m, realIdx) => ({ m, realIdx }));
+  if (vhDateFrom) filtered = filtered.filter(({ m }) => (m.date||'') >= vhDateFrom);
+  if (vhDateTo)   filtered = filtered.filter(({ m }) => (m.date||'') <= vhDateTo);
+  const sorted = filtered.sort((a, b) => (b.m.date||'').localeCompare(a.m.date||''));
+
+  // 필터 결과 표시
+  const filterMsg = (vhDateFrom || vhDateTo)
+    ? `<div style="font-size:11px;color:var(--gold);margin-bottom:8px;">🔍 ${vhDateFrom||'처음'} ~ ${vhDateTo||'현재'} · ${sorted.length}건</div>`
+    : '';
 
   if (!sorted.length) {
-    list.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:13px;">정비 기록이 없습니다</div>`;
+    list.innerHTML = filterMsg + `<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:13px;">${vhDateFrom||vhDateTo ? '해당 기간 정비 기록 없음' : '정비 기록이 없습니다'}</div>`;
     return;
   }
-  list.innerHTML = sorted.map(({ m, realIdx }) => `
+  list.innerHTML = filterMsg + sorted.map(({ m, realIdx }) => `
     <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;">${m.item||'(항목 없음)'}</span>
@@ -2323,8 +2298,27 @@ function renderVehicleHistoryTab(type) {
     </div>`).join('');
 }
 
+let vhDateFrom = '';
+let vhDateTo   = '';
+
+function applyVhDateFilter() {
+  vhDateFrom = document.getElementById('vhFromDate').value;
+  vhDateTo   = document.getElementById('vhToDate').value;
+  if (!vhDateFrom && !vhDateTo) { showToast('⚠️ 날짜를 선택하세요'); return; }
+  renderVehicleHistoryTab(currentVehicleHistoryTab);
+}
+
+function clearVhDateFilter() {
+  vhDateFrom = '';
+  vhDateTo   = '';
+  document.getElementById('vhFromDate').value = '';
+  document.getElementById('vhToDate').value   = '';
+  renderVehicleHistoryTab(currentVehicleHistoryTab);
+}
+
 function deleteMaintFromHistory(type, idx) {
-  if (!confirm('이 정비 기록을 삭제할까요?')) return;
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   vehicleData[type].maintenance.splice(idx, 1);
   saveVehicleData();
   renderMaintenanceList(type);
