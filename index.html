@@ -2167,11 +2167,14 @@ function updateMaintenance(type, idx, field, val) {
 }
 
 function deleteMaintenance(type, idx) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   vehicleData[type].maintenance.splice(idx,1);
   renderMaintenanceList(type);
   saveVehicleData();
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
+  showToast('✓ 삭제 완료');
 }
 
 function saveVehicleData() {
