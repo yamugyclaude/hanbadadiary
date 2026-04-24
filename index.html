@@ -2092,9 +2092,8 @@ function renderVehiclePage() {
     setVal(t+'_memo', d.memo);
     const fuelEl = document.getElementById(t+'_fuel');
     if (fuelEl) fuelEl.value = d.fuel || '';
-    // 정비기록 최신순 정렬
-    const sorted = [...(d.maintenance||[])].sort((a,b) => (b.date||'').localeCompare(a.date||''));
-    renderMaintenanceList(t, sorted);
+    // 정비기록 렌더
+    renderMaintenanceList(t);
     updateInspectBadge(t);
     updateInsBadge(t);
     const countEl = document.getElementById(t+'_maint_count');
@@ -2105,14 +2104,19 @@ function renderVehiclePage() {
 function renderMaintenanceList(type, arr) {
   const el = document.getElementById(type+'_maintenance_list');
   el.innerHTML = '';
-  (arr||[]).forEach((m,i) => addMaintenanceCard(type, m, i));
+  // 정렬된 배열을 보여주되, 각 항목의 실제 인덱스를 원본 배열에서 찾아서 전달
+  const original = vehicleData[type].maintenance || [];
+  const sorted = [...original].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  sorted.forEach((m) => {
+    const realIdx = original.indexOf(m);
+    addMaintenanceCard(type, m, realIdx);
+  });
 }
 
 function addMaintenanceRow(type) {
   if (!vehicleData[type].maintenance) vehicleData[type].maintenance = [];
   vehicleData[type].maintenance.push({item:'',km:'',date:'',note:''});
-  const sorted = [...vehicleData[type].maintenance].sort((a,b) => (b.date||'').localeCompare(a.date||''));
-  renderMaintenanceList(type, sorted);
+  renderMaintenanceList(type);
   saveVehicleData();
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
@@ -2145,8 +2149,7 @@ function updateMaintenance(type, idx, field, val) {
 
 function deleteMaintenance(type, idx) {
   vehicleData[type].maintenance.splice(idx,1);
-  const sorted = [...vehicleData[type].maintenance].sort((a,b) => (b.date||'').localeCompare(a.date||''));
-  renderMaintenanceList(type, sorted);
+  renderMaintenanceList(type);
   saveVehicleData();
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
