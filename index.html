@@ -1252,7 +1252,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 </div>
 
 <!-- 정비 기록 추가/수정 모달 -->
-<div class="modal-overlay" id="maintModal">
+<div class="modal-overlay" id="maintModal" style="z-index:960;">
   <div class="modal-sheet">
     <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;" id="maintModal_title">정비 기록 추가</div>
     <input type="hidden" id="maintModal_type">
@@ -2173,6 +2173,10 @@ function saveMaintModal() {
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
   showToast('✓ 정비 기록 저장 완료');
+  // 히스토리 모달이 열려 있었다면 목록 새로고침
+  if (document.getElementById('vehicleHistoryModal').classList.contains('show')) {
+    renderVehicleHistoryTab(type);
+  }
 }
 
 function updateMaintenance(type, idx, field, val) {
@@ -2249,24 +2253,43 @@ function renderVehicleHistoryTab(type) {
       <div><span style="color:var(--text-muted);">정비 횟수</span> <strong style="color:var(--accent)">${(d.maintenance||[]).length}건</strong></div>
     </div>`;
 
-  // 정비 목록 (최신순)
+  // 정비 목록 (최신순, 실제 인덱스 유지)
   const list = document.getElementById('vhList');
-  const items = [...(d.maintenance||[])].sort((a,b) => (b.date||'').localeCompare(a.date||''));
-  if (!items.length) {
+  const original = d.maintenance || [];
+  const sorted = original
+    .map((m, realIdx) => ({ m, realIdx }))
+    .sort((a, b) => (b.m.date||'').localeCompare(a.m.date||''));
+
+  if (!sorted.length) {
     list.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:13px;">정비 기록이 없습니다</div>`;
     return;
   }
-  list.innerHTML = items.map((m, i) => `
+  list.innerHTML = sorted.map(({ m, realIdx }) => `
     <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-size:14px;font-weight:700;color:var(--text);">${m.item||'(항목 없음)'}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${m.date||'-'}</span>
+        <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;">${m.item||'(항목 없음)'}</span>
+        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px;">
+          <button onclick="editMaintenanceCard('${type}',${realIdx})" style="background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">수정</button>
+          <button onclick="deleteMaintFromHistory('${type}',${realIdx})" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">삭제</button>
+        </div>
       </div>
-      <div style="display:flex;gap:16px;font-size:12px;color:var(--text-muted);">
+      <div style="display:flex;gap:14px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">
+        <span>📅 ${m.date||'-'}</span>
         <span>🔢 ${m.km ? m.km+'km' : '-'}</span>
         ${m.note ? `<span>📝 ${m.note}</span>` : ''}
       </div>
     </div>`).join('');
+}
+
+function deleteMaintFromHistory(type, idx) {
+  if (!confirm('이 정비 기록을 삭제할까요?')) return;
+  vehicleData[type].maintenance.splice(idx, 1);
+  saveVehicleData();
+  renderMaintenanceList(type);
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
+  renderVehicleHistoryTab(type);
+  showToast('✓ 삭제 완료');
 }
 
 function saveLog() {
