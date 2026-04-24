@@ -748,48 +748,28 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <!-- VEHICLE PAGE -->
   <div class="page" id="pageVehicle">
     <!-- 툴바 -->
-    <div style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;">🚛 차량 관리 대장</span>
-      <span id="vehSaveStatus" style="font-size:11px;color:var(--text-muted);">자동저장됨</span>
+    <div style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;flex:1;">🚛 차량 관리 대장</span>
+      <button onclick="openVehicleHistory()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">📋 정비 이력</button>
+      <button onclick="saveVehicleManual()" style="background:var(--accent);border:none;border-radius:8px;color:#0a0c10;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">저장 💾</button>
     </div>
     <div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:12px 16px;padding-bottom:calc(28px + var(--safe-bot));">
 
       <!-- 1.5톤 -->
       <div class="section-block" id="veh15sec" style="margin-bottom:12px;">
         <div class="section-header" onclick="toggleSection('veh15sec')">
-          <div class="section-header-left"><span class="section-icon">🚐</span><span class="section-title">1.5톤 차량</span></div>
+          <div class="section-header-left"><span class="section-icon">🚐</span><span class="section-title">1.5톤 · 기아 포터3</span></div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span id="v15_inspect_badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
             <span class="section-chevron">▼</span>
           </div>
         </div>
         <div class="section-content">
-          <!-- 기본 정보 -->
-          <div style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📌 기본 정보</div>
-          <div class="field-row two" style="margin-bottom:10px">
-            <div class="field" style="margin-bottom:0"><label>차량번호</label><input id="v15_number" type="text" placeholder="예: 123가 4567" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>차종/모델</label><input id="v15_model" type="text" placeholder="예: 포터2" oninput="saveVehicleData()"></div>
+          <!-- 현재 주행거리 -->
+          <div class="field" style="margin-bottom:13px">
+            <label>현재 주행거리 (km)</label>
+            <input id="v15_current_km" type="text" placeholder="예: 87,500" oninput="saveVehicleData()">
           </div>
-          <div class="field-row two" style="margin-bottom:13px">
-            <div class="field" style="margin-bottom:0"><label>현재 주행거리 (km)</label><input id="v15_current_km" type="text" placeholder="예: 87,500" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>연료 종류</label>
-              <select id="v15_fuel" onchange="saveVehicleData()">
-                <option value="">선택</option>
-                <option value="경유">경유 (디젤)</option>
-                <option value="휘발유">휘발유</option>
-                <option value="LPG">LPG</option>
-                <option value="전기">전기</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- 보험 -->
-          <div style="font-size:12px;font-weight:700;color:var(--accent2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🛡️ 보험</div>
-          <div class="field-row two" style="margin-bottom:13px">
-            <div class="field" style="margin-bottom:0"><label>보험 시작일</label><input id="v15_ins_start" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>보험 만료일</label><input id="v15_ins_end" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInsBadge('v15')"></div>
-          </div>
-          <div id="v15_ins_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
 
           <!-- 정기검사 -->
           <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
@@ -812,39 +792,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <!-- 3.5톤 -->
       <div class="section-block" id="veh35sec" style="margin-bottom:12px;">
         <div class="section-header" onclick="toggleSection('veh35sec')">
-          <div class="section-header-left"><span class="section-icon">🚚</span><span class="section-title">3.5톤 차량</span></div>
+          <div class="section-header-left"><span class="section-icon">🚚</span><span class="section-title">3.5톤 · 현대 마이티</span></div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span id="v35_inspect_badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
             <span class="section-chevron">▼</span>
           </div>
         </div>
         <div class="section-content">
-          <!-- 기본 정보 -->
-          <div style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📌 기본 정보</div>
-          <div class="field-row two" style="margin-bottom:10px">
-            <div class="field" style="margin-bottom:0"><label>차량번호</label><input id="v35_number" type="text" placeholder="예: 456나 7890" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>차종/모델</label><input id="v35_model" type="text" placeholder="예: 메가트럭" oninput="saveVehicleData()"></div>
+          <!-- 현재 주행거리 -->
+          <div class="field" style="margin-bottom:13px">
+            <label>현재 주행거리 (km)</label>
+            <input id="v35_current_km" type="text" placeholder="예: 120,000" oninput="saveVehicleData()">
           </div>
-          <div class="field-row two" style="margin-bottom:13px">
-            <div class="field" style="margin-bottom:0"><label>현재 주행거리 (km)</label><input id="v35_current_km" type="text" placeholder="예: 120,000" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>연료 종류</label>
-              <select id="v35_fuel" onchange="saveVehicleData()">
-                <option value="">선택</option>
-                <option value="경유">경유 (디젤)</option>
-                <option value="휘발유">휘발유</option>
-                <option value="LPG">LPG</option>
-                <option value="전기">전기</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- 보험 -->
-          <div style="font-size:12px;font-weight:700;color:var(--accent2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🛡️ 보험</div>
-          <div class="field-row two" style="margin-bottom:13px">
-            <div class="field" style="margin-bottom:0"><label>보험 시작일</label><input id="v35_ins_start" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>보험 만료일</label><input id="v35_ins_end" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInsBadge('v35')"></div>
-          </div>
-          <div id="v35_ins_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
 
           <!-- 정기검사 -->
           <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
@@ -1240,6 +1199,27 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div style="font-size:16px;font-weight:700;color:var(--text)">🎨 테마 선택</div>
     <div class="theme-grid" id="themeGrid"></div>
     <button class="modal-btn modal-btn-cancel" onclick="closeThemeModal()" style="margin-top:14px;width:100%">닫기</button>
+  </div>
+</div>
+
+<!-- 정비 이력 모달 -->
+<div class="modal-overlay" id="vehicleHistoryModal">
+  <div class="modal-sheet" style="max-height:88dvh;overflow-y:scroll;-webkit-overflow-scrolling:touch;border-radius:16px 16px 0 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);">📋 정비 이력 전체보기</div>
+      <button onclick="closeVehicleHistory()" style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <!-- 차량 탭 -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button id="vhTab_v15" onclick="switchVehicleHistoryTab('v15')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);">🚐 1.5톤</button>
+      <button id="vhTab_v35" onclick="switchVehicleHistoryTab('v35')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">🚚 3.5톤</button>
+    </div>
+    <!-- 차량 요약 -->
+    <div id="vhSummary" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:2;"></div>
+    <!-- 정비 기록 목록 -->
+    <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 (최신순)</div>
+    <div id="vhList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="height:8px;"></div>
   </div>
 </div>
 
@@ -2082,20 +2062,12 @@ function renderVehiclePage() {
   ['v15','v35'].forEach(t => {
     const d = vehicleData[t];
     const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
-    setVal(t+'_number', d.number);
-    setVal(t+'_model', d.model);
     setVal(t+'_current_km', d.current_km);
     setVal(t+'_inspect_last', d.inspect_last);
     setVal(t+'_inspect_next', d.inspect_next);
-    setVal(t+'_ins_start', d.ins_start);
-    setVal(t+'_ins_end', d.ins_end);
     setVal(t+'_memo', d.memo);
-    const fuelEl = document.getElementById(t+'_fuel');
-    if (fuelEl) fuelEl.value = d.fuel || '';
-    // 정비기록 렌더
     renderMaintenanceList(t);
     updateInspectBadge(t);
-    updateInsBadge(t);
     const countEl = document.getElementById(t+'_maint_count');
     if (countEl) countEl.textContent = d.maintenance?.length ? `(${d.maintenance.length}건)` : '';
   });
@@ -2158,19 +2130,82 @@ function deleteMaintenance(type, idx) {
 function saveVehicleData() {
   ['v15','v35'].forEach(t => {
     const getVal = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-    vehicleData[t].number       = getVal(t+'_number');
-    vehicleData[t].model        = getVal(t+'_model');
     vehicleData[t].current_km   = getVal(t+'_current_km');
-    vehicleData[t].fuel         = getVal(t+'_fuel');
     vehicleData[t].inspect_last = getVal(t+'_inspect_last');
     vehicleData[t].inspect_next = getVal(t+'_inspect_next');
-    vehicleData[t].ins_start    = getVal(t+'_ins_start');
-    vehicleData[t].ins_end      = getVal(t+'_ins_end');
     vehicleData[t].memo         = getVal(t+'_memo');
   });
   localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
-  const st = document.getElementById('vehSaveStatus');
-  if (st) { st.textContent = '저장됨 ✓'; st.style.color='var(--accent)'; setTimeout(()=>{ st.textContent='자동저장됨'; st.style.color='var(--text-muted)'; }, 1500); }
+}
+
+function saveVehicleManual() {
+  saveVehicleData();
+  if (navigator.vibrate) navigator.vibrate(40);
+  showToast('🚛 차량 정보 저장 완료');
+}
+
+let currentVehicleHistoryTab = 'v15';
+
+function openVehicleHistory() {
+  currentVehicleHistoryTab = 'v15';
+  renderVehicleHistoryTab('v15');
+  document.getElementById('vehicleHistoryModal').classList.add('show');
+}
+
+function closeVehicleHistory() {
+  document.getElementById('vehicleHistoryModal').classList.remove('show');
+}
+
+function switchVehicleHistoryTab(type) {
+  currentVehicleHistoryTab = type;
+  renderVehicleHistoryTab(type);
+}
+
+function renderVehicleHistoryTab(type) {
+  // 탭 스타일
+  ['v15','v35'].forEach(t => {
+    const btn = document.getElementById('vhTab_'+t);
+    if (!btn) return;
+    if (t === type) {
+      btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);';
+    } else {
+      btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);';
+    }
+  });
+
+  const d = vehicleData[type] || {};
+  const label = type === 'v15' ? '1.5톤 · 기아 포터3 🚐' : '3.5톤 · 현대 마이티 🚚';
+
+  // 요약
+  const inspDday = getDday(d.inspect_next);
+  const inspStr  = inspDday === null ? '-' : inspDday < 0 ? `<span style="color:var(--accent2);font-weight:700;">초과 ${Math.abs(inspDday)}일</span>` : inspDday <= 30 ? `<span style="color:var(--gold);font-weight:700;">D-${inspDday}</span>` : `D-${inspDday}`;
+
+  document.getElementById('vhSummary').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;">
+      <div><span style="color:var(--text-muted);">차종</span> <strong style="color:var(--text)">${label}</strong></div>
+      <div><span style="color:var(--text-muted);">현재 km</span> <strong style="color:var(--text)">${d.current_km ? d.current_km+'km' : '-'}</strong></div>
+      <div><span style="color:var(--text-muted);">정기검사</span> ${inspStr}</div>
+      <div><span style="color:var(--text-muted);">정비 횟수</span> <strong style="color:var(--accent)">${(d.maintenance||[]).length}건</strong></div>
+    </div>`;
+
+  // 정비 목록 (최신순)
+  const list = document.getElementById('vhList');
+  const items = [...(d.maintenance||[])].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  if (!items.length) {
+    list.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:13px;">정비 기록이 없습니다</div>`;
+    return;
+  }
+  list.innerHTML = items.map((m, i) => `
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:700;color:var(--text);">${m.item||'(항목 없음)'}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">${m.date||'-'}</span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--text-muted);">
+        <span>🔢 ${m.km ? m.km+'km' : '-'}</span>
+        ${m.note ? `<span>📝 ${m.note}</span>` : ''}
+      </div>
+    </div>`).join('');
 }
 
 function saveLog() {
