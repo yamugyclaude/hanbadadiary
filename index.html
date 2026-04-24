@@ -2213,9 +2213,9 @@ async function loadVehicleFromCloud() {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
     const rows = await res.json();
-    if (!rows.length || (!rows[0].v15 && !rows[0].v35)) { showToast('⚠️ 클라우드 데이터 없음'); return; }
-    if (rows[0].v15) vehicleData.v15 = rows[0].v15;
-    if (rows[0].v35) vehicleData.v35 = rows[0].v35;
+    if (!rows.length) { showToast('⚠️ 클라우드 데이터 없음'); return; }
+    vehicleData.v15 = rows[0].v15 || vehicleData.v15;
+    vehicleData.v35 = rows[0].v35 || vehicleData.v35;
     localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
     renderVehiclePage();
     showToast('☁️ 차량 정보 불러오기 완료');
