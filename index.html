@@ -750,7 +750,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <!-- 툴바 -->
     <div style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;">
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;flex:1;">🚛 차량 관리 대장</span>
-      <button onclick="loadVehicleFromCloud()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">☁️ 불러오기</button>
       <button onclick="openVehicleHistory()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">📋 정비 이력</button>
       <button onclick="saveVehicleManual()" style="background:var(--accent);border:none;border-radius:8px;color:#0a0c10;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">저장 💾</button>
     </div>
@@ -2540,6 +2539,7 @@ renderTasks('directive');
 document.getElementById('tab-vehicle').classList.add('active');
 const p = document.getElementById('pageVehicle'); p.style.display='flex'; p.classList.add('active');
 renderVehiclePage();
+loadVehicleFromCloud();
 }
 }
 
