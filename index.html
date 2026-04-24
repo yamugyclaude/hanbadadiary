@@ -750,6 +750,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <!-- 툴바 -->
     <div style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;">
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;flex:1;">🚛 차량 관리 대장</span>
+      <button onclick="loadVehicleFromCloud()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">☁️ 불러오기</button>
       <button onclick="openVehicleHistory()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">📋 정비 이력</button>
       <button onclick="saveVehicleManual()" style="background:var(--accent);border:none;border-radius:8px;color:#0a0c10;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">저장 💾</button>
     </div>
@@ -2207,10 +2208,48 @@ function saveVehicleData() {
   localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
 }
 
-function saveVehicleManual() {
+async function saveVehicleManual() {
   saveVehicleData();
   if (navigator.vibrate) navigator.vibrate(40);
-  showToast('🚛 차량 정보 저장 완료');
+  showToast('저장 중…');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: vehicleData.v15, v35: vehicleData.v35 })
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'singleton', v15: vehicleData.v15, v35: vehicleData.v35 })
+      });
+    }
+    showToast('🚛 차량 정보 저장 완료 ☁️');
+  } catch(e) {
+    showToast('✓ 로컬 저장 완료 (클라우드 실패)');
+    console.error(e);
+  }
+}
+
+async function loadVehicleFromCloud() {
+  showToast('☁️ 불러오는 중…');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15,v35`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    const rows = await res.json();
+    if (!rows.length || (!rows[0].v15 && !rows[0].v35)) { showToast('⚠️ 클라우드 데이터 없음'); return; }
+    if (rows[0].v15) vehicleData.v15 = rows[0].v15;
+    if (rows[0].v35) vehicleData.v35 = rows[0].v35;
+    localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+    renderVehiclePage();
+    showToast('☁️ 차량 정보 불러오기 완료');
+  } catch(e) {
+    showToast('❌ 불러오기 실패');
+    console.error(e);
+  }
 }
 
 let currentVehicleHistoryTab = 'v15';
