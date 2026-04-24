@@ -765,12 +765,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
         </div>
         <div class="section-content">
-          <!-- 현재 주행거리 -->
-          <div class="field" style="margin-bottom:13px">
-            <label>현재 주행거리 (km)</label>
-            <input id="v15_current_km" type="text" placeholder="예: 87,500" oninput="saveVehicleData()">
-          </div>
-
           <!-- 정기검사 -->
           <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
           <div class="field-row two" style="margin-bottom:6px">
@@ -799,12 +793,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
         </div>
         <div class="section-content">
-          <!-- 현재 주행거리 -->
-          <div class="field" style="margin-bottom:13px">
-            <label>현재 주행거리 (km)</label>
-            <input id="v35_current_km" type="text" placeholder="예: 120,000" oninput="saveVehicleData()">
-          </div>
-
           <!-- 정기검사 -->
           <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
           <div class="field-row two" style="margin-bottom:6px">
@@ -1259,6 +1247,31 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="modal-btn modal-btn-cancel" onclick="closeTaskModal()">취소</button>
       <button class="modal-btn modal-btn-new" onclick="saveTask()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 정비 기록 추가/수정 모달 -->
+<div class="modal-overlay" id="maintModal">
+  <div class="modal-sheet">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;" id="maintModal_title">정비 기록 추가</div>
+    <input type="hidden" id="maintModal_type">
+    <input type="hidden" id="maintModal_idx">
+    <div class="field" style="margin-bottom:12px;">
+      <label>정비 항목 *</label>
+      <input id="maintModal_item" type="text" placeholder="예: 엔진오일 교체, 타이어 교체">
+    </div>
+    <div class="field-row two" style="margin-bottom:12px;">
+      <div class="field" style="margin-bottom:0;"><label>정비 일자</label><input id="maintModal_date" type="date" style="color-scheme:dark;"></div>
+      <div class="field" style="margin-bottom:0;"><label>주행거리 (km)</label><input id="maintModal_km" type="text" placeholder="예: 45,320"></div>
+    </div>
+    <div class="field" style="margin-bottom:16px;">
+      <label>비고</label>
+      <input id="maintModal_note" type="text" placeholder="추가 메모">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeMaintModal()">취소</button>
+      <button class="modal-btn modal-btn-new" onclick="saveMaintModal()">저장</button>
     </div>
   </div>
 </div>
@@ -2086,31 +2099,80 @@ function renderMaintenanceList(type, arr) {
 }
 
 function addMaintenanceRow(type) {
-  if (!vehicleData[type].maintenance) vehicleData[type].maintenance = [];
-  vehicleData[type].maintenance.push({item:'',km:'',date:'',note:''});
-  renderMaintenanceList(type);
-  saveVehicleData();
-  const countEl = document.getElementById(type+'_maint_count');
-  if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
+  openNewMaintenanceModal(type);
 }
 
-function addMaintenanceCard(type, m, idx) {
+function addMaintenanceCard(type, m, realIdx) {
   const el = document.getElementById(type+'_maintenance_list');
   const card = document.createElement('div');
   card.className = 'eq-item-card';
   card.style.marginBottom = '8px';
   card.innerHTML = `
-    <div class="eq-item-top" style="margin-bottom:8px;">
-      <input type="text" value="${m.item||''}" placeholder="정비항목 (예: 엔진오일 교체)" style="flex:1;" oninput="updateMaintenance('${type}',${idx},'item',this.value)">
-      <button class="eq-del-btn" onclick="deleteMaintenance('${type}',${idx})">✕</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.item||'(항목 없음)'}</span>
+      <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px;">
+        <button onclick="editMaintenanceCard('${type}',${realIdx})" style="background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">수정</button>
+        <button onclick="deleteMaintenance('${type}',${realIdx})" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">삭제</button>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <div><label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">정비일자</label><input type="date" value="${m.date||''}" style="color-scheme:dark;width:100%;" oninput="updateMaintenance('${type}',${idx},'date',this.value)"></div>
-      <div><label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">당시 키로수 (km)</label><input type="text" value="${m.km||''}" placeholder="예: 45,320" style="width:100%;" oninput="updateMaintenance('${type}',${idx},'km',this.value)"></div>
-    </div>
-    <input type="text" value="${m.note||''}" placeholder="비고" oninput="updateMaintenance('${type}',${idx},'note',this.value)">
-  `;
+    <div style="display:flex;gap:14px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">
+      <span>📅 ${m.date||'-'}</span>
+      <span>🔢 ${m.km ? m.km+'km' : '-'}</span>
+      ${m.note ? `<span>📝 ${m.note}</span>` : ''}
+    </div>`;
   el.appendChild(card);
+}
+
+function editMaintenanceCard(type, idx) {
+  const m = vehicleData[type].maintenance[idx];
+  if (!m) return;
+  document.getElementById('maintModal_type').value = type;
+  document.getElementById('maintModal_idx').value  = idx;
+  document.getElementById('maintModal_item').value = m.item  || '';
+  document.getElementById('maintModal_date').value = m.date  || '';
+  document.getElementById('maintModal_km').value   = m.km    || '';
+  document.getElementById('maintModal_note').value = m.note  || '';
+  document.getElementById('maintModal_title').textContent = '정비 기록 수정';
+  document.getElementById('maintModal').classList.add('show');
+}
+
+function openNewMaintenanceModal(type) {
+  document.getElementById('maintModal_type').value = type;
+  document.getElementById('maintModal_idx').value  = '';
+  document.getElementById('maintModal_item').value = '';
+  document.getElementById('maintModal_date').value = '';
+  document.getElementById('maintModal_km').value   = '';
+  document.getElementById('maintModal_note').value = '';
+  document.getElementById('maintModal_title').textContent = '정비 기록 추가';
+  document.getElementById('maintModal').classList.add('show');
+}
+
+function closeMaintModal() {
+  document.getElementById('maintModal').classList.remove('show');
+}
+
+function saveMaintModal() {
+  const type   = document.getElementById('maintModal_type').value;
+  const idxRaw = document.getElementById('maintModal_idx').value;
+  const item   = document.getElementById('maintModal_item').value.trim();
+  if (!item) { showToast('⚠️ 정비 항목을 입력하세요'); return; }
+  const entry = {
+    item,
+    date: document.getElementById('maintModal_date').value,
+    km:   document.getElementById('maintModal_km').value,
+    note: document.getElementById('maintModal_note').value,
+  };
+  if (idxRaw === '') {
+    vehicleData[type].maintenance.push(entry);
+  } else {
+    vehicleData[type].maintenance[parseInt(idxRaw)] = entry;
+  }
+  closeMaintModal();
+  renderMaintenanceList(type);
+  saveVehicleData();
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
+  showToast('✓ 정비 기록 저장 완료');
 }
 
 function updateMaintenance(type, idx, field, val) {
@@ -2130,7 +2192,6 @@ function deleteMaintenance(type, idx) {
 function saveVehicleData() {
   ['v15','v35'].forEach(t => {
     const getVal = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-    vehicleData[t].current_km   = getVal(t+'_current_km');
     vehicleData[t].inspect_last = getVal(t+'_inspect_last');
     vehicleData[t].inspect_next = getVal(t+'_inspect_next');
     vehicleData[t].memo         = getVal(t+'_memo');
