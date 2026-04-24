@@ -745,57 +745,125 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="task-cards" id="directiveCards"></div>
   </div>
 
-  <!-- FORM PAGE -->
+  <!-- VEHICLE PAGE -->
   <div class="page" id="pageVehicle">
-    <div style="padding:16px;flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;margin-bottom:14px;">🚛 차량 관리 대장</div>
+    <!-- 툴바 -->
+    <div style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;">🚛 차량 관리 대장</span>
+      <span id="vehSaveStatus" style="font-size:11px;color:var(--text-muted);">자동저장됨</span>
+    </div>
+    <div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:12px 16px;padding-bottom:calc(28px + var(--safe-bot));">
 
       <!-- 1.5톤 -->
       <div class="section-block" id="veh15sec" style="margin-bottom:12px;">
         <div class="section-header" onclick="toggleSection('veh15sec')">
           <div class="section-header-left"><span class="section-icon">🚐</span><span class="section-title">1.5톤 차량</span></div>
-          <span class="section-chevron">▼</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="v15_inspect_badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
+            <span class="section-chevron">▼</span>
+          </div>
         </div>
         <div class="section-content">
-          <div class="field-row two" style="margin-bottom:13px">
+          <!-- 기본 정보 -->
+          <div style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📌 기본 정보</div>
+          <div class="field-row two" style="margin-bottom:10px">
             <div class="field" style="margin-bottom:0"><label>차량번호</label><input id="v15_number" type="text" placeholder="예: 123가 4567" oninput="saveVehicleData()"></div>
             <div class="field" style="margin-bottom:0"><label>차종/모델</label><input id="v15_model" type="text" placeholder="예: 포터2" oninput="saveVehicleData()"></div>
           </div>
-          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록</div>
-          <div id="v15_maintenance_list"></div>
-          <button class="add-row-btn" onclick="addMaintenanceRow('v15')" style="margin-bottom:14px;">＋ 정비 기록 추가</button>
-          <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
           <div class="field-row two" style="margin-bottom:13px">
-            <div class="field" style="margin-bottom:0"><label>최근 검사일</label><input id="v15_inspect_last" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>다음 검사일</label><input id="v15_inspect_next" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>현재 주행거리 (km)</label><input id="v15_current_km" type="text" placeholder="예: 87,500" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>연료 종류</label>
+              <select id="v15_fuel" onchange="saveVehicleData()">
+                <option value="">선택</option>
+                <option value="경유">경유 (디젤)</option>
+                <option value="휘발유">휘발유</option>
+                <option value="LPG">LPG</option>
+                <option value="전기">전기</option>
+              </select>
+            </div>
           </div>
-          <div class="field"><label>기타 메모</label><textarea id="v15_memo" placeholder="기타 사항 자유 입력" style="min-height:60px;" oninput="saveVehicleData()"></textarea></div>
+
+          <!-- 보험 -->
+          <div style="font-size:12px;font-weight:700;color:var(--accent2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🛡️ 보험</div>
+          <div class="field-row two" style="margin-bottom:13px">
+            <div class="field" style="margin-bottom:0"><label>보험 시작일</label><input id="v15_ins_start" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>보험 만료일</label><input id="v15_ins_end" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInsBadge('v15')"></div>
+          </div>
+          <div id="v15_ins_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
+
+          <!-- 정기검사 -->
+          <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
+          <div class="field-row two" style="margin-bottom:6px">
+            <div class="field" style="margin-bottom:0"><label>최근 검사일</label><input id="v15_inspect_last" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>다음 검사일</label><input id="v15_inspect_next" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInspectBadge('v15')"></div>
+          </div>
+          <div id="v15_inspect_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
+
+          <!-- 정비 기록 -->
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 <span id="v15_maint_count" style="font-weight:400;color:var(--text-muted);"></span></div>
+          <div id="v15_maintenance_list"></div>
+          <button class="add-row-btn" onclick="addMaintenanceRow('v15')" style="margin-bottom:13px;">＋ 정비 기록 추가</button>
+
+          <!-- 메모 -->
+          <div class="field" style="margin-bottom:0"><label>기타 메모</label><textarea id="v15_memo" placeholder="기타 사항 자유 입력" style="min-height:60px;" oninput="saveVehicleData()"></textarea></div>
         </div>
       </div>
 
       <!-- 3.5톤 -->
-      <div class="section-block" id="veh35sec">
+      <div class="section-block" id="veh35sec" style="margin-bottom:12px;">
         <div class="section-header" onclick="toggleSection('veh35sec')">
           <div class="section-header-left"><span class="section-icon">🚚</span><span class="section-title">3.5톤 차량</span></div>
-          <span class="section-chevron">▼</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="v35_inspect_badge" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:none;"></span>
+            <span class="section-chevron">▼</span>
+          </div>
         </div>
         <div class="section-content">
-          <div class="field-row two" style="margin-bottom:13px">
+          <!-- 기본 정보 -->
+          <div style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📌 기본 정보</div>
+          <div class="field-row two" style="margin-bottom:10px">
             <div class="field" style="margin-bottom:0"><label>차량번호</label><input id="v35_number" type="text" placeholder="예: 456나 7890" oninput="saveVehicleData()"></div>
             <div class="field" style="margin-bottom:0"><label>차종/모델</label><input id="v35_model" type="text" placeholder="예: 메가트럭" oninput="saveVehicleData()"></div>
           </div>
-          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록</div>
-          <div id="v35_maintenance_list"></div>
-          <button class="add-row-btn" onclick="addMaintenanceRow('v35')" style="margin-bottom:14px;">＋ 정비 기록 추가</button>
-          <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
           <div class="field-row two" style="margin-bottom:13px">
-            <div class="field" style="margin-bottom:0"><label>최근 검사일</label><input id="v35_inspect_last" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
-            <div class="field" style="margin-bottom:0"><label>다음 검사일</label><input id="v35_inspect_next" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>현재 주행거리 (km)</label><input id="v35_current_km" type="text" placeholder="예: 120,000" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>연료 종류</label>
+              <select id="v35_fuel" onchange="saveVehicleData()">
+                <option value="">선택</option>
+                <option value="경유">경유 (디젤)</option>
+                <option value="휘발유">휘발유</option>
+                <option value="LPG">LPG</option>
+                <option value="전기">전기</option>
+              </select>
+            </div>
           </div>
-          <div class="field"><label>기타 메모</label><textarea id="v35_memo" placeholder="기타 사항 자유 입력" style="min-height:60px;" oninput="saveVehicleData()"></textarea></div>
+
+          <!-- 보험 -->
+          <div style="font-size:12px;font-weight:700;color:var(--accent2);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🛡️ 보험</div>
+          <div class="field-row two" style="margin-bottom:13px">
+            <div class="field" style="margin-bottom:0"><label>보험 시작일</label><input id="v35_ins_start" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>보험 만료일</label><input id="v35_ins_end" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInsBadge('v35')"></div>
+          </div>
+          <div id="v35_ins_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
+
+          <!-- 정기검사 -->
+          <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">📋 정기검사</div>
+          <div class="field-row two" style="margin-bottom:6px">
+            <div class="field" style="margin-bottom:0"><label>최근 검사일</label><input id="v35_inspect_last" type="date" style="color-scheme:dark;" oninput="saveVehicleData()"></div>
+            <div class="field" style="margin-bottom:0"><label>다음 검사일</label><input id="v35_inspect_next" type="date" style="color-scheme:dark;" oninput="saveVehicleData();updateInspectBadge('v35')"></div>
+          </div>
+          <div id="v35_inspect_alert" style="display:none;font-size:12px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:13px;"></div>
+
+          <!-- 정비 기록 -->
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 <span id="v35_maint_count" style="font-weight:400;color:var(--text-muted);"></span></div>
+          <div id="v35_maintenance_list"></div>
+          <button class="add-row-btn" onclick="addMaintenanceRow('v35')" style="margin-bottom:13px;">＋ 정비 기록 추가</button>
+
+          <!-- 메모 -->
+          <div class="field" style="margin-bottom:0"><label>기타 메모</label><textarea id="v35_memo" placeholder="기타 사항 자유 입력" style="min-height:60px;" oninput="saveVehicleData()"></textarea></div>
         </div>
       </div>
-      <div style="height:28px;"></div>
+
     </div>
   </div>
 
@@ -1955,7 +2023,60 @@ function refreshElecUI(log) {
 }
 
 // ── 차량관리 ──
-let vehicleData = JSON.parse(localStorage.getItem('vehicleData') || '{"v15":{"number":"","model":"","maintenance":[],"inspect_last":"","inspect_next":"","memo":""},"v35":{"number":"","model":"","maintenance":[],"inspect_last":"","inspect_next":"","memo":""}}');
+let vehicleData = JSON.parse(localStorage.getItem('vehicleData') || '{"v15":{"number":"","model":"","current_km":"","fuel":"","maintenance":[],"inspect_last":"","inspect_next":"","ins_start":"","ins_end":"","memo":""},"v35":{"number":"","model":"","current_km":"","fuel":"","maintenance":[],"inspect_last":"","inspect_next":"","ins_start":"","ins_end":"","memo":""}}');
+// 기존 데이터에 새 필드 없으면 기본값 추가
+['v15','v35'].forEach(t => {
+  if (!vehicleData[t]) vehicleData[t] = {};
+  if (vehicleData[t].current_km === undefined) vehicleData[t].current_km = '';
+  if (vehicleData[t].fuel === undefined) vehicleData[t].fuel = '';
+  if (vehicleData[t].ins_start === undefined) vehicleData[t].ins_start = '';
+  if (vehicleData[t].ins_end === undefined) vehicleData[t].ins_end = '';
+});
+
+function getDday(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  return Math.round((target - today) / (1000*60*60*24));
+}
+
+function updateInspectBadge(type) {
+  const nextDate = document.getElementById(type+'_inspect_next')?.value;
+  const badge = document.getElementById(type+'_inspect_badge');
+  const alert = document.getElementById(type+'_inspect_alert');
+  if (!badge || !alert) return;
+  const d = getDday(nextDate);
+  if (d === null) { badge.style.display='none'; alert.style.display='none'; return; }
+  if (d < 0) {
+    badge.textContent = '검사 초과!'; badge.style.cssText = 'display:inline-block;background:rgba(217,114,72,0.2);color:var(--accent2);border:1px solid rgba(217,114,72,0.4);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;';
+    alert.textContent = `⚠️ 정기검사가 ${Math.abs(d)}일 초과됐습니다!`;
+    alert.style.cssText = 'display:block;background:rgba(217,114,72,0.12);color:var(--accent2);border:1px solid rgba(217,114,72,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else if (d <= 30) {
+    badge.textContent = `D-${d}`; badge.style.cssText = 'display:inline-block;background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.35);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;';
+    alert.textContent = `📋 정기검사까지 ${d}일 남았습니다.`;
+    alert.style.cssText = 'display:block;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else {
+    badge.textContent = `D-${d}`; badge.style.cssText = 'display:inline-block;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(61,186,150,0.3);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;';
+    alert.style.display = 'none';
+  }
+}
+
+function updateInsBadge(type) {
+  const endDate = document.getElementById(type+'_ins_end')?.value;
+  const alert = document.getElementById(type+'_ins_alert');
+  if (!alert) return;
+  const d = getDday(endDate);
+  if (d === null) { alert.style.display='none'; return; }
+  if (d < 0) {
+    alert.textContent = `🛡️ 보험이 ${Math.abs(d)}일 전에 만료됐습니다!`;
+    alert.style.cssText = 'display:block;background:rgba(217,114,72,0.12);color:var(--accent2);border:1px solid rgba(217,114,72,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else if (d <= 30) {
+    alert.textContent = `🛡️ 보험 만료까지 ${d}일 남았습니다.`;
+    alert.style.cssText = 'display:block;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else {
+    alert.style.display = 'none';
+  }
+}
 
 function renderVehiclePage() {
   ['v15','v35'].forEach(t => {
@@ -1963,10 +2084,21 @@ function renderVehiclePage() {
     const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
     setVal(t+'_number', d.number);
     setVal(t+'_model', d.model);
+    setVal(t+'_current_km', d.current_km);
     setVal(t+'_inspect_last', d.inspect_last);
     setVal(t+'_inspect_next', d.inspect_next);
+    setVal(t+'_ins_start', d.ins_start);
+    setVal(t+'_ins_end', d.ins_end);
     setVal(t+'_memo', d.memo);
-    renderMaintenanceList(t, d.maintenance||[]);
+    const fuelEl = document.getElementById(t+'_fuel');
+    if (fuelEl) fuelEl.value = d.fuel || '';
+    // 정비기록 최신순 정렬
+    const sorted = [...(d.maintenance||[])].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    renderMaintenanceList(t, sorted);
+    updateInspectBadge(t);
+    updateInsBadge(t);
+    const countEl = document.getElementById(t+'_maint_count');
+    if (countEl) countEl.textContent = d.maintenance?.length ? `(${d.maintenance.length}건)` : '';
   });
 }
 
@@ -1979,8 +2111,11 @@ function renderMaintenanceList(type, arr) {
 function addMaintenanceRow(type) {
   if (!vehicleData[type].maintenance) vehicleData[type].maintenance = [];
   vehicleData[type].maintenance.push({item:'',km:'',date:'',note:''});
-  renderMaintenanceList(type, vehicleData[type].maintenance);
+  const sorted = [...vehicleData[type].maintenance].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  renderMaintenanceList(type, sorted);
   saveVehicleData();
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
 }
 
 function addMaintenanceCard(type, m, idx) {
@@ -2010,8 +2145,11 @@ function updateMaintenance(type, idx, field, val) {
 
 function deleteMaintenance(type, idx) {
   vehicleData[type].maintenance.splice(idx,1);
-  renderMaintenanceList(type, vehicleData[type].maintenance);
+  const sorted = [...vehicleData[type].maintenance].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  renderMaintenanceList(type, sorted);
   saveVehicleData();
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
 }
 
 function saveVehicleData() {
@@ -2019,11 +2157,17 @@ function saveVehicleData() {
     const getVal = id => { const el = document.getElementById(id); return el ? el.value : ''; };
     vehicleData[t].number       = getVal(t+'_number');
     vehicleData[t].model        = getVal(t+'_model');
+    vehicleData[t].current_km   = getVal(t+'_current_km');
+    vehicleData[t].fuel         = getVal(t+'_fuel');
     vehicleData[t].inspect_last = getVal(t+'_inspect_last');
     vehicleData[t].inspect_next = getVal(t+'_inspect_next');
+    vehicleData[t].ins_start    = getVal(t+'_ins_start');
+    vehicleData[t].ins_end      = getVal(t+'_ins_end');
     vehicleData[t].memo         = getVal(t+'_memo');
   });
   localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+  const st = document.getElementById('vehSaveStatus');
+  if (st) { st.textContent = '저장됨 ✓'; st.style.color='var(--accent)'; setTimeout(()=>{ st.textContent='자동저장됨'; st.style.color='var(--text-muted)'; }, 1500); }
 }
 
 function saveLog() {
