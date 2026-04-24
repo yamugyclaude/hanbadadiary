@@ -1192,22 +1192,23 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
 <!-- 정비 이력 모달 -->
 <div class="modal-overlay" id="vehicleHistoryModal">
-  <div class="modal-sheet" style="max-height:88dvh;overflow-y:scroll;-webkit-overflow-scrolling:touch;border-radius:16px 16px 0 0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+  <div class="modal-sheet" style="max-height:88dvh;display:flex;flex-direction:column;border-radius:16px 16px 0 0;padding:20px 20px 0 20px;">
+    <!-- 헤더 고정 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0;">
       <div style="font-size:16px;font-weight:700;color:var(--text);">📋 정비 이력 전체보기</div>
       <button onclick="closeVehicleHistory()" style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:0 4px;">✕</button>
     </div>
-    <!-- 차량 탭 -->
-    <div style="display:flex;gap:8px;margin-bottom:14px;">
+    <!-- 차량 탭 고정 -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
       <button id="vhTab_v15" onclick="switchVehicleHistoryTab('v15')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);">🚐 1.5톤</button>
       <button id="vhTab_v35" onclick="switchVehicleHistoryTab('v35')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">🚚 3.5톤</button>
     </div>
-    <!-- 차량 요약 -->
-    <div id="vhSummary" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:2;"></div>
-    <!-- 정비 기록 목록 -->
-    <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 (최신순)</div>
-    <div id="vhList" style="display:flex;flex-direction:column;gap:8px;"></div>
-    <div style="height:8px;"></div>
+    <!-- 스크롤 영역 -->
+    <div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bot));">
+      <div id="vhSummary" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:2;"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 (최신순)</div>
+      <div id="vhList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
   </div>
 </div>
 
@@ -2246,11 +2247,10 @@ function renderVehicleHistoryTab(type) {
   const inspStr  = inspDday === null ? '-' : inspDday < 0 ? `<span style="color:var(--accent2);font-weight:700;">초과 ${Math.abs(inspDday)}일</span>` : inspDday <= 30 ? `<span style="color:var(--gold);font-weight:700;">D-${inspDday}</span>` : `D-${inspDday}`;
 
   document.getElementById('vhSummary').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;">
-      <div><span style="color:var(--text-muted);">차종</span> <strong style="color:var(--text)">${label}</strong></div>
-      <div><span style="color:var(--text-muted);">현재 km</span> <strong style="color:var(--text)">${d.current_km ? d.current_km+'km' : '-'}</strong></div>
-      <div><span style="color:var(--text-muted);">정기검사</span> ${inspStr}</div>
-      <div><span style="color:var(--text-muted);">정비 횟수</span> <strong style="color:var(--accent)">${(d.maintenance||[]).length}건</strong></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:13px;">
+      <div><span style="color:var(--text-muted);">차종</span><br><strong style="color:var(--text)">${label}</strong></div>
+      <div><span style="color:var(--text-muted);">정기검사</span><br>${inspStr}</div>
+      <div style="grid-column:1/-1;"><span style="color:var(--text-muted);">총 정비 횟수</span> <strong style="color:var(--accent);font-size:15px;">${(d.maintenance||[]).length}건</strong></div>
     </div>`;
 
   // 정비 목록 (최신순, 실제 인덱스 유지)
