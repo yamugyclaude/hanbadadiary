@@ -2958,6 +2958,59 @@ document.getElementById('pageForm').style.display = 'none';
 renderList();
 initRealtime();
 
+// 앱 시작 시 자동으로 클라우드 데이터 불러오기
+async function autoLoadAll() {
+  try {
+    // 1. 행사일지 - 전체 불러오기
+    const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (logRes.ok) {
+      const rows = await logRes.json();
+      if (rows.length) {
+        logs = rows.map(r => JSON.parse(r.data));
+        localStorage.setItem('soundlogs', JSON.stringify(logs));
+        renderList();
+      }
+    }
+
+    // 2. 업무 데이터 - 전체 불러오기
+    const taskRes = await fetch(`${SB_URL}/rest/v1/tasks?select=type,data&order=created_at.desc`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (taskRes.ok) {
+      const taskRows = await taskRes.json();
+      if (taskRows.length) {
+        warehouseTasks = []; officeTasks = []; directiveTasks = [];
+        taskRows.forEach(r => {
+          const t = JSON.parse(r.data);
+          if (r.type === 'warehouse') warehouseTasks.push(t);
+          else if (r.type === 'office') officeTasks.push(t);
+          else if (r.type === 'directive') directiveTasks.push(t);
+        });
+        localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+        localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+        localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+      }
+    }
+
+    // 3. 차량 데이터
+    const vehRes = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15,v35`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (vehRes.ok) {
+      const vehRows = await vehRes.json();
+      if (vehRows.length && (vehRows[0].v15 || vehRows[0].v35)) {
+        if (vehRows[0].v15) vehicleData.v15 = vehRows[0].v15;
+        if (vehRows[0].v35) vehicleData.v35 = vehRows[0].v35;
+        localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+      }
+    }
+
+  } catch(e) { console.error('자동 불러오기 실패:', e); }
+}
+autoLoadAll();
+
 // ── 자동저장 ──
 let autoSaveTimer = null;
 function triggerAutoSave() {
