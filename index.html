@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SoundLog</title>
@@ -32,78 +33,82 @@
 --safe-top: env(safe-area-inset-top, 0px);
 --safe-bot: env(safe-area-inset-bottom, 0px);
 --radius: 10px;
-}
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 html, body {
-  height: 100%;
-  overflow: hidden;
-  font-family: 'Noto Sans KR', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 15px;
-  -webkit-font-smoothing: antialiased;
+height: 100%;
+overflow: hidden;
+font-family: 'Noto Sans KR', sans-serif;
+background: var(--bg);
+color: var(--text);
+font-size: 15px;
+-webkit-font-smoothing: antialiased;
 }
 
 #app {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  max-width: 640px;
-  margin: 0 auto;
+display: flex;
+flex-direction: column;
+height: 100dvh;
+max-width: 640px;
+margin: 0 auto;
 }
 
 /* ─── HEADER ─── */
 header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 13px 18px;
-  padding-top: calc(13px + var(--safe-top));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+padding: 13px 18px;
+padding-top: calc(13px + var(--safe-top));
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-shrink: 0;
 }
 .logo { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: 3px; }
 .logo span { color: var(--accent2); }
 
 /* ─── NAV TABS ─── */
 .nav-tabs {
-  display: flex;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+display: flex;
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+flex-shrink: 0;
+-ms-overflow-style: none;
+scrollbar-width: none;
 }
+.nav-tabs::-webkit-scrollbar { display: none; }
 .nav-tab {
-  flex: 1;
-  padding: 11px 0;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
-  user-select: none;
+flex: 1;
+min-width: 80px;
+padding: 11px 0;
+text-align: center;
+font-size: 13px;
+font-weight: 700;
+color: var(--text-muted);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: all 0.15s;
+user-select: none;
+white-space: nowrap;
 }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .nav-tab:active { opacity: 0.7; }
 
 /* ─── PAGES ─── */
-.page { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: none; }
+.page { flex: 1; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; display: none; }
 .page.active { display: flex; flex-direction: column; }
 
 /* ─── LIST ─── */
 .list-toolbar { padding: 14px 16px 10px; display: flex; gap: 10px; }
 .log-cards { padding: 0 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; padding-bottom: 28px; }
 .log-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: border-color 0.15s;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+padding: 14px 16px;
+cursor: pointer;
+transition: border-color 0.15s;
 }
 .log-card:active { border-color: var(--accent); opacity: 0.85; }
 .log-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -119,13 +124,13 @@ header {
 .md-storage-title { font-size: 13px; color: var(--text-muted); flex: 1; }
 .md-file-cards { padding: 0 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; padding-bottom: 28px; }
 .md-file-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+padding: 14px 16px;
+display: flex;
+align-items: flex-start;
+gap: 12px;
 }
 .md-file-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
 .md-file-info { flex: 1; min-width: 0; }
@@ -134,16 +139,16 @@ header {
 .md-file-saved { font-size: 11px; color: var(--accent); margin-top: 3px; }
 .md-file-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
 .md-btn-sm {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--text2);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-family: 'Noto Sans KR', sans-serif;
-  white-space: nowrap;
+background: var(--surface2);
+border: 1px solid var(--border2);
+border-radius: 6px;
+color: var(--text2);
+font-size: 12px;
+font-weight: 600;
+padding: 6px 12px;
+cursor: pointer;
+font-family: 'Noto Sans KR', sans-serif;
+white-space: nowrap;
 }
 .md-btn-sm:active { opacity: 0.7; }
 .md-btn-sm.danger { color: var(--accent2); border-color: rgba(224,123,84,0.3); }
@@ -151,28 +156,28 @@ header {
 
 /* ─── FORM ─── */
 .form-top-bar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+display: flex; align-items: center; gap: 10px;
+padding: 12px 16px;
+background: var(--surface);
+border-bottom: 1px solid var(--border);
+flex-shrink: 0;
 }
 .back-btn { background: none; border: none; color: var(--accent); font-size: 28px; cursor: pointer; padding: 0 6px; line-height: 1; flex-shrink: 0; }
 .form-top-title { flex: 1; font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .save-btn-top { background: var(--accent); color: #0a0c10; border: none; border-radius: 8px; padding: 8px 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; flex-shrink: 0; }
 .save-btn-top:active { opacity: 0.75; }
 
-.form-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.form-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+.form-scroll { flex: 1; overflow-y: scroll; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+.form-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; padding-bottom: calc(100px + var(--safe-bot)); }
 
 /* ─── SECTION ─── */
 .section-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .section-header {
-  padding: 14px 15px;
-  background: var(--surface2);
-  display: flex; align-items: center; justify-content: space-between;
-  cursor: pointer; user-select: none; -webkit-user-select: none;
-  border-bottom: 1px solid var(--border);
+padding: 14px 15px;
+background: var(--surface2);
+display: flex; align-items: center; justify-content: space-between;
+cursor: pointer; user-select: none; -webkit-user-select: none;
+border-bottom: 1px solid var(--border);
 }
 .section-header:active { opacity: 0.8; }
 .section-block.collapsed .section-header { border-bottom: none; }
@@ -194,70 +199,70 @@ header {
 label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.5px; }
 
 input[type=text], input[type=tel], select, textarea {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 15px;
-  padding: 12px 13px;
-  outline: none;
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-  transition: border-color 0.15s, background 0.15s;
+background: var(--surface2);
+border: 1px solid var(--border2);
+color: var(--text);
+border-radius: 8px;
+color: var(--text);
+font-family: 'Noto Sans KR', sans-serif;
+font-size: 15px;
+padding: 12px 13px;
+outline: none;
+width: 100%;
+-webkit-appearance: none;
+appearance: none;
+transition: border-color 0.15s, background 0.15s;
 }
 textarea:not(:placeholder-shown) {
-  border-color: var(--accent);
-  background: rgba(61,186,150,0.05);
+border-color: var(--accent);
+background: rgba(61,186,150,0.05);
 }
 input[type=time] {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 15px;
-  padding: 11px 12px;
-  outline: none;
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-  transition: border-color 0.15s;
+background: var(--surface2);
+border: 1px solid var(--border2);
+border-radius: 8px;
+color: var(--text);
+font-family: 'JetBrains Mono', monospace;
+font-size: 15px;
+padding: 11px 12px;
+outline: none;
+width: 100%;
+-webkit-appearance: none;
+appearance: none;
+transition: border-color 0.15s;
 }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 textarea { resize: none; min-height: 82px; line-height: 1.6; }
 select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6478' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 13px center;
-  padding-right: 38px;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6478' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E”);
+background-repeat: no-repeat;
+background-position: right 13px center;
+padding-right: 38px;
 }
 select option { background: #181c24; }
 
 /* ─── 날씨 복수 선택 ─── */
 .weather-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 7px;
 }
 .weather-opt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 9px 5px;
-  background: var(--unselected-bg);
-  border: 1.5px solid var(--unselected-border);
-  border-radius: 8px;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: all 0.15s;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 600;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+padding: 9px 5px;
+background: var(--unselected-bg);
+border: 1.5px solid var(--unselected-border);
+border-radius: 8px;
+cursor: pointer;
+user-select: none;
+-webkit-user-select: none;
+transition: all 0.15s;
+font-size: 11px;
+color: var(--text-muted);
+font-weight: 600;
 }
 .weather-opt:active { opacity: 0.75; }
 .weather-opt.selected { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
@@ -266,19 +271,19 @@ select option { background: #181c24; }
 /* ─── TOGGLE ─── */
 .toggle-group { display: flex; gap: 8px; }
 .toggle-opt {
-  display: flex; align-items: center; gap: 7px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1.5px solid var(--unselected-border);
-  background: var(--unselected-bg);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: all 0.15s;
-  user-select: none; -webkit-user-select: none;
-  flex: 1;
-  justify-content: center;
+display: flex; align-items: center; gap: 7px;
+padding: 10px 14px;
+border-radius: 8px;
+border: 1.5px solid var(--unselected-border);
+background: var(--unselected-bg);
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+color: var(--text-muted);
+transition: all 0.15s;
+user-select: none; -webkit-user-select: none;
+flex: 1;
+justify-content: center;
 }
 .toggle-opt:active { opacity: 0.8; }
 .toggle-opt.selected-yes { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
@@ -286,14 +291,14 @@ select option { background: #181c24; }
 .toggle-check { width: 19px; height: 19px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; }
 
 .sub-form {
-  background: var(--surface3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+background: var(--surface3);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 12px;
+margin-top: 10px;
+display: flex;
+flex-direction: column;
+gap: 10px;
 }
 .sub-form label { color: var(--text-muted); font-size: 11px; }
 
@@ -304,16 +309,16 @@ select option { background: #181c24; }
 
 .stair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 .stair-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 12px;
-  background: var(--unselected-bg);
-  border: 1.5px solid var(--unselected-border);
-  border-radius: 8px;
-  cursor: pointer;
-  user-select: none; -webkit-user-select: none;
-  font-size: 14px; font-weight: 600;
-  color: var(--text-muted);
-  transition: all 0.15s;
+display: flex; align-items: center; gap: 8px;
+padding: 10px 12px;
+background: var(--unselected-bg);
+border: 1.5px solid var(--unselected-border);
+border-radius: 8px;
+cursor: pointer;
+user-select: none; -webkit-user-select: none;
+font-size: 14px; font-weight: 600;
+color: var(--text-muted);
+transition: all 0.15s;
 }
 .stair-item:active { opacity: 0.8; }
 .stair-item.checked { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
@@ -341,16 +346,16 @@ select option { background: #181c24; }
 .equip-select-label { font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 0.5px; margin-bottom: 8px; }
 .equip-option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .equip-opt {
-  display: flex; align-items: center; gap: 8px;
-  padding: 11px 12px;
-  background: var(--unselected-bg);
-  border: 1.5px solid var(--unselected-border);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px; font-weight: 600;
-  color: var(--text-muted);
-  transition: all 0.15s;
-  user-select: none; -webkit-user-select: none;
+display: flex; align-items: center; gap: 8px;
+padding: 11px 12px;
+background: var(--unselected-bg);
+border: 1.5px solid var(--unselected-border);
+border-radius: 8px;
+cursor: pointer;
+font-size: 13px; font-weight: 600;
+color: var(--text-muted);
+transition: all 0.15s;
+user-select: none; -webkit-user-select: none;
 }
 .equip-opt:active { opacity: 0.8; }
 .equip-opt.selected { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.25); }
@@ -361,26 +366,26 @@ select option { background: #181c24; }
 /* ─── 모니터 스피커 세팅 ─── */
 .monitor-check-list { display: flex; flex-direction: column; gap: 10px; }
 .monitor-check-item {
-  background: var(--unselected-bg);
-  border: 1.5px solid var(--unselected-border);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.15s;
+background: var(--unselected-bg);
+border: 1.5px solid var(--unselected-border);
+border-radius: 8px;
+overflow: hidden;
+transition: all 0.15s;
 }
 .monitor-check-item.checked { border-color: var(--accent); background: var(--accent-selected); box-shadow: 0 0 0 1px rgba(61,186,150,0.15); }
 .monitor-check-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  user-select: none; -webkit-user-select: none;
+display: flex; align-items: center; gap: 10px;
+padding: 12px 14px;
+cursor: pointer;
+user-select: none; -webkit-user-select: none;
 }
 .monitor-check-row:active { opacity: 0.8; }
 .monitor-check-box {
-  width: 22px; height: 22px; border-radius: 5px;
-  border: 2px solid var(--border2);
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
+width: 22px; height: 22px; border-radius: 5px;
+border: 2px solid var(--border2);
+flex-shrink: 0;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.15s;
 }
 .monitor-check-item.checked .monitor-check-box { background: var(--accent); border-color: var(--accent); }
 .monitor-check-name { font-size: 14px; font-weight: 600; color: var(--text-muted); flex: 1; }
@@ -414,45 +419,45 @@ select option { background: #181c24; }
 
 /* ─── MODAL (덮어쓰기 확인) ─── */
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 900;
-  display: flex; align-items: flex-end; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.2s;
+position: fixed; inset: 0;
+background: rgba(0,0,0,0.7);
+z-index: 900;
+display: flex; align-items: flex-end; justify-content: center;
+opacity: 0; pointer-events: none;
+transition: opacity 0.2s;
 }
 .modal-overlay.show { opacity: 1; pointer-events: all; }
 .modal-sheet {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px 16px 0 0;
-  padding: 20px 20px;
-  padding-bottom: calc(20px + var(--safe-bot));
-  width: 100%;
-  max-width: 640px;
-  transform: translateY(40px);
-  transition: transform 0.25s;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 16px 16px 0 0;
+padding: 20px 20px;
+padding-bottom: calc(20px + var(--safe-bot));
+width: 100%;
+max-width: 640px;
+transform: translateY(40px);
+transition: transform 0.25s;
 }
 .modal-overlay.show .modal-sheet { transform: translateY(0); }
 .modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .modal-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.6; }
 .modal-filename {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--accent);
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 16px;
-  word-break: break-all;
+font-family: 'JetBrains Mono', monospace;
+font-size: 12px;
+color: var(--accent);
+background: var(--surface2);
+border: 1px solid var(--border2);
+border-radius: 6px;
+padding: 8px 12px;
+margin-bottom: 16px;
+word-break: break-all;
 }
 .modal-actions { display: flex; gap: 10px; }
 .modal-btn {
-  flex: 1; padding: 13px; border-radius: 10px;
-  font-size: 14px; font-weight: 700;
-  cursor: pointer; border: none;
-  font-family: 'Noto Sans KR', sans-serif;
+flex: 1; padding: 13px; border-radius: 10px;
+font-size: 14px; font-weight: 700;
+cursor: pointer; border: none;
+font-family: 'Noto Sans KR', sans-serif;
 }
 .modal-btn:active { opacity: 0.75; }
 .modal-btn-cancel { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
@@ -464,16 +469,16 @@ select option { background: #181c24; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .tl-day-btn {
-  background: var(--unselected-bg);
-  border: 1.5px solid var(--unselected-border);
-  border-radius: 7px;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 7px 14px;
-  cursor: pointer;
-  font-family: 'Noto Sans KR', sans-serif;
-  transition: all 0.15s;
+background: var(--unselected-bg);
+border: 1.5px solid var(--unselected-border);
+border-radius: 7px;
+color: var(--text-muted);
+font-size: 13px;
+font-weight: 700;
+padding: 7px 14px;
+cursor: pointer;
+font-family: 'Noto Sans KR', sans-serif;
+transition: all 0.15s;
 }
 .tl-day-btn:active { opacity: 0.75; }
 .tl-day-btn.active { background: var(--accent-selected); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px rgba(61,186,150,0.2); }
@@ -481,39 +486,80 @@ select option { background: #181c24; }
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
+/* ─── 스크롤 상단 버튼 ─── */
+.scroll-top-btn {
+position: fixed;
+bottom: calc(80px + var(--safe-bot));
+right: 18px;
+width: 42px; height: 42px;
+background: var(--surface2);
+border: 1px solid var(--border2);
+border-radius: 50%;
+color: var(--text2);
+font-size: 18px;
+cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+z-index: 500;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.25s;
+box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.scroll-top-btn.show { opacity: 1; pointer-events: all; }
+
+/* ─── 자동저장 인디케이터 ─── */
+.autosave-dot {
+width: 7px; height: 7px; border-radius: 50%;
+background: var(--accent);
+display: inline-block;
+margin-left: 6px;
+opacity: 0;
+transition: opacity 0.3s;
+vertical-align: middle;
+}
+.autosave-dot.active { opacity: 1; }
+
+/* ─── 섹션 완료 뱃지 ─── */
+.section-done-badge {
+font-size: 11px;
+color: var(--accent);
+margin-left: 6px;
+font-weight: 700;
+}
+
 /* ─── THEME MODAL ─── */
 .theme-modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
-  z-index: 950;
-  display: flex; align-items: flex-end; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+position: fixed; inset: 0;
+background: rgba(0,0,0,0.75);
+z-index: 950;
+display: flex; align-items: flex-end; justify-content: center;
+opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 .theme-modal-overlay.show { opacity: 1; pointer-events: all; }
 .theme-modal-sheet {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px 16px 0 0;
-  padding: 20px;
-  padding-bottom: calc(20px + var(--safe-bot));
-  width: 100%; max-width: 640px;
-  transform: translateY(40px); transition: transform 0.25s;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 16px 16px 0 0;
+padding: 20px;
+padding-bottom: calc(20px + var(--safe-bot));
+width: 100%; max-width: 640px;
+transform: translateY(40px); transition: transform 0.25s;
 }
 .theme-modal-overlay.show .theme-modal-sheet { transform: translateY(0); }
 .theme-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 14px;
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+margin-top: 14px;
 }
 .theme-card {
-  border-radius: 10px;
-  border: 2px solid transparent;
-  padding: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
+border-radius: 10px;
+border: 2px solid transparent;
+padding: 14px;
+cursor: pointer;
+transition: all 0.2s;
+position: relative;
+overflow: hidden;
 }
 .theme-card.active { border-color: white; box-shadow: 0 0 0 1px white; }
 .theme-card-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
@@ -524,36 +570,36 @@ select option { background: #181c24; }
 .task-toolbar { padding: 14px 16px 10px; display: flex; gap: 8px; align-items: center; }
 .task-filter-group { display: flex; gap: 6px; flex: 1; overflow-x: auto; }
 .task-filter-btn {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1.5px solid var(--unselected-border);
-  background: var(--unselected-bg);
-  color: var(--text-muted);
-  font-size: 12px; font-weight: 700;
-  cursor: pointer;
-  font-family: 'Noto Sans KR', sans-serif;
-  transition: all 0.15s;
-  white-space: nowrap;
+flex-shrink: 0;
+padding: 6px 14px;
+border-radius: 20px;
+border: 1.5px solid var(--unselected-border);
+background: var(--unselected-bg);
+color: var(--text-muted);
+font-size: 12px; font-weight: 700;
+cursor: pointer;
+font-family: 'Noto Sans KR', sans-serif;
+transition: all 0.15s;
+white-space: nowrap;
 }
 .task-filter-btn.active { background: var(--accent-selected); border-color: var(--accent); color: var(--accent); }
 .task-filter-btn.active-prog { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
 .task-filter-btn.active-done { background: var(--surface2); border-color: var(--border2); color: var(--text-muted); }
 
-.task-cards { padding: 0 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-bottom: 28px; }
+.task-cards { padding: 0 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-bottom: 40px; }
 .task-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  transition: border-color 0.15s;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+padding: 14px 16px;
+transition: border-color 0.15s;
 }
 .task-card.status-todo { border-left: 3px solid var(--accent2); }
 .task-card.status-progress { border-left: 3px solid var(--gold); }
 .task-card.status-done { border-left: 3px solid var(--border2); opacity: 0.6; }
 .task-card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
 .task-status-badge {
-  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; margin-top: 2px;
+font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; margin-top: 2px;
 }
 .badge-todo { background: var(--accent2-dim); color: var(--accent2); border: 1px solid rgba(217,114,72,0.3); }
 .badge-progress { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
@@ -567,9 +613,9 @@ select option { background: #181c24; }
 .task-body { font-size: 13px; color: var(--text2); line-height: 1.6; white-space: pre-wrap; }
 .task-actions { display: flex; gap: 6px; margin-top: 10px; }
 .task-act-btn {
-  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
-  border: 1px solid var(--border2); background: var(--surface2); color: var(--text-muted);
-  cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
+border: 1px solid var(--border2); background: var(--surface2); color: var(--text-muted);
+cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
 }
 .task-act-btn:active { opacity: 0.75; }
 .task-act-btn.primary { color: var(--accent); border-color: rgba(61,186,150,0.35); }
@@ -577,50 +623,52 @@ select option { background: #181c24; }
 
 /* ─── TASK FORM MODAL ─── */
 .task-modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
-  z-index: 900;
-  display: flex; align-items: flex-end; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+position: fixed; inset: 0;
+background: rgba(0,0,0,0.75);
+z-index: 900;
+display: flex; align-items: flex-end; justify-content: center;
+opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 .task-modal-overlay.show { opacity: 1; pointer-events: all; }
 .task-modal-sheet {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px 16px 0 0;
-  padding: 20px;
-  padding-bottom: calc(20px + var(--safe-bot));
-  width: 100%; max-width: 640px;
-  transform: translateY(40px); transition: transform 0.25s;
-  display: flex; flex-direction: column; gap: 12px;
-  max-height: 90dvh; overflow-y: auto;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 16px 16px 0 0;
+padding: 20px;
+padding-bottom: calc(20px + var(--safe-bot));
+width: 100%; max-width: 640px;
+transform: translateY(40px); transition: transform 0.25s;
+display: flex; flex-direction: column; gap: 12px;
+max-height: 90dvh; overflow-y: scroll; -webkit-overflow-scrolling: touch;
 }
 .task-modal-overlay.show .task-modal-sheet { transform: translateY(0); }
 .task-modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
 .task-status-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .task-status-opt {
-  padding: 9px; text-align: center; border-radius: 8px;
-  border: 1.5px solid var(--unselected-border); background: var(--unselected-bg);
-  color: var(--text-muted); font-size: 13px; font-weight: 700;
-  cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+padding: 9px; text-align: center; border-radius: 8px;
+border: 1.5px solid var(--unselected-border); background: var(--unselected-bg);
+color: var(--text-muted); font-size: 13px; font-weight: 700;
+cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 }
 .task-status-opt.sel-todo { border-color: var(--accent2); background: var(--accent2-dim); color: var(--accent2); }
 .task-status-opt.sel-progress { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
 .task-status-opt.sel-done { border-color: var(--accent); background: var(--accent-selected); color: var(--accent); }
 .task-priority-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .task-pri-opt {
-  padding: 9px; text-align: center; border-radius: 8px;
-  border: 1.5px solid var(--unselected-border); background: var(--unselected-bg);
-  color: var(--text-muted); font-size: 13px; font-weight: 700;
-  cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+padding: 9px; text-align: center; border-radius: 8px;
+border: 1.5px solid var(--unselected-border); background: var(--unselected-bg);
+color: var(--text-muted); font-size: 13px; font-weight: 700;
+cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 }
 .task-pri-opt.sel-high { border-color: var(--accent2); background: var(--accent2-dim); color: var(--accent2); }
 .task-pri-opt.sel-mid { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
 .task-pri-opt.sel-low { border-color: var(--border2); background: var(--surface2); color: var(--text-muted); }
 </style>
+
 </head>
 <body>
 <div id="app">
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">↑</button>
   <header>
     <div class="logo">SOUND<span>LOG</span></div>
     <span id="headerDate" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);"></span>
@@ -630,14 +678,17 @@ select option { background: #181c24; }
   </header>
 
   <!-- NAV TABS -->
-  <div class="nav-tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+
+  <div class="nav-tabs" style="overflow-x:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;">
     <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 행사일지</div>
     <div class="nav-tab" id="tab-warehouse" onclick="switchTab('warehouse')">🏭 창고업무</div>
     <div class="nav-tab" id="tab-office" onclick="switchTab('office')">🏢 사무실업무</div>
     <div class="nav-tab" id="tab-directive" onclick="switchTab('directive')">👔 대표지시</div>
+    <div class="nav-tab" id="tab-vehicle" onclick="switchTab('vehicle')">🚛 차량관리</div>
   </div>
 
   <!-- LIST PAGE -->
+
   <div class="page active" id="pageList">
     <div class="list-toolbar">
       <button class="btn btn-new" onclick="newLog()">＋ 새 행사일지</button>
@@ -647,6 +698,7 @@ select option { background: #181c24; }
   </div>
 
   <!-- 창고업무 PAGE -->
+
   <div class="page" id="pageWarehouse">
     <div class="task-toolbar">
       <div class="task-filter-group">
@@ -662,6 +714,7 @@ select option { background: #181c24; }
   </div>
 
   <!-- 사무실업무 PAGE -->
+
   <div class="page" id="pageOffice">
     <div class="task-toolbar">
       <div class="task-filter-group">
@@ -677,6 +730,7 @@ select option { background: #181c24; }
   </div>
 
   <!-- 대표지시 PAGE -->
+
   <div class="page" id="pageDirective">
     <div class="task-toolbar">
       <div class="task-filter-group">
@@ -691,311 +745,393 @@ select option { background: #181c24; }
     <div class="task-cards" id="directiveCards"></div>
   </div>
 
+  <!-- VEHICLE PAGE -->
+  <div class="page" id="pageVehicle">
+    <!-- 툴바 -->
+    <div style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;flex:1;">🚛 차량 관리 대장</span>
+      <button onclick="loadVehicleFromCloud()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">☁️ 불러오기</button>
+      <button onclick="openVehicleHistory()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:7px 13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">📋 정비 이력</button>
+      <button onclick="saveVehicleManual()" style="background:var(--accent);border:none;border-radius:8px;color:#0a0c10;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">저장 💾</button>
+    </div>
+    <div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:12px 16px;padding-bottom:calc(28px + var(--safe-bot));">
+
+      <!-- 1.5톤 -->
+      <div class="section-block" id="veh15sec" style="margin-bottom:12px;">
+        <div class="section-header" onclick="toggleSection('veh15sec')">
+          <div class="section-header-left"><span class="section-icon">🚐</span><span class="section-title">1.5톤 · 기아 포터3</span></div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-content">
+          <!-- 정비 기록 -->
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 <span id="v15_maint_count" style="font-weight:400;color:var(--text-muted);"></span></div>
+          <div id="v15_maintenance_list"></div>
+          <button class="add-row-btn" onclick="addMaintenanceRow('v15')" style="margin-bottom:0;">＋ 정비 기록 추가</button>
+        </div>
+      </div>
+
+      <!-- 3.5톤 -->
+      <div class="section-block" id="veh35sec" style="margin-bottom:12px;">
+        <div class="section-header" onclick="toggleSection('veh35sec')">
+          <div class="section-header-left"><span class="section-icon">🚚</span><span class="section-title">3.5톤 · 현대 마이티</span></div>
+          <span class="section-chevron">▼</span>
+        </div>
+        <div class="section-content">
+          <!-- 정비 기록 -->
+          <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🔧 정비 기록 <span id="v35_maint_count" style="font-weight:400;color:var(--text-muted);"></span></div>
+          <div id="v35_maintenance_list"></div>
+          <button class="add-row-btn" onclick="addMaintenanceRow('v35')" style="margin-bottom:0;">＋ 정비 기록 추가</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- FORM PAGE -->
+
   <div class="page" id="pageForm">
     <div class="form-top-bar">
       <button class="back-btn" onclick="showList()">‹</button>
       <div class="form-top-title" id="formTopTitle">새 행사일지</div>
-      <button class="save-btn-top" onclick="saveAndSync()">저장</button>
+      <span class="autosave-dot" id="autosaveDot" title="자동저장됨"></span>
+      <button class="save-btn-top" onclick="saveAndSync()">저장 ☁️</button>
     </div>
 
-    <div class="form-scroll">
-      <div class="form-body">
+<div class="form-scroll">
+  <div class="form-body">
 
-        <!-- 기본정보 -->
-        <div class="section-block" id="sec0">
-          <div class="section-header" onclick="toggleSection('sec0')">
-            <div class="section-header-left"><span class="section-icon">📋</span><span class="section-title">기본 정보</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <!-- 날짜 + 날씨 복수선택 -->
-            <div class="field" style="margin-bottom:13px">
-              <label>날짜</label>
-              <input id="f_date" type="date" oninput="updateTitle()" style="color-scheme:dark;">
-            </div>
-            <div class="field" style="margin-bottom:13px">
-              <label>날씨 (복수 선택 가능)</label>
-              <div class="weather-grid" id="weatherGrid">
-                <div class="weather-opt" data-val="맑음" onclick="toggleWeather(this)"><span class="weather-emoji">☀️</span>맑음</div>
-                <div class="weather-opt" data-val="구름조금" onclick="toggleWeather(this)"><span class="weather-emoji">⛅</span>구름조금</div>
-                <div class="weather-opt" data-val="흐림" onclick="toggleWeather(this)"><span class="weather-emoji">☁️</span>흐림</div>
-                <div class="weather-opt" data-val="비" onclick="toggleWeather(this)"><span class="weather-emoji">🌧️</span>비</div>
-                <div class="weather-opt" data-val="폭우" onclick="toggleWeather(this)"><span class="weather-emoji">⛈️</span>폭우</div>
-                <div class="weather-opt" data-val="눈" onclick="toggleWeather(this)"><span class="weather-emoji">🌨️</span>눈</div>
-                <div class="weather-opt" data-val="바람" onclick="toggleWeather(this)"><span class="weather-emoji">💨</span>바람</div>
-                <div class="weather-opt" data-val="안개" onclick="toggleWeather(this)"><span class="weather-emoji">🌫️</span>안개</div>
-              </div>
-            </div>
-            <div class="field-row two">
-              <div class="field" style="margin-bottom:0">
-                <label>행사 유형</label>
-                <select id="f_eventType">
-                  <option>콘서트</option>
-                  <option>기업행사</option>
-                  <option>결혼식</option>
-                  <option>세미나/컨퍼런스</option>
-                  <option>페스티벌</option>
-                  <option>종교행사</option>
-                  <option>스포츠</option>
-                  <option>통영국제음악당</option>
-                  <option>통영시청</option>
-                  <option>기타</option>
-                </select>
-              </div>
-              <div class="field" style="margin-bottom:0">
-                <label>행사명</label>
-                <input id="f_eventName" type="text" placeholder="행사명" oninput="updateTitle()">
-              </div>
-            </div>
-            <div class="field-row two" style="margin-top:11px">
-              <div class="field" style="margin-bottom:0">
-                <label>고객사 담당자</label>
-                <input id="f_clientManager" type="text" placeholder="담당자 이름">
-              </div>
-              <div class="field" style="margin-bottom:0">
-                <label>행사 장소</label>
-                <input id="f_venue" type="text" placeholder="장소명">
-              </div>
-            </div>
+    <!-- 기본정보 -->
+    <div class="section-block" id="sec0">
+      <div class="section-header" onclick="toggleSection('sec0')">
+        <div class="section-header-left"><span class="section-icon">📋</span><span class="section-title">기본 정보</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <!-- 날짜 + 날씨 복수선택 -->
+        <div class="field" style="margin-bottom:13px">
+          <label>날짜</label>
+          <input id="f_date" type="date" oninput="updateTitle()" style="color-scheme:dark;">
+        </div>
+        <div class="field" style="margin-bottom:13px">
+          <label>날씨 (복수 선택 가능)</label>
+          <div class="weather-grid" id="weatherGrid">
+            <div class="weather-opt" data-val="맑음" onclick="toggleWeather(this)"><span class="weather-emoji">☀️</span>맑음</div>
+            <div class="weather-opt" data-val="구름조금" onclick="toggleWeather(this)"><span class="weather-emoji">⛅</span>구름조금</div>
+            <div class="weather-opt" data-val="흐림" onclick="toggleWeather(this)"><span class="weather-emoji">☁️</span>흐림</div>
+            <div class="weather-opt" data-val="비" onclick="toggleWeather(this)"><span class="weather-emoji">🌧️</span>비</div>
+            <div class="weather-opt" data-val="폭우" onclick="toggleWeather(this)"><span class="weather-emoji">⛈️</span>폭우</div>
+            <div class="weather-opt" data-val="눈" onclick="toggleWeather(this)"><span class="weather-emoji">🌨️</span>눈</div>
+            <div class="weather-opt" data-val="바람" onclick="toggleWeather(this)"><span class="weather-emoji">💨</span>바람</div>
+            <div class="weather-opt" data-val="안개" onclick="toggleWeather(this)"><span class="weather-emoji">🌫️</span>안개</div>
           </div>
         </div>
-
-        <!-- 인력 -->
-        <div class="section-block collapsed" id="sec1">
-          <div class="section-header" onclick="toggleSection('sec1')">
-            <div class="section-header-left"><span class="section-icon">👥</span><span class="section-title">인력 배치</span></div>
-            <span class="section-chevron">▼</span>
+        <div class="field-row two">
+          <div class="field" style="margin-bottom:0">
+            <label>행사 유형</label>
+            <select id="f_eventType">
+              <option>콘서트</option>
+              <option>기업행사</option>
+              <option>결혼식</option>
+              <option>세미나/컨퍼런스</option>
+              <option>페스티벌</option>
+              <option>종교행사</option>
+              <option>스포츠</option>
+              <option>통영국제음악당</option>
+              <option>통영시청</option>
+              <option>기타</option>
+            </select>
           </div>
-          <div class="section-content">
-            <div class="field"><label>음향 엔지니어</label><input id="f_engineer" type="text" placeholder="엔지니어 이름"></div>
-            <div class="field"><label>무대 감독</label><input id="f_stagedirector" type="text" placeholder="무대 감독 이름"></div>
-            <div class="field"><label>스태프 1</label><input id="f_staff1" type="text" placeholder="이름 (쉼표 구분)"></div>
-            <div class="field"><label>스태프 2</label><input id="f_staff2" type="text" placeholder="이름 (쉼표 구분)"></div>
-            <div class="field" style="margin-top:6px">
-              <label>아나운서 섭외</label>
-              <div class="toggle-group">
-                <div class="toggle-opt" id="ann_yes" onclick="toggleAnnouncer(true)"><div class="toggle-check" id="ann_yes_check"></div>있음</div>
-                <div class="toggle-opt" id="ann_no" onclick="toggleAnnouncer(false)"><div class="toggle-check" id="ann_no_check"></div>없음</div>
-              </div>
-              <div class="sub-form" id="announcerForm" style="display:none">
-                <div class="field"><label>아나운서 이름</label><input id="f_announcerName" type="text" placeholder="이름"></div>
-                <div class="field" style="margin:0"><label>연락처</label><input id="f_announcerTel" type="tel" placeholder="010-0000-0000"></div>
-              </div>
-            </div>
+          <div class="field" style="margin-bottom:0">
+            <label>행사명</label>
+            <input id="f_eventName" type="text" placeholder="행사명" oninput="updateTitle()">
           </div>
         </div>
-
-        <!-- 타임라인 -->
-        <div class="section-block collapsed" id="sec2">
-          <div class="section-header" onclick="toggleSection('sec2')">
-            <div class="section-header-left"><span class="section-icon">⏱</span><span class="section-title">타임라인</span></div>
-            <span class="section-chevron">▼</span>
+        <div class="field-row two" style="margin-top:11px">
+          <div class="field" style="margin-bottom:0">
+            <label>고객사 담당자</label>
+            <input id="f_clientManager" type="text" placeholder="담당자 이름">
           </div>
-          <div class="section-content">
-            <div class="tl-group-label">콜타임</div>
-            <div class="timeline-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
-              <span class="timeline-label" style="white-space:nowrap;width:auto;font-size:13px;">🔊 음향설치시작</span>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
-                <button class="tl-day-btn" onclick="setInstallDay('sound','당일')" id="snd_today">당일</button>
-                <button class="tl-day-btn" onclick="setInstallDay('sound','전날')" id="snd_prev">전날</button>
-                <button class="tl-day-btn" onclick="setInstallDay('sound','직접선택')" id="snd_custom">날짜선택</button>
-              </div>
-              <div id="snd_date_wrap" style="display:none;width:100%">
-                <input id="f_callDateSound" type="date" style="width:100%;color-scheme:dark;">
-              </div>
-              <input id="f_callTimeSound" type="time" style="width:100%">
-            </div>
-            <div class="timeline-item" style="flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:10px">
-              <span class="timeline-label" style="white-space:nowrap;width:auto;font-size:13px;">🎪 무대설치시작</span>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
-                <button class="tl-day-btn" onclick="setInstallDay('stage','당일')" id="stg_today">당일</button>
-                <button class="tl-day-btn" onclick="setInstallDay('stage','전날')" id="stg_prev">전날</button>
-                <button class="tl-day-btn" onclick="setInstallDay('stage','직접선택')" id="stg_custom">날짜선택</button>
-              </div>
-              <div id="stg_date_wrap" style="display:none;width:100%">
-                <input id="f_callDateStage" type="date" style="width:100%;color-scheme:dark;">
-              </div>
-              <input id="f_callTimeStage" type="time" style="width:100%">
-            </div>
-            <div class="tl-group-label">리허설</div>
-            <div id="rehearsalList"></div>
-            <button class="add-row-btn" onclick="addRehearsal()" style="margin-bottom:10px">＋ 리허설 팀 추가</button>
-            <div class="tl-group-label">행사</div>
-            <div class="timeline-item"><span class="timeline-label">🟢 행사시작</span><input id="f_showTime" type="time"></div>
-            <div class="timeline-item"><span class="timeline-label">🔴 행사종료</span><input id="f_endTime" type="time"></div>
-            <div class="timeline-item"><span class="timeline-label">📦 철수완료</span><input id="f_teardownEnd" type="time"></div>
+          <div class="field" style="margin-bottom:0">
+            <label>행사 장소</label>
+            <input id="f_venue" type="text" placeholder="장소명">
           </div>
         </div>
-
-        <!-- 설치 음향장비 목록 -->
-        <div class="section-block collapsed" id="sec3">
-          <div class="section-header" onclick="toggleSection('sec3')">
-            <div class="section-header-left"><span class="section-icon">✅</span><span class="section-title">설치 음향장비 목록</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <div class="equip-select-block">
-              <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
-              <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-                <div class="equip-opt" data-val="Midas" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
-                <div class="equip-opt" data-val="Behringer" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
-                <div class="equip-opt" data-val="Allen &amp; Heath" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
-                <div class="equip-opt" data-val="Yamaha" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
-              </div>
-              <!-- 모델 선택 -->
-              <div id="consoleModelWrap" style="display:none;margin-top:10px">
-                <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
-                <div class="equip-option-grid" id="consoleModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
-                <div id="consoleCustomWrap" style="display:none;margin-top:8px">
-                  <input id="f_consoleCustom" type="text" placeholder="모델명 직접 입력">
-                </div>
-              </div>
-            </div>
-            <div class="equip-select-block">
-              <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
-              <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-                <div class="equip-opt" data-val="d&b" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
-                <div class="equip-opt" data-val="JBL" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
-                <div class="equip-opt" data-val="L-Acoustics" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>L-Acoustics</div>
-                <div class="equip-opt" data-val="Meyer Sound" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Meyer Sound</div>
-                <div class="equip-opt" data-val="Nexo" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Nexo</div>
-                <div class="equip-opt" data-val="QSC" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>QSC</div>
-              </div>
-              <div id="speakerModelWrap" style="display:none;margin-top:10px">
-                <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
-                <div class="equip-option-grid" id="speakerModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
-                <div id="speakerCustomWrap" style="display:none;margin-top:8px">
-                  <input id="f_speakerCustom" type="text" placeholder="모델명 직접 입력">
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 투입 장비 -->
-        <div class="section-block collapsed" id="sec4">
-          <div class="section-header" onclick="toggleSection('sec4')">
-            <div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">투입 장비</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <div id="eqList"></div>
-            <button class="add-row-btn" onclick="addEquipRow()">＋ 장비 추가</button>
-          </div>
-        </div>
-
-        <!-- 무대 설치 -->
-        <div class="section-block collapsed" id="sec5">
-          <div class="section-header" onclick="toggleSection('sec5')">
-            <div class="section-header-left"><span class="section-icon">🏗️</span><span class="section-title">무대 설치</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <div class="field" style="margin-bottom:14px">
-              <label>무대 크기</label>
-              <div class="dimension-row" style="margin-top:0">
-                <div class="dim-field"><label>가로 - 무대정면 (m)</label><input id="f_stageW" type="text" placeholder="예: 12.0"></div>
-                <div class="dim-field"><label>세로 (m)</label><input id="f_stageD" type="text" placeholder="예: 8.0"></div>
-              </div>
-            </div>
-            <div class="field" style="margin-bottom:14px">
-              <label>플랭카드 설치</label>
-              <div class="toggle-group">
-                <div class="toggle-opt" id="banner_yes" onclick="toggleBanner(true)"><div class="toggle-check" id="banner_yes_check"></div>있음</div>
-                <div class="toggle-opt" id="banner_no" onclick="toggleBanner(false)"><div class="toggle-check" id="banner_no_check"></div>없음</div>
-              </div>
-              <div id="bannerDimForm" style="display:none">
-                <div class="dimension-row">
-                  <div class="dim-field"><label>가로 (m)</label><input id="f_bannerW" type="text" placeholder="예: 3.0"></div>
-                  <div class="dim-field"><label>세로 (m)</label><input id="f_bannerH" type="text" placeholder="예: 0.9"></div>
-                </div>
-              </div>
-            </div>
-            <div class="field" style="margin-bottom:14px">
-              <label>트러스 설치</label>
-              <div class="toggle-group">
-                <div class="toggle-opt" id="truss_yes" onclick="toggleTruss(true)"><div class="toggle-check" id="truss_yes_check"></div>있음</div>
-                <div class="toggle-opt" id="truss_no" onclick="toggleTruss(false)"><div class="toggle-check" id="truss_no_check"></div>없음</div>
-              </div>
-              <div id="trussDimForm" style="display:none">
-                <div class="dimension-row">
-                  <div class="dim-field"><label>가로 (m)</label><input id="f_trussW" type="text" placeholder="예: 6.0"></div>
-                  <div class="dim-field"><label>세로 (m)</label><input id="f_trussH" type="text" placeholder="예: 4.0"></div>
-                </div>
-              </div>
-            </div>
-            <div class="field">
-              <label>계단 설치</label>
-              <div class="toggle-group">
-                <div class="toggle-opt" id="stair_yes" onclick="toggleStair(true)"><div class="toggle-check" id="stair_yes_check"></div>있음</div>
-                <div class="toggle-opt" id="stair_no" onclick="toggleStair(false)"><div class="toggle-check" id="stair_no_check"></div>없음</div>
-              </div>
-              <div id="stairPosForm" style="display:none">
-                <div class="stair-grid" id="stairGrid">
-                  <div class="stair-item" data-pos="left" onclick="toggleStairPos(this)"><div class="stair-check"></div>좌</div>
-                  <div class="stair-item" data-pos="right" onclick="toggleStairPos(this)"><div class="stair-check"></div>우</div>
-                  <div class="stair-item" data-pos="front-left" onclick="toggleStairPos(this)"><div class="stair-check"></div>앞좌</div>
-                  <div class="stair-item" data-pos="front-right" onclick="toggleStairPos(this)"><div class="stair-check"></div>앞우</div>
-                  <div class="stair-item" style="grid-column:1/-1" data-pos="rear" onclick="toggleStairPos(this)"><div class="stair-check"></div>후면</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 모니터 스피커 세팅 -->
-        <div class="section-block collapsed" id="sec6">
-          <div class="section-header" onclick="toggleSection('sec6')">
-            <div class="section-header-left"><span class="section-icon">🔊</span><span class="section-title">모니터 스피커 세팅</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <div class="monitor-check-list" id="monitorCheckList"></div>
-          </div>
-        </div>
-
-        <!-- 이슈 -->
-        <div class="section-block collapsed" id="sec7">
-          <div class="section-header" onclick="toggleSection('sec7')">
-            <div class="section-header-left"><span class="section-icon">⚠️</span><span class="section-title">이슈 & 해결</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <div class="field"><label>사전 이슈</label><textarea id="f_preIssues" placeholder="현장 도착 후 발견된 문제"></textarea></div>
-            <div class="field"><label>진행 중 이슈</label><textarea id="f_duringIssues" placeholder="행사 중 발생한 문제"></textarea></div>
-            <div class="field"><label>해결 내용</label><textarea id="f_resolution" placeholder="이슈 해결 방법 및 결과"></textarea></div>
-          </div>
-        </div>
-
-        <!-- 메모 -->
-        <div class="section-block collapsed" id="sec8">
-          <div class="section-header" onclick="toggleSection('sec8')">
-            <div class="section-header-left"><span class="section-icon">📝</span><span class="section-title">피드백 & 메모</span></div>
-            <span class="section-chevron">▼</span>
-          </div>
-          <div class="section-content">
-            <div class="field"><label>고객 피드백</label><textarea id="f_clientFeedback" placeholder="고객 반응 및 피드백"></textarea></div>
-            <div class="field"><label>내부 메모</label><textarea id="f_memo" placeholder="다음 행사를 위한 메모"></textarea></div>
-          </div>
-        </div>
-
-        <div id="mdPreview" class="md-preview"></div>
-
       </div>
     </div>
 
-    <div class="bottom-actions">
-      <button class="btn btn-secondary" onclick="exportCurrentMD()">⬇ MD다운</button>
-      <button class="btn btn-danger" id="formDeleteBtn" onclick="deleteLog()" style="display:none">삭제</button>
-      <button class="btn btn-primary" onclick="saveAndSync()">✓ 저장</button>
+    <!-- 인력 -->
+    <div class="section-block collapsed" id="sec1">
+      <div class="section-header" onclick="toggleSection('sec1')">
+        <div class="section-header-left"><span class="section-icon">👥</span><span class="section-title">인력 배치</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="field"><label>음향 엔지니어</label><input id="f_engineer" type="text" placeholder="엔지니어 이름"></div>
+        <div class="field"><label>무대 감독</label><input id="f_stagedirector" type="text" placeholder="무대 감독 이름"></div>
+        <div class="field"><label>스태프 1</label><input id="f_staff1" type="text" placeholder="이름 (쉼표 구분)"></div>
+        <div class="field"><label>스태프 2</label><input id="f_staff2" type="text" placeholder="이름 (쉼표 구분)"></div>
+        <div class="field" style="margin-top:6px">
+          <label>아나운서 섭외</label>
+          <div class="toggle-group">
+            <div class="toggle-opt" id="ann_yes" onclick="toggleAnnouncer(true)"><div class="toggle-check" id="ann_yes_check"></div>있음</div>
+            <div class="toggle-opt" id="ann_no" onclick="toggleAnnouncer(false)"><div class="toggle-check" id="ann_no_check"></div>없음</div>
+          </div>
+          <div class="sub-form" id="announcerForm" style="display:none">
+            <div class="field"><label>아나운서 이름</label><input id="f_announcerName" type="text" placeholder="이름"></div>
+            <div class="field" style="margin:0"><label>연락처</label><input id="f_announcerTel" type="tel" placeholder="010-0000-0000"></div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- 타임라인 -->
+    <div class="section-block collapsed" id="sec2">
+      <div class="section-header" onclick="toggleSection('sec2')">
+        <div class="section-header-left"><span class="section-icon">⏱</span><span class="section-title">타임라인</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="tl-group-label">콜타임</div>
+        <div class="timeline-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+          <span class="timeline-label" style="white-space:nowrap;width:auto;font-size:13px;">🔊 음향설치시작</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+            <button class="tl-day-btn" onclick="setInstallDay('sound','당일')" id="snd_today">당일</button>
+            <button class="tl-day-btn" onclick="setInstallDay('sound','전날')" id="snd_prev">전날</button>
+            <button class="tl-day-btn" onclick="setInstallDay('sound','직접선택')" id="snd_custom">날짜선택</button>
+          </div>
+          <div id="snd_date_wrap" style="display:none;width:100%">
+            <input id="f_callDateSound" type="date" style="width:100%;color-scheme:dark;">
+          </div>
+          <input id="f_callTimeSound" type="time" style="width:100%">
+        </div>
+        <div class="timeline-item" style="flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:10px">
+          <span class="timeline-label" style="white-space:nowrap;width:auto;font-size:13px;">🎪 무대설치시작</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+            <button class="tl-day-btn" onclick="setInstallDay('stage','당일')" id="stg_today">당일</button>
+            <button class="tl-day-btn" onclick="setInstallDay('stage','전날')" id="stg_prev">전날</button>
+            <button class="tl-day-btn" onclick="setInstallDay('stage','직접선택')" id="stg_custom">날짜선택</button>
+          </div>
+          <div id="stg_date_wrap" style="display:none;width:100%">
+            <input id="f_callDateStage" type="date" style="width:100%;color-scheme:dark;">
+          </div>
+          <input id="f_callTimeStage" type="time" style="width:100%">
+        </div>
+        <div class="tl-group-label">리허설</div>
+        <div id="rehearsalList"></div>
+        <button class="add-row-btn" onclick="addRehearsal()" style="margin-bottom:10px">＋ 리허설 팀 추가</button>
+        <div class="tl-group-label">행사</div>
+        <div class="timeline-item"><span class="timeline-label">🟢 행사시작</span><input id="f_showTime" type="time"></div>
+        <div class="timeline-item"><span class="timeline-label">🔴 행사종료</span><input id="f_endTime" type="time"></div>
+        <div class="timeline-item"><span class="timeline-label">📦 철수완료</span><input id="f_teardownEnd" type="time"></div>
+      </div>
+    </div>
+
+    <!-- 설치 음향장비 목록 -->
+    <div class="section-block collapsed" id="sec3">
+      <div class="section-header" onclick="toggleSection('sec3')">
+        <div class="section-header-left"><span class="section-icon">✅</span><span class="section-title">설치 음향장비 목록</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="equip-select-block">
+          <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
+          <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="equip-opt" data-val="Midas" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
+            <div class="equip-opt" data-val="Behringer" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
+            <div class="equip-opt" data-val="Allen &amp; Heath" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
+            <div class="equip-opt" data-val="Yamaha" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
+          </div>
+          <!-- 모델 선택 -->
+          <div id="consoleModelWrap" style="display:none;margin-top:10px">
+            <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
+            <div class="equip-option-grid" id="consoleModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+            <div id="consoleCustomWrap" style="display:none;margin-top:8px">
+              <input id="f_consoleCustom" type="text" placeholder="모델명 직접 입력">
+            </div>
+          </div>
+        </div>
+        <div class="equip-select-block">
+          <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
+          <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="equip-opt" data-val="d&b" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
+            <div class="equip-opt" data-val="JBL" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
+            <div class="equip-opt" data-val="L-Acoustics" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>L-Acoustics</div>
+            <div class="equip-opt" data-val="Meyer Sound" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Meyer Sound</div>
+            <div class="equip-opt" data-val="Nexo" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Nexo</div>
+            <div class="equip-opt" data-val="QSC" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>QSC</div>
+          </div>
+          <div id="speakerModelWrap" style="display:none;margin-top:10px">
+            <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
+            <div class="equip-option-grid" id="speakerModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
+            <div id="speakerCustomWrap" style="display:none;margin-top:8px">
+              <input id="f_speakerCustom" type="text" placeholder="모델명 직접 입력">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 투입 장비 -->
+    <div class="section-block collapsed" id="sec4">
+      <div class="section-header" onclick="toggleSection('sec4')">
+        <div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">투입 장비</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div id="eqList"></div>
+        <button class="add-row-btn" onclick="addEquipRow()">＋ 장비 추가</button>
+      </div>
+    </div>
+
+    <!-- 무대 설치 -->
+    <div class="section-block collapsed" id="sec5">
+      <div class="section-header" onclick="toggleSection('sec5')">
+        <div class="section-header-left"><span class="section-icon">🏗️</span><span class="section-title">무대 설치</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="field" style="margin-bottom:14px">
+          <label>무대 크기</label>
+          <div class="dimension-row" style="margin-top:0">
+            <div class="dim-field"><label>가로 - 무대정면 (m)</label><input id="f_stageW" type="text" placeholder="예: 12.0"></div>
+            <div class="dim-field"><label>세로 (m)</label><input id="f_stageD" type="text" placeholder="예: 8.0"></div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label>플랭카드 설치</label>
+          <div class="toggle-group">
+            <div class="toggle-opt" id="banner_yes" onclick="toggleBanner(true)"><div class="toggle-check" id="banner_yes_check"></div>있음</div>
+            <div class="toggle-opt" id="banner_no" onclick="toggleBanner(false)"><div class="toggle-check" id="banner_no_check"></div>없음</div>
+          </div>
+          <div id="bannerDimForm" style="display:none">
+            <div class="dimension-row">
+              <div class="dim-field"><label>가로 (m)</label><input id="f_bannerW" type="text" placeholder="예: 3.0"></div>
+              <div class="dim-field"><label>세로 (m)</label><input id="f_bannerH" type="text" placeholder="예: 0.9"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label>트러스 설치</label>
+          <div class="toggle-group">
+            <div class="toggle-opt" id="truss_yes" onclick="toggleTruss(true)"><div class="toggle-check" id="truss_yes_check"></div>있음</div>
+            <div class="toggle-opt" id="truss_no" onclick="toggleTruss(false)"><div class="toggle-check" id="truss_no_check"></div>없음</div>
+          </div>
+          <div id="trussDimForm" style="display:none">
+            <div class="dimension-row">
+              <div class="dim-field"><label>가로 (m)</label><input id="f_trussW" type="text" placeholder="예: 6.0"></div>
+              <div class="dim-field"><label>세로 (m)</label><input id="f_trussH" type="text" placeholder="예: 4.0"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>계단 설치</label>
+          <div class="toggle-group">
+            <div class="toggle-opt" id="stair_yes" onclick="toggleStair(true)"><div class="toggle-check" id="stair_yes_check"></div>있음</div>
+            <div class="toggle-opt" id="stair_no" onclick="toggleStair(false)"><div class="toggle-check" id="stair_no_check"></div>없음</div>
+          </div>
+          <div id="stairPosForm" style="display:none">
+            <div class="stair-grid" id="stairGrid">
+              <div class="stair-item" data-pos="left" onclick="toggleStairPos(this)"><div class="stair-check"></div>좌</div>
+              <div class="stair-item" data-pos="right" onclick="toggleStairPos(this)"><div class="stair-check"></div>우</div>
+              <div class="stair-item" data-pos="front-left" onclick="toggleStairPos(this)"><div class="stair-check"></div>앞좌</div>
+              <div class="stair-item" data-pos="front-right" onclick="toggleStairPos(this)"><div class="stair-check"></div>앞우</div>
+              <div class="stair-item" style="grid-column:1/-1" data-pos="rear" onclick="toggleStairPos(this)"><div class="stair-check"></div>후면</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 모니터 스피커 세팅 -->
+    <div class="section-block collapsed" id="sec6">
+      <div class="section-header" onclick="toggleSection('sec6')">
+        <div class="section-header-left"><span class="section-icon">🔊</span><span class="section-title">모니터 스피커 세팅</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="monitor-check-list" id="monitorCheckList"></div>
+      </div>
+    </div>
+
+    <!-- 이슈 -->
+    <div class="section-block collapsed" id="sec7">
+      <div class="section-header" onclick="toggleSection('sec7')">
+        <div class="section-header-left"><span class="section-icon">⚠️</span><span class="section-title">이슈 & 해결</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="field"><label>사전 이슈</label><textarea id="f_preIssues" placeholder="현장 도착 후 발견된 문제"></textarea></div>
+        <div class="field"><label>진행 중 이슈</label><textarea id="f_duringIssues" placeholder="행사 중 발생한 문제"></textarea></div>
+        <div class="field"><label>해결 내용</label><textarea id="f_resolution" placeholder="이슈 해결 방법 및 결과"></textarea></div>
+      </div>
+    </div>
+
+    <!-- 전기 -->
+    <div class="section-block collapsed" id="sec9">
+      <div class="section-header" onclick="toggleSection('sec9')">
+        <div class="section-header-left"><span class="section-icon">⚡</span><span class="section-title">전기</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="field" style="margin-bottom:14px">
+          <label>전원 방식</label>
+          <div class="toggle-group">
+            <div class="toggle-opt" id="elec_panel" onclick="toggleElecType('panel')"><div class="toggle-check" id="elec_panel_check"></div>판넬</div>
+            <div class="toggle-opt" id="elec_gen" onclick="toggleElecType('generator')"><div class="toggle-check" id="elec_gen_check"></div>발전기</div>
+          </div>
+        </div>
+        <!-- 판넬 선택 -->
+        <div id="elecPanelForm" style="display:none">
+          <label style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.5px;display:block;margin-bottom:8px">암페어 선택</label>
+          <div class="equip-option-grid" style="grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+            <div class="equip-opt" data-val="100A" onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>100A</div>
+            <div class="equip-opt" data-val="75A" onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>75A</div>
+            <div class="equip-opt" data-val="50A" onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>50A</div>
+            <div class="equip-opt" data-val="30A" onclick="selectPanelAmp(this)"><div class="equip-opt-dot"></div>30A</div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>직접 입력 (A)</label>
+            <input id="f_panelAmpCustom" type="text" placeholder="암페어 직접 입력 (예: 60A)">
+          </div>
+        </div>
+        <!-- 발전기 입력 -->
+        <div id="elecGenForm" style="display:none">
+          <div class="field" style="margin-bottom:0">
+            <label>발전기 용량 (kW)</label>
+            <input id="f_generatorKw" type="text" placeholder="키와트 직접 입력 (예: 50kW)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메모 -->
+    <div class="section-block collapsed" id="sec8">
+      <div class="section-header" onclick="toggleSection('sec8')">
+        <div class="section-header-left"><span class="section-icon">📝</span><span class="section-title">피드백 & 메모</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="field"><label>고객 피드백</label><textarea id="f_clientFeedback" placeholder="고객 반응 및 피드백"></textarea></div>
+        <div class="field"><label>내부 메모</label><textarea id="f_memo" placeholder="다음 행사를 위한 메모"></textarea></div>
+      </div>
+    </div>
+
+    <div id="mdPreview" class="md-preview"></div>
+
   </div>
 </div>
 
+<div class="bottom-actions">
+  <button class="btn btn-secondary" onclick="exportCurrentMD()">⬇ MD다운</button>
+  <button class="btn btn-danger" id="formDeleteBtn" onclick="deleteLog()" style="display:none">삭제</button>
+  <button class="btn btn-primary" onclick="saveAndSync()">✓ 저장</button>
+</div>
 
+  </div>
+</div>
 
 <!-- 날짜 범위 선택 모달 -->
+
 <div class="modal-overlay" id="dateRangeModal">
   <div class="modal-sheet">
     <div class="modal-title">📅 불러올 기간 선택</div>
@@ -1018,6 +1154,7 @@ select option { background: #181c24; }
 </div>
 
 <!-- 테마 선택 모달 -->
+
 <div class="theme-modal-overlay" id="themeModal">
   <div class="theme-modal-sheet">
     <div style="font-size:16px;font-weight:700;color:var(--text)">🎨 테마 선택</div>
@@ -1026,7 +1163,41 @@ select option { background: #181c24; }
   </div>
 </div>
 
+<!-- 정비 이력 모달 -->
+<div class="modal-overlay" id="vehicleHistoryModal">
+  <div class="modal-sheet" style="max-height:88dvh;display:flex;flex-direction:column;border-radius:16px 16px 0 0;padding:20px 20px 0 20px;">
+    <!-- 헤더 고정 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);">📋 정비 이력 전체보기</div>
+      <button onclick="closeVehicleHistory()" style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <!-- 차량 탭 고정 -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-shrink:0;">
+      <button id="vhTab_v15" onclick="switchVehicleHistoryTab('v15')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);">🚐 1.5톤</button>
+      <button id="vhTab_v35" onclick="switchVehicleHistoryTab('v35')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">🚚 3.5톤</button>
+    </div>
+    <!-- 날짜 필터 -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-shrink:0;">
+      <input type="date" id="vhFromDate" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;color-scheme:dark;">
+      <span style="color:var(--text-muted);font-size:12px;">~</span>
+      <input type="date" id="vhToDate" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;color-scheme:dark;">
+      <button onclick="applyVhDateFilter()" style="background:var(--accent);border:none;border-radius:8px;color:#0a0c10;font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">검색</button>
+      <button onclick="clearVhDateFilter()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text-muted);font-size:12px;font-weight:700;padding:8px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">전체</button>
+    </div>
+    <!-- 스크롤 영역 -->
+    <div style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bot));">
+      <div id="vhSummary" style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:2;"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span>🔧 정비 기록 (최신순)</span>
+        <button id="vhAddBtn" onclick="openNewMaintenanceModal(currentVehicleHistoryTab)" style="background:var(--accent);border:none;border-radius:7px;color:#0a0c10;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">＋ 추가</button>
+      </div>
+      <div id="vhList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- 업무 추가/수정 모달 -->
+
 <div class="task-modal-overlay" id="taskModal">
   <div class="task-modal-sheet">
     <div class="task-modal-title" id="taskModalTitle">업무 추가</div>
@@ -1061,6 +1232,31 @@ select option { background: #181c24; }
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="modal-btn modal-btn-cancel" onclick="closeTaskModal()">취소</button>
       <button class="modal-btn modal-btn-new" onclick="saveTask()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 정비 기록 추가/수정 모달 -->
+<div class="modal-overlay" id="maintModal" style="z-index:960;">
+  <div class="modal-sheet">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;" id="maintModal_title">정비 기록 추가</div>
+    <input type="hidden" id="maintModal_type">
+    <input type="hidden" id="maintModal_idx">
+    <div class="field" style="margin-bottom:12px;">
+      <label>정비 항목 *</label>
+      <input id="maintModal_item" type="text" placeholder="예: 엔진오일 교체, 타이어 교체">
+    </div>
+    <div class="field-row two" style="margin-bottom:12px;">
+      <div class="field" style="margin-bottom:0;"><label>정비 일자</label><input id="maintModal_date" type="date" style="color-scheme:dark;"></div>
+      <div class="field" style="margin-bottom:0;"><label>주행거리 (km)</label><input id="maintModal_km" type="text" placeholder="예: 45,320"></div>
+    </div>
+    <div class="field" style="margin-bottom:16px;">
+      <label>비고</label>
+      <input id="maintModal_note" type="text" placeholder="추가 메모">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeMaintModal()">취소</button>
+      <button class="modal-btn modal-btn-new" onclick="saveMaintModal()">저장</button>
     </div>
   </div>
 </div>
@@ -1179,10 +1375,15 @@ function renderList() {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎛️</div><div>저장된 행사일지가 없습니다<br>새 일지를 작성해보세요</div></div>`;
     return;
   }
-  el.innerHTML = [...logs].sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(l => `
+  el.innerHTML = [...logs].sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(l => {
+    const weatherArr = Array.isArray(l.weather) ? l.weather : (l.weather ? [l.weather] : []);
+    const weatherMap = {'맑음':'☀️','구름조금':'⛅','흐림':'☁️','비':'🌧️','폭우':'⛈️','눈':'🌨️','바람':'💨','안개':'🌫️'};
+    const weatherEmoji = weatherArr.map(w => weatherMap[w]||w).join('');
+    return `
     <div class="log-card">
       <div class="log-card-top" onclick="editLog('${l.id}')">
         <span class="log-card-date">${fmtDate(l.date)}</span>
+        <span style="font-size:14px;">${weatherEmoji}</span>
         <span class="log-card-type">${l.eventType||'기타'}</span>
       </div>
       <div class="log-card-name" onclick="editLog('${l.id}')">${l.eventName||'(행사명 없음)'}</div>
@@ -1191,7 +1392,7 @@ function renderList() {
         ${isAdmin ? `<button onclick="deleteLogById('${l.id}')" style="background:var(--accent2-dim);color:var(--accent2);border:1px solid rgba(224,123,84,0.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">삭제</button>` : ''}
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // ── MD 저장소 렌더 ──
@@ -1404,6 +1605,7 @@ function fillForm(log) {
   refreshStairUI(log.stairPos||[]);
   refreshConsoleUI();
   refreshSpeakerUI();
+  refreshElecUI(log);
   renderMonitorChecklist();
   renderRehearsals(log.rehearsals||[]);
   renderEquipment(log.equipment||[]);
@@ -1653,375 +1855,656 @@ function renderMonitorChecklist() {
       </div>
       <div class="monitor-memo-area">
         <textarea class="monitor-memo" placeholder="메모 (선택사항)" rows="2">${state.memo||''}</textarea>
-      </div>
-    `;
-    div.querySelector('textarea').addEventListener('input', e => {
-      if (!monitorChecks[item.key]) monitorChecks[item.key] = { checked: false, memo: '' };
-      monitorChecks[item.key].memo = e.target.value;
-    });
-    list.appendChild(div);
-  });
+
+  </div>
+`;
+div.querySelector('textarea').addEventListener('input', e => {
+  if (!monitorChecks[item.key]) monitorChecks[item.key] = { checked: false, memo: '' };
+  monitorChecks[item.key].memo = e.target.value;
+});
+list.appendChild(div);
+
+});
 }
 function toggleMonitorCheck(key, rowEl) {
-  const item = rowEl.closest('.monitor-check-item');
-  const isChecked = item.classList.toggle('checked');
-  if (!monitorChecks[key]) monitorChecks[key] = { checked: false, memo: '' };
-  monitorChecks[key].checked = isChecked;
-  const box = rowEl.querySelector('.monitor-check-box');
-  box.innerHTML = isChecked
-    ? '<svg width="13" height="11" viewBox="0 0 10 10"><polyline points="1,5 4,8 9,2" stroke="#0a0c10" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>'
-    : '';
+const item = rowEl.closest('.monitor-check-item');
+const isChecked = item.classList.toggle('checked');
+if (!monitorChecks[key]) monitorChecks[key] = { checked: false, memo: '' };
+monitorChecks[key].checked = isChecked;
+const box = rowEl.querySelector('.monitor-check-box');
+box.innerHTML = isChecked
+? '<svg width="13" height="11" viewBox="0 0 10 10"><polyline points="1,5 4,8 9,2" stroke="#0a0c10" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>'
+: '';
 }
 
 // ── 장비 ──
 function renderEquipment(arr) { document.getElementById('eqList').innerHTML = ''; arr.forEach(e => addEquipCard(e)); }
 function addEquipRow() { addEquipCard({item:'',qty:'',serial:'',note:''}); }
 function addEquipCard(e) {
-  const el = document.getElementById('eqList');
-  const card = document.createElement('div');
-  card.className = 'eq-item-card';
-  card.innerHTML = `
-    <div class="eq-item-top">
-      <input class="eq-name" type="text" value="${e.item||''}" placeholder="장비명">
-      <button class="eq-del-btn" onclick="this.closest('.eq-item-card').remove()">✕</button>
-    </div>
-    <div class="eq-item-bottom">
-      <input class="eq-qty" type="text" value="${e.qty||''}" placeholder="수량">
-      <input class="eq-serial" type="text" value="${e.serial||''}" placeholder="S/N">
-    </div>
-    <input class="eq-note" type="text" value="${e.note||''}" placeholder="비고" style="margin-top:8px">
-  `;
-  el.appendChild(card);
+const el = document.getElementById('eqList');
+const card = document.createElement('div');
+card.className = 'eq-item-card';
+card.innerHTML = `<div class="eq-item-top"> <input class="eq-name" type="text" value="${e.item||''}" placeholder="장비명"> <button class="eq-del-btn" onclick="this.closest('.eq-item-card').remove()">✕</button> </div> <div class="eq-item-bottom"> <input class="eq-qty" type="text" value="${e.qty||''}" placeholder="수량"> <input class="eq-serial" type="text" value="${e.serial||''}" placeholder="S/N"> </div> <input class="eq-note" type="text" value="${e.note||''}" placeholder="비고" style="margin-top:8px">`;
+el.appendChild(card);
 }
 
 // ── 리허설 ──
 function renderRehearsals(arr) { document.getElementById('rehearsalList').innerHTML = ''; (arr||[]).forEach(r => addRehearsal(r)); }
 function addRehearsal(data) {
-  data = data || { team:'', start:'', end:'' };
-  const el = document.getElementById('rehearsalList');
-  const card = document.createElement('div');
-  card.className = 'rh-card';
-  card.innerHTML = `
-    <div class="rh-card-top">
-      <input class="rh-team" type="text" value="${data.team||''}" placeholder="팀/아티스트명">
-      <button class="rh-del-btn" onclick="this.closest('.rh-card').remove()">✕</button>
-    </div>
-    <div class="rh-times">
-      <div class="rh-time-field"><label>시작</label><input class="rh-start" type="time" value="${data.start||''}"></div>
-      <div class="rh-time-field"><label>종료</label><input class="rh-end" type="time" value="${data.end||''}"></div>
-    </div>
-  `;
-  el.appendChild(card);
+data = data || { team:'', start:'', end:'' };
+const el = document.getElementById('rehearsalList');
+const card = document.createElement('div');
+card.className = 'rh-card';
+card.innerHTML = `<div class="rh-card-top"> <input class="rh-team" type="text" value="${data.team||''}" placeholder="팀/아티스트명"> <button class="rh-del-btn" onclick="this.closest('.rh-card').remove()">✕</button> </div> <div class="rh-times"> <div class="rh-time-field"><label>시작</label><input class="rh-start" type="time" value="${data.start||''}"></div> <div class="rh-time-field"><label>종료</label><input class="rh-end" type="time" value="${data.end||''}"></div> </div>`;
+el.appendChild(card);
 }
 
 // ── 데이터 수집 ──
 function getFormData() {
-  const log = logs.find(l => l.id === currentId);
-  if (!log) return null;
+const log = logs.find(l => l.id === currentId);
+if (!log) return null;
 
-  const fields = ['date','eventType','eventName','clientManager','venue','engineer','stagedirector','staff1','staff2',
-    'callTimeSound','callTimeStage','showTime','endTime','teardownEnd',
-    'preIssues','duringIssues','resolution','clientFeedback','memo',
-    'announcerName','announcerTel',
-    'stageW','stageD','bannerW','bannerH','trussW','trussH','speakerCustom','consoleCustom','callDateSound','callDateStage'];
-  fields.forEach(f => { log[f] = document.getElementById('f_'+f)?.value||''; });
+const fields = ['date','eventType','eventName','clientManager','venue','engineer','stagedirector','staff1','staff2',
+'callTimeSound','callTimeStage','showTime','endTime','teardownEnd',
+'preIssues','duringIssues','resolution','clientFeedback','memo',
+'announcerName','announcerTel',
+'stageW','stageD','bannerW','bannerH','trussW','trussH','speakerCustom','consoleCustom','callDateSound','callDateStage'];
+fields.forEach(f => { log[f] = document.getElementById('f_'+f)?.value||''; });
 
-  log.weather         = [...weatherSelected];
-  log.announcerHas    = announcerHas;
-  log.bannerHas       = bannerHas;
-  log.trussHas        = trussHas;
-  log.stairHas        = stairHas;
-  log.stairPos        = [];
-  document.querySelectorAll('#stairGrid .stair-item.checked').forEach(el => log.stairPos.push(el.dataset.pos));
-  if (consoleModel === '직접입력') {
-    const custom = document.getElementById('f_consoleCustom')?.value || '';
-    log.consoleSelected = consoleBrand + (custom ? ' ' + custom : '');
-  } else {
-    log.soundInstallDay = soundInstallDay;
-  log.stageInstallDay = stageInstallDay;
-  log.consoleSelected = consoleSelected;
+log.weather         = [...weatherSelected];
+log.announcerHas    = announcerHas;
+log.bannerHas       = bannerHas;
+log.trussHas        = trussHas;
+log.stairHas        = stairHas;
+log.stairPos        = [];
+document.querySelectorAll('#stairGrid .stair-item.checked').forEach(el => log.stairPos.push(el.dataset.pos));
+if (consoleModel === '직접입력') {
+const custom = document.getElementById('f_consoleCustom')?.value || '';
+log.consoleSelected = consoleBrand + (custom ? ' ' + custom : '');
+} else {
+log.soundInstallDay = soundInstallDay;
+log.stageInstallDay = stageInstallDay;
+log.consoleSelected = consoleSelected;
+}
+if (speakerModel === '직접입력') {
+const custom = document.getElementById('f_speakerCustom')?.value || '';
+log.speakerSelected = speakerBrand + (custom ? ' ' + custom : '');
+} else {
+log.speakerSelected = speakerSelected;
+}
+
+// 전기
+log.elecType = elecType;
+log.panelAmpSelected = panelAmpSelected;
+log.panelAmpCustom = document.getElementById('f_panelAmpCustom')?.value||'';
+log.generatorKw = document.getElementById('f_generatorKw')?.value||'';
+
+log.monitorChecks = {};
+document.querySelectorAll('.monitor-check-item').forEach((el, i) => {
+const key     = MONITOR_ITEMS[i].key;
+const checked = el.classList.contains('checked');
+const memo    = el.querySelector('textarea')?.value || '';
+log.monitorChecks[key] = { checked, memo };
+monitorChecks[key]     = { checked, memo };
+});
+
+log.rehearsals = [];
+document.querySelectorAll('.rh-card').forEach(card => {
+log.rehearsals.push({ team:card.querySelector('.rh-team')?.value||'', start:card.querySelector('.rh-start')?.value||'', end:card.querySelector('.rh-end')?.value||'' });
+});
+
+log.equipment = [];
+document.querySelectorAll('.eq-item-card').forEach(card => {
+log.equipment.push({ item:card.querySelector('.eq-name')?.value||'', qty:card.querySelector('.eq-qty')?.value||'', serial:card.querySelector('.eq-serial')?.value||'', note:card.querySelector('.eq-note')?.value||'' });
+});
+
+return log;
+}
+
+// ── 전기 ──
+let elecType = null;
+let panelAmpSelected = '';
+
+function toggleElecType(val) {
+  elecType = val;
+  document.getElementById('elec_panel').className = 'toggle-opt' + (val === 'panel' ? ' selected-yes' : '');
+  document.getElementById('elec_gen').className   = 'toggle-opt' + (val === 'generator' ? ' selected-yes' : '');
+  document.getElementById('elec_panel_check').textContent = val === 'panel' ? '✓' : '';
+  document.getElementById('elec_gen_check').textContent   = val === 'generator' ? '✓' : '';
+  document.getElementById('elecPanelForm').style.display  = val === 'panel' ? 'block' : 'none';
+  document.getElementById('elecGenForm').style.display    = val === 'generator' ? 'block' : 'none';
+}
+
+function selectPanelAmp(el) {
+  document.querySelectorAll('#elecPanelForm .equip-opt').forEach(o => {
+    o.classList.remove('selected'); o.querySelector('.equip-opt-dot').textContent = '';
+  });
+  el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
+  panelAmpSelected = el.dataset.val;
+  document.getElementById('f_panelAmpCustom').value = '';
+}
+
+function refreshElecUI(log) {
+  elecType = log.elecType || null;
+  panelAmpSelected = log.panelAmpSelected || '';
+  if (elecType) toggleElecType(elecType);
+  // 판넬 암페어 버튼 복원
+  if (panelAmpSelected) {
+    document.querySelectorAll('#elecPanelForm .equip-opt').forEach(o => {
+      const sel = o.dataset.val === panelAmpSelected;
+      o.classList.toggle('selected', sel);
+      o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
+    });
   }
-  if (speakerModel === '직접입력') {
-    const custom = document.getElementById('f_speakerCustom')?.value || '';
-    log.speakerSelected = speakerBrand + (custom ? ' ' + custom : '');
+  document.getElementById('f_panelAmpCustom').value = log.panelAmpCustom || '';
+  document.getElementById('f_generatorKw').value    = log.generatorKw    || '';
+}
+
+// ── 차량관리 ──
+let vehicleData = JSON.parse(localStorage.getItem('vehicleData') || '{"v15":{"number":"","model":"","current_km":"","fuel":"","maintenance":[],"inspect_last":"","inspect_next":"","ins_start":"","ins_end":"","memo":""},"v35":{"number":"","model":"","current_km":"","fuel":"","maintenance":[],"inspect_last":"","inspect_next":"","ins_start":"","ins_end":"","memo":""}}');
+// 기존 데이터에 새 필드 없으면 기본값 추가
+['v15','v35'].forEach(t => {
+  if (!vehicleData[t]) vehicleData[t] = {};
+  if (vehicleData[t].current_km === undefined) vehicleData[t].current_km = '';
+  if (vehicleData[t].fuel === undefined) vehicleData[t].fuel = '';
+  if (vehicleData[t].ins_start === undefined) vehicleData[t].ins_start = '';
+  if (vehicleData[t].ins_end === undefined) vehicleData[t].ins_end = '';
+});
+
+function getDday(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  return Math.round((target - today) / (1000*60*60*24));
+}
+
+function updateInspectBadge(type) {
+  const nextDate = document.getElementById(type+'_inspect_next')?.value;
+  const badge = document.getElementById(type+'_inspect_badge');
+  const alert = document.getElementById(type+'_inspect_alert');
+  if (!badge || !alert) return;
+  const d = getDday(nextDate);
+  if (d === null) { badge.style.display='none'; alert.style.display='none'; return; }
+  if (d < 0) {
+    badge.textContent = '검사 초과!'; badge.style.cssText = 'display:inline-block;background:rgba(217,114,72,0.2);color:var(--accent2);border:1px solid rgba(217,114,72,0.4);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;';
+    alert.textContent = `⚠️ 정기검사가 ${Math.abs(d)}일 초과됐습니다!`;
+    alert.style.cssText = 'display:block;background:rgba(217,114,72,0.12);color:var(--accent2);border:1px solid rgba(217,114,72,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else if (d <= 30) {
+    badge.textContent = `D-${d}`; badge.style.cssText = 'display:inline-block;background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.35);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;';
+    alert.textContent = `📋 정기검사까지 ${d}일 남았습니다.`;
+    alert.style.cssText = 'display:block;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
   } else {
-    log.speakerSelected = speakerSelected;
+    badge.textContent = `D-${d}`; badge.style.cssText = 'display:inline-block;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(61,186,150,0.3);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;';
+    alert.style.display = 'none';
   }
+}
 
-  log.monitorChecks = {};
-  document.querySelectorAll('.monitor-check-item').forEach((el, i) => {
-    const key     = MONITOR_ITEMS[i].key;
-    const checked = el.classList.contains('checked');
-    const memo    = el.querySelector('textarea')?.value || '';
-    log.monitorChecks[key] = { checked, memo };
-    monitorChecks[key]     = { checked, memo };
+function updateInsBadge(type) {
+  const endDate = document.getElementById(type+'_ins_end')?.value;
+  const alert = document.getElementById(type+'_ins_alert');
+  if (!alert) return;
+  const d = getDday(endDate);
+  if (d === null) { alert.style.display='none'; return; }
+  if (d < 0) {
+    alert.textContent = `🛡️ 보험이 ${Math.abs(d)}일 전에 만료됐습니다!`;
+    alert.style.cssText = 'display:block;background:rgba(217,114,72,0.12);color:var(--accent2);border:1px solid rgba(217,114,72,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else if (d <= 30) {
+    alert.textContent = `🛡️ 보험 만료까지 ${d}일 남았습니다.`;
+    alert.style.cssText = 'display:block;background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-size:12px;font-weight:700;';
+  } else {
+    alert.style.display = 'none';
+  }
+}
+
+function renderVehiclePage() {
+  ['v15','v35'].forEach(t => {
+    const d = vehicleData[t];
+    const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
+    setVal(t+'_memo', d.memo);
+    renderMaintenanceList(t);
+    const countEl = document.getElementById(t+'_maint_count');
+    if (countEl) countEl.textContent = d.maintenance?.length ? `(${d.maintenance.length}건)` : '';
+  });
+}
+
+function renderMaintenanceList(type, arr) {
+  const el = document.getElementById(type+'_maintenance_list');
+  el.innerHTML = '';
+  // 정렬된 배열을 보여주되, 각 항목의 실제 인덱스를 원본 배열에서 찾아서 전달
+  const original = vehicleData[type].maintenance || [];
+  const sorted = [...original].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  sorted.forEach((m) => {
+    const realIdx = original.indexOf(m);
+    addMaintenanceCard(type, m, realIdx);
+  });
+}
+
+function addMaintenanceRow(type) {
+  openNewMaintenanceModal(type);
+}
+
+function addMaintenanceCard(type, m, realIdx) {
+  const el = document.getElementById(type+'_maintenance_list');
+  const card = document.createElement('div');
+  card.className = 'eq-item-card';
+  card.style.marginBottom = '8px';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.item||'(항목 없음)'}</span>
+      <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px;">
+        <button onclick="editMaintenanceCard('${type}',${realIdx})" style="background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">수정</button>
+        <button onclick="deleteMaintenance('${type}',${realIdx})" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">삭제</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">
+      <span>📅 ${m.date||'-'}</span>
+      <span>🔢 ${m.km ? m.km+'km' : '-'}</span>
+      ${m.note ? `<span>📝 ${m.note}</span>` : ''}
+    </div>`;
+  el.appendChild(card);
+}
+
+function editMaintenanceCard(type, idx) {
+  const m = vehicleData[type].maintenance[idx];
+  if (!m) return;
+  document.getElementById('maintModal_type').value = type;
+  document.getElementById('maintModal_idx').value  = idx;
+  document.getElementById('maintModal_item').value = m.item  || '';
+  document.getElementById('maintModal_date').value = m.date  || '';
+  document.getElementById('maintModal_km').value   = m.km    || '';
+  document.getElementById('maintModal_note').value = m.note  || '';
+  document.getElementById('maintModal_title').textContent = '정비 기록 수정';
+  document.getElementById('maintModal').classList.add('show');
+}
+
+function openNewMaintenanceModal(type) {
+  document.getElementById('maintModal_type').value = type;
+  document.getElementById('maintModal_idx').value  = '';
+  document.getElementById('maintModal_item').value = '';
+  document.getElementById('maintModal_date').value = '';
+  document.getElementById('maintModal_km').value   = '';
+  document.getElementById('maintModal_note').value = '';
+  document.getElementById('maintModal_title').textContent = '정비 기록 추가';
+  document.getElementById('maintModal').classList.add('show');
+}
+
+function closeMaintModal() {
+  document.getElementById('maintModal').classList.remove('show');
+}
+
+function saveMaintModal() {
+  const type   = document.getElementById('maintModal_type').value;
+  const idxRaw = document.getElementById('maintModal_idx').value;
+  const item   = document.getElementById('maintModal_item').value.trim();
+  if (!item) { showToast('⚠️ 정비 항목을 입력하세요'); return; }
+  const entry = {
+    item,
+    date: document.getElementById('maintModal_date').value,
+    km:   document.getElementById('maintModal_km').value,
+    note: document.getElementById('maintModal_note').value,
+  };
+  if (idxRaw === '') {
+    vehicleData[type].maintenance.push(entry);
+  } else {
+    vehicleData[type].maintenance[parseInt(idxRaw)] = entry;
+  }
+  closeMaintModal();
+  renderMaintenanceList(type);
+  saveVehicleData();
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
+  showToast('✓ 정비 기록 저장 완료');
+  // 히스토리 모달이 열려 있었다면 목록 새로고침
+  if (document.getElementById('vehicleHistoryModal').classList.contains('show')) {
+    renderVehicleHistoryTab(type);
+  }
+}
+
+function updateMaintenance(type, idx, field, val) {
+  if (!vehicleData[type].maintenance[idx]) return;
+  vehicleData[type].maintenance[idx][field] = val;
+  saveVehicleData();
+}
+
+function deleteMaintenance(type, idx) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  vehicleData[type].maintenance.splice(idx,1);
+  renderMaintenanceList(type);
+  saveVehicleData();
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
+  showToast('✓ 삭제 완료');
+}
+
+function saveVehicleData() {
+  localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+}
+
+async function saveVehicleManual() {
+  saveVehicleData();
+  if (navigator.vibrate) navigator.vibrate(40);
+  showToast('저장 중…');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: vehicleData.v15, v35: vehicleData.v35 })
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'singleton', v15: vehicleData.v15, v35: vehicleData.v35 })
+      });
+    }
+    showToast('🚛 차량 정보 저장 완료 ☁️');
+  } catch(e) {
+    showToast('✓ 로컬 저장 완료 (클라우드 실패)');
+    console.error(e);
+  }
+}
+
+async function loadVehicleFromCloud() {
+  showToast('☁️ 불러오는 중…');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15,v35`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    const rows = await res.json();
+    if (!rows.length || (!rows[0].v15 && !rows[0].v35)) { showToast('⚠️ 클라우드 데이터 없음'); return; }
+    if (rows[0].v15) vehicleData.v15 = rows[0].v15;
+    if (rows[0].v35) vehicleData.v35 = rows[0].v35;
+    localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+    renderVehiclePage();
+    showToast('☁️ 차량 정보 불러오기 완료');
+  } catch(e) {
+    showToast('❌ 불러오기 실패');
+    console.error(e);
+  }
+}
+
+let currentVehicleHistoryTab = 'v15';
+
+function openVehicleHistory() {
+  currentVehicleHistoryTab = 'v15';
+  renderVehicleHistoryTab('v15');
+  document.getElementById('vehicleHistoryModal').classList.add('show');
+}
+
+function closeVehicleHistory() {
+  document.getElementById('vehicleHistoryModal').classList.remove('show');
+}
+
+function switchVehicleHistoryTab(type) {
+  currentVehicleHistoryTab = type;
+  renderVehicleHistoryTab(type);
+}
+
+function renderVehicleHistoryTab(type) {
+  // 탭 스타일
+  ['v15','v35'].forEach(t => {
+    const btn = document.getElementById('vhTab_'+t);
+    if (!btn) return;
+    if (t === type) {
+      btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);';
+    } else {
+      btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);';
+    }
   });
 
-  log.rehearsals = [];
-  document.querySelectorAll('.rh-card').forEach(card => {
-    log.rehearsals.push({ team:card.querySelector('.rh-team')?.value||'', start:card.querySelector('.rh-start')?.value||'', end:card.querySelector('.rh-end')?.value||'' });
-  });
+  const d = vehicleData[type] || {};
+  const label = type === 'v15' ? '1.5톤 · 기아 포터3 🚐' : '3.5톤 · 현대 마이티 🚚';
 
-  log.equipment = [];
-  document.querySelectorAll('.eq-item-card').forEach(card => {
-    log.equipment.push({ item:card.querySelector('.eq-name')?.value||'', qty:card.querySelector('.eq-qty')?.value||'', serial:card.querySelector('.eq-serial')?.value||'', note:card.querySelector('.eq-note')?.value||'' });
-  });
+  // 요약
+  const inspDday = getDday(d.inspect_next);
+  const inspStr  = inspDday === null ? '-' : inspDday < 0 ? `<span style="color:var(--accent2);font-weight:700;">초과 ${Math.abs(inspDday)}일</span>` : inspDday <= 30 ? `<span style="color:var(--gold);font-weight:700;">D-${inspDday}</span>` : `D-${inspDday}`;
 
-  return log;
+  document.getElementById('vhSummary').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:13px;">
+      <div><span style="color:var(--text-muted);">차종</span><br><strong style="color:var(--text)">${label}</strong></div>
+      <div><span style="color:var(--text-muted);">총 정비 횟수</span><br><strong style="color:var(--accent);font-size:15px;">${(d.maintenance||[]).length}건</strong></div>
+    </div>`;
+
+  // 정비 목록 (최신순, 날짜 필터 적용)
+  const list = document.getElementById('vhList');
+  const original = d.maintenance || [];
+  let filtered = original.map((m, realIdx) => ({ m, realIdx }));
+  if (vhDateFrom) filtered = filtered.filter(({ m }) => (m.date||'') >= vhDateFrom);
+  if (vhDateTo)   filtered = filtered.filter(({ m }) => (m.date||'') <= vhDateTo);
+  const sorted = filtered.sort((a, b) => (b.m.date||'').localeCompare(a.m.date||''));
+
+  // 필터 결과 표시
+  const filterMsg = (vhDateFrom || vhDateTo)
+    ? `<div style="font-size:11px;color:var(--gold);margin-bottom:8px;">🔍 ${vhDateFrom||'처음'} ~ ${vhDateTo||'현재'} · ${sorted.length}건</div>`
+    : '';
+
+  if (!sorted.length) {
+    list.innerHTML = filterMsg + `<div style="text-align:center;color:var(--text-muted);padding:24px;font-size:13px;">${vhDateFrom||vhDateTo ? '해당 기간 정비 기록 없음' : '정비 기록이 없습니다'}</div>`;
+    return;
+  }
+  list.innerHTML = filterMsg + sorted.map(({ m, realIdx }) => `
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;">${m.item||'(항목 없음)'}</span>
+        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px;">
+          <button onclick="editMaintenanceCard('${type}',${realIdx})" style="background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">수정</button>
+          <button onclick="deleteMaintFromHistory('${type}',${realIdx})" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">삭제</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">
+        <span>📅 ${m.date||'-'}</span>
+        <span>🔢 ${m.km ? m.km+'km' : '-'}</span>
+        ${m.note ? `<span>📝 ${m.note}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+let vhDateFrom = '';
+let vhDateTo   = '';
+
+function applyVhDateFilter() {
+  vhDateFrom = document.getElementById('vhFromDate').value;
+  vhDateTo   = document.getElementById('vhToDate').value;
+  if (!vhDateFrom && !vhDateTo) { showToast('⚠️ 날짜를 선택하세요'); return; }
+  renderVehicleHistoryTab(currentVehicleHistoryTab);
+}
+
+function clearVhDateFilter() {
+  vhDateFrom = '';
+  vhDateTo   = '';
+  document.getElementById('vhFromDate').value = '';
+  document.getElementById('vhToDate').value   = '';
+  renderVehicleHistoryTab(currentVehicleHistoryTab);
+}
+
+function deleteMaintFromHistory(type, idx) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  vehicleData[type].maintenance.splice(idx, 1);
+  saveVehicleData();
+  renderMaintenanceList(type);
+  const countEl = document.getElementById(type+'_maint_count');
+  if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
+  renderVehicleHistoryTab(type);
+  showToast('✓ 삭제 완료');
 }
 
 function saveLog() {
-  const log = getFormData();
-  if (!log) return;
-  localStorage.setItem('soundlogs', JSON.stringify(logs));
-  updateTitle();
-  showToast('✓ 저장 완료');
+const log = getFormData();
+if (!log) return;
+localStorage.setItem('soundlogs', JSON.stringify(logs));
+updateTitle();
+showToast('✓ 저장 완료');
 }
 async function sbDeleteLog(id) {
-  try {
-    await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-  } catch(e) { console.error('클라우드 삭제 실패:', e); }
+try {
+await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
+method: 'DELETE',
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+});
+} catch(e) { console.error('클라우드 삭제 실패:', e); }
 }
 
 async function deleteLog() {
-  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
-  if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
-  showToast('삭제 중...');
-  await sbDeleteLog(currentId);
-  logs = logs.filter(l => l.id !== currentId);
-  localStorage.setItem('soundlogs', JSON.stringify(logs));
-  showList();
-  showToast('✓ 삭제 완료');
+if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
+showToast('삭제 중…');
+await sbDeleteLog(currentId);
+logs = logs.filter(l => l.id !== currentId);
+localStorage.setItem('soundlogs', JSON.stringify(logs));
+showList();
+showToast('✓ 삭제 완료');
 }
 
 async function deleteLogById(id) {
-  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
-  if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
-  showToast('삭제 중...');
-  await sbDeleteLog(id);
-  logs = logs.filter(l => l.id !== id);
-  localStorage.setItem('soundlogs', JSON.stringify(logs));
-  renderList();
-  showToast('✓ 삭제 완료');
+if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
+showToast('삭제 중…');
+await sbDeleteLog(id);
+logs = logs.filter(l => l.id !== id);
+localStorage.setItem('soundlogs', JSON.stringify(logs));
+renderList();
+showToast('✓ 삭제 완료');
 }
 
 // ── MD 생성 ──
 function generateMD(log) {
-  const mc = log.monitorChecks||{};
-  const monitorMD = MONITOR_ITEMS.map(item => {
-    const s = mc[item.key]||{};
-    return `- [${s.checked?'x':' '}] ${item.label}${s.memo ? `\n  > ${s.memo}` : ''}`;
-  }).join('\n');
+const mc = log.monitorChecks||{};
+const monitorMD = MONITOR_ITEMS.map(item => {
+const s = mc[item.key]||{};
+return `- [${s.checked?'x':' '}] ${item.label}${s.memo ? `\n  > ${s.memo}` : ''}`;
+}).join('\n');
 
-  const eq  = (log.equipment||[]).map(e => `| ${e.item} | ${e.qty} | ${e.serial} | ${e.note} |`).join('\n');
-  const rh  = (log.rehearsals||[]).map(r => `| ${r.team} | ${r.start} | ${r.end} |`).join('\n');
-  const stairPosLabel = {'left':'좌','right':'우','front-left':'앞좌','front-right':'앞우','rear':'후면'};
-  const stairPosStr   = (log.stairPos||[]).map(p => stairPosLabel[p]||p).join(', ') || '-';
-  const spkDisplay    = log.speakerSelected === 'custom' ? (log.speakerCustom||'직접입력') : (log.speakerSelected||'-');
-  const weatherStr    = Array.isArray(log.weather) ? log.weather.join(', ') : (log.weather||'-');
+const eq  = (log.equipment||[]).map(e => `| ${e.item} | ${e.qty} | ${e.serial} | ${e.note} |`).join('\n');
+const rh  = (log.rehearsals||[]).map(r => `| ${r.team} | ${r.start} | ${r.end} |`).join('\n');
+const stairPosLabel = {'left':'좌','right':'우','front-left':'앞좌','front-right':'앞우','rear':'후면'};
+const stairPosStr   = (log.stairPos||[]).map(p => stairPosLabel[p]||p).join(', ') || '-';
+const spkDisplay    = log.speakerSelected === 'custom' ? (log.speakerCustom||'직접입력') : (log.speakerSelected||'-');
+const weatherStr    = Array.isArray(log.weather) ? log.weather.join(', ') : (log.weather||'-');
 
-  return `# 음향 행사일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})` : '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ? `있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)` : '없음'}\n- **트러스**: ${log.trussHas ? `있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)` : '없음'}\n- **계단**: ${log.stairHas ? `있음 (위치: ${stairPosStr})` : '없음'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
+return `# 음향 행사일지\n\n## 기본 정보\n- **날짜**: ${log.date}\n- **날씨**: ${weatherStr}\n- **행사명**: ${log.eventName}\n- **고객사 담당자**: ${log.clientManager}\n- **장소**: ${log.venue}\n- **유형**: ${log.eventType}\n\n## 인력\n- **음향 엔지니어**: ${log.engineer}\n- **무대 감독**: ${log.stagedirector}\n- **스태프 1**: ${log.staff1}\n- **스태프 2**: ${log.staff2}\n- **아나운서**: ${log.announcerHas ? `있음 (${log.announcerName} / ${log.announcerTel})`: '없음'}\n\n## 타임라인\n| 구분 | 시간 |\n|------|------|\n| 음향설치시작 | ${log.soundInstallDay === '직접선택' ? (log.callDateSound||'') : log.soundInstallDay} ${log.callTimeSound} |\n| 무대설치시작 | ${log.stageInstallDay === '직접선택' ? (log.callDateStage||'') : log.stageInstallDay} ${log.callTimeStage} |\n| 행사시작 | ${log.showTime} |\n| 행사종료 | ${log.endTime} |\n| 철수완료 | ${log.teardownEnd} |\n\n## 리허설 일정\n| 팀/아티스트 | 시작 | 종료 |\n|------------|------|------|\n${rh||'| - | - | - |'}\n\n## 설치 음향장비 목록\n- **콘솔**: ${log.consoleSelected||'-'}\n- **스피커**: ${spkDisplay}\n\n## 모니터 스피커 세팅\n${monitorMD}\n\n## 투입 장비\n| 장비명 | 수량 | S/N | 비고 |\n|--------|------|-----|------|\n${eq||'| - | - | - | - |'}\n\n## 무대 설치\n- **무대 크기**: 가로 ${log.stageW||'-'}m × 세로 ${log.stageD||'-'}m\n- **플랭카드**: ${log.bannerHas ?`있음 (가로 ${log.bannerW}m × 세로 ${log.bannerH}m)`: '없음'}\n- **트러스**: ${log.trussHas ?`있음 (가로 ${log.trussW}m × 세로 ${log.trussH}m)`: '없음'}\n- **계단**: ${log.stairHas ?`있음 (위치: ${stairPosStr})` : '없음'}\n\n## 전기\n- **전원 방식**: ${log.elecType === 'panel' ? '판널' : log.elecType === 'generator' ? '발전기' : '-'}\n- **세부**: ${log.elecType === 'panel' ? (log.panelAmpSelected || log.panelAmpCustom || '-') + 'A' : log.elecType === 'generator' ? (log.generatorKw || '-') + 'kW' : '-'}\n\n## 이슈 & 해결\n### 사전 이슈\n${log.preIssues||'없음'}\n\n### 진행 중 이슈\n${log.duringIssues||'없음'}\n\n### 해결 내용\n${log.resolution||'없음'}\n\n## 고객 피드백\n${log.clientFeedback||'없음'}\n\n## 메모\n${log.memo||'없음'}\n\n---\n*저장: ${new Date().toLocaleString('ko-KR')}*\n`;
 }
 
 function toggleMDPreview() {
-  const log = getFormData();
-  if (!log) return;
-  const el = document.getElementById('mdPreview');
-  if (el.style.display === 'block') { el.style.display = 'none'; }
-  else { el.textContent = generateMD(log); el.style.display = 'block'; el.scrollIntoView({behavior:'smooth',block:'start'}); }
+const log = getFormData();
+if (!log) return;
+const el = document.getElementById('mdPreview');
+if (el.style.display === 'block') { el.style.display = 'none'; }
+else { el.textContent = generateMD(log); el.style.display = 'block'; el.scrollIntoView({behavior:'smooth',block:'start'}); }
 }
 
 function exportAllMD() {
-  if (!logs.length) { showToast('저장된 일지 없음'); return; }
-  const blob = new Blob([logs.map(generateMD).join('\n\n---\n\n')], {type:'text/markdown'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `soundlog_all_${today()}.md`; a.click();
-  showToast('📄 전체 내보내기 완료');
+if (!logs.length) { showToast('저장된 일지 없음'); return; }
+const blob = new Blob([logs.map(generateMD).join('\n\n—\n\n')], {type:'text/markdown'});
+const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+a.download = `soundlog_all_${today()}.md`; a.click();
+showToast('📄 전체 내보내기 완료');
 }
 
 function showToast(msg) {
-  const el = document.getElementById('toast'); el.textContent = msg;
-  el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200);
+const el = document.getElementById('toast'); el.textContent = msg;
+el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 // ── Supabase 설정 ──
 const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
 
-// ── Supabase Realtime ──
-function initRealtime() {
-  const wsUrl = `wss://nifmnigvrjfctdimgmda.supabase.co/realtime/v1/websocket?apikey=${SB_KEY}&vsn=1.0.0`;
-  let ws;
-
-  function connect() {
-    ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      // soundlogs 구독
-      ws.send(JSON.stringify({ topic:'realtime:public:soundlogs', event:'phx_join', payload:{}, ref:'1' }));
-      // tasks 구독
-      ws.send(JSON.stringify({ topic:'realtime:public:tasks', event:'phx_join', payload:{}, ref:'2' }));
-      // heartbeat
-      setInterval(() => { if (ws.readyState===1) ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'hb' })); }, 20000);
-    };
-
-    ws.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if (!msg.payload?.data) return;
-        const { schema, table, eventType, record, old_record } = msg.payload.data;
-
-        if (table === 'soundlogs') {
-          if (eventType === 'INSERT' || eventType === 'UPDATE') {
-            const log = JSON.parse(record.data);
-            const idx = logs.findIndex(l => l.id === log.id);
-            if (idx >= 0) logs[idx] = log; else logs.push(log);
-            localStorage.setItem('soundlogs', JSON.stringify(logs));
-            renderList();
-            showToast('🔄 행사일지 업데이트');
-          } else if (eventType === 'DELETE') {
-            logs = logs.filter(l => l.id !== old_record.id);
-            localStorage.setItem('soundlogs', JSON.stringify(logs));
-            renderList();
-            showToast('🗑 행사일지 삭제됨');
-          }
-        }
-
-        if (table === 'tasks') {
-          if (eventType === 'INSERT' || eventType === 'UPDATE') {
-            const t = JSON.parse(record.data);
-            if (record.type === 'warehouse') {
-              const idx = warehouseTasks.findIndex(x => x.id === t.id);
-              if (idx >= 0) warehouseTasks[idx] = t; else warehouseTasks.push(t);
-            } else if (record.type === 'office') {
-              const idx = officeTasks.findIndex(x => x.id === t.id);
-              if (idx >= 0) officeTasks[idx] = t; else officeTasks.push(t);
-            } else if (record.type === 'directive') {
-              const idx = directiveTasks.findIndex(x => x.id === t.id);
-              if (idx >= 0) directiveTasks[idx] = t; else directiveTasks.push(t);
-            }
-            localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
-            localStorage.setItem('officeTasks',    JSON.stringify(officeTasks));
-            localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
-            renderTasks(record.type);
-            showToast('🔄 업무 업데이트');
-          } else if (eventType === 'DELETE') {
-            const id = old_record.id; const type = old_record.type;
-            if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(x => x.id !== id);
-            else if (type === 'office') officeTasks = officeTasks.filter(x => x.id !== id);
-            else if (type === 'directive') directiveTasks = directiveTasks.filter(x => x.id !== id);
-            localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
-            localStorage.setItem('officeTasks',    JSON.stringify(officeTasks));
-            localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
-            renderTasks(type);
-            showToast('🗑 업무 삭제됨');
-          }
-        }
-      } catch(e) { console.error('Realtime 오류:', e); }
-    };
-
-    ws.onclose = () => { setTimeout(connect, 3000); }; // 끊기면 재연결
-    ws.onerror = () => { ws.close(); };
-  }
-
-  connect();
-}
-
 // 일지 하나를 Supabase에 저장 (개별 upsert)
 async function sbUpsertLog(log) {
-  const mdContent = generateMD(log);
-  const payload = {
-    id:         log.id,
-    date:       log.date,
-    event_name: log.eventName || '',
-    data:       JSON.stringify(log),
-    md_content: mdContent
-  };
-  // PATCH 먼저 시도
-  let res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${log.id}`, {
-    method: 'PATCH',
-    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-    body: JSON.stringify(payload)
-  });
-  const patched = await res.json();
-  // 없으면 POST로 새로 생성
-  if (Array.isArray(patched) && patched.length === 0) {
-    res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  }
-  if (!res.ok) throw new Error(await res.text());
+const mdContent = generateMD(log);
+const payload = {
+id:         log.id,
+date:       log.date,
+event_name: log.eventName || '',
+data:       JSON.stringify(log),
+md_content: mdContent
+};
+// PATCH 먼저 시도
+let res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${log.id}`, {
+method: 'PATCH',
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+body: JSON.stringify(payload)
+});
+const patched = await res.json();
+// 없으면 POST로 새로 생성
+if (Array.isArray(patched) && patched.length === 0) {
+res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
+method: 'POST',
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+body: JSON.stringify(payload)
+});
+}
+if (!res.ok) throw new Error(await res.text());
 }
 
 // 저장 버튼: 해당 일지만 저장/수정
 async function saveAndSync() {
-  const log = getFormData();
-  if (!log) return;
-  localStorage.setItem('soundlogs', JSON.stringify(logs));
-  updateTitle();
-  showToast('저장 중...');
-  try {
-    await sbUpsertLog(log);
-    showToast('✓ 저장 + ☁️ 클라우드 완료');
-  } catch(e) {
-    showToast('✓ 로컬저장 완료 (클라우드 실패)');
-    console.error(e);
-  }
+if (navigator.vibrate) navigator.vibrate(40);
+const log = getFormData();
+if (!log) return;
+localStorage.setItem('soundlogs', JSON.stringify(logs));
+updateTitle();
+showToast('저장 중…');
+try {
+await sbUpsertLog(log);
+showToast('✓ 저장 + ☁️ 클라우드 완료');
+} catch(e) {
+showToast('✓ 로컬저장 완료 (클라우드 실패)');
+console.error(e);
+}
 }
 
 // 불러오기: 날짜 범위 모달 열기
 function gistLoad() {
-  const t = today();
-  const firstDay = t.substring(0,7) + '-01';
-  document.getElementById('drFrom').value = firstDay;
-  document.getElementById('drTo').value   = t;
-  document.getElementById('dateRangeModal').classList.add('show');
+const t = today();
+const firstDay = t.substring(0,7) + '-01';
+document.getElementById('drFrom').value = firstDay;
+document.getElementById('drTo').value   = t;
+document.getElementById('dateRangeModal').classList.add('show');
 }
 
 function closeDateModal() {
-  document.getElementById('dateRangeModal').classList.remove('show');
+document.getElementById('dateRangeModal').classList.remove('show');
 }
 
 async function doDateLoad() {
-  const from = document.getElementById('drFrom').value;
-  const to   = document.getElementById('drTo').value;
-  if (!from || !to) { showToast('⚠️ 날짜를 선택해주세요'); return; }
-  closeDateModal();
-  showToast('☁️ 불러오는 중...');
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/soundlogs?select=id,data&date=gte.${from}&date=lte.${to}&order=date.desc`,
-      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
-    );
-    if (!res.ok) throw new Error('불러오기 실패');
-    const rows = await res.json();
-    if (!rows.length) { showToast('⚠️ 해당 기간 데이터 없음'); return; }
-    const cloudLogs = rows.map(r => JSON.parse(r.data));
-    cloudLogs.forEach(cl => {
-      const idx = logs.findIndex(l => l.id === cl.id);
-      if (idx >= 0) logs[idx] = cl;
-      else logs.push(cl);
-    });
-    localStorage.setItem('soundlogs', JSON.stringify(logs));
-    renderList();
-    showToast(`☁️ ${rows.length}개 일지 불러오기 완료`);
-  } catch(e) { showToast('❌ ' + e.message); }
+const from = document.getElementById('drFrom').value;
+const to   = document.getElementById('drTo').value;
+if (!from || !to) { showToast('⚠️ 날짜를 선택해주세요'); return; }
+closeDateModal();
+showToast('☁️ 불러오는 중…');
+try {
+const res = await fetch(
+`${SB_URL}/rest/v1/soundlogs?select=id,data&date=gte.${from}&date=lte.${to}&order=date.desc`,
+{ headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+);
+if (!res.ok) throw new Error('불러오기 실패');
+const rows = await res.json();
+if (!rows.length) { showToast('⚠️ 해당 기간 데이터 없음'); return; }
+const cloudLogs = rows.map(r => JSON.parse(r.data));
+cloudLogs.forEach(cl => {
+const idx = logs.findIndex(l => l.id === cl.id);
+if (idx >= 0) logs[idx] = cl;
+else logs.push(cl);
+});
+localStorage.setItem('soundlogs', JSON.stringify(logs));
+renderList();
+showToast(`☁️ ${rows.length}개 일지 불러오기 완료`);
+} catch(e) { showToast('❌ ' + e.message); }
 }
 
 function exportCurrentMD() {
-  const log = getFormData();
-  if (!log) return;
-  const content  = generateMD(log);
-  const filename = `${log.date}_${(log.eventName||'행사일지').replace(/\s/g,'_')}.md`;
-  const blob = new Blob([content], {type:'text/markdown'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = filename; a.click();
-  showToast('⬇ MD 다운로드 완료');
+const log = getFormData();
+if (!log) return;
+const content  = generateMD(log);
+const filename = `${log.date}_${(log.eventName||'행사일지').replace(/\s/g,'_')}.md`;
+const blob = new Blob([content], {type:'text/markdown'});
+const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+a.download = filename; a.click();
+showToast('⬇ MD 다운로드 완료');
 }
 
 // ── 업무관리 ──
@@ -2035,119 +2518,104 @@ let curTaskStatus   = 'todo';
 let curTaskPriority = 'mid';
 
 function switchTab(tab) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
-  if (tab === 'list') {
-    document.getElementById('tab-list').classList.add('active');
-    const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
-    renderList();
-  } else if (tab === 'warehouse') {
-    document.getElementById('tab-warehouse').classList.add('active');
-    const p = document.getElementById('pageWarehouse'); p.style.display='flex'; p.classList.add('active');
-    renderTasks('warehouse');
-  } else if (tab === 'office') {
-    document.getElementById('tab-office').classList.add('active');
-    const p = document.getElementById('pageOffice'); p.style.display='flex'; p.classList.add('active');
-    renderTasks('office');
-  } else if (tab === 'directive') {
-    document.getElementById('tab-directive').classList.add('active');
-    const p = document.getElementById('pageDirective'); p.style.display='flex'; p.classList.add('active');
-    renderTasks('directive');
-  }
+document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+if (tab === 'list') {
+document.getElementById('tab-list').classList.add('active');
+const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
+renderList();
+} else if (tab === 'warehouse') {
+document.getElementById('tab-warehouse').classList.add('active');
+const p = document.getElementById('pageWarehouse'); p.style.display='flex'; p.classList.add('active');
+renderTasks('warehouse');
+} else if (tab === 'office') {
+document.getElementById('tab-office').classList.add('active');
+const p = document.getElementById('pageOffice'); p.style.display='flex'; p.classList.add('active');
+renderTasks('office');
+} else if (tab === 'directive') {
+document.getElementById('tab-directive').classList.add('active');
+const p = document.getElementById('pageDirective'); p.style.display='flex'; p.classList.add('active');
+renderTasks('directive');
+} else if (tab === 'vehicle') {
+document.getElementById('tab-vehicle').classList.add('active');
+const p = document.getElementById('pageVehicle'); p.style.display='flex'; p.classList.add('active');
+renderVehiclePage();
+}
 }
 
 function filterTasks(type, f) {
-  taskFilter[type] = f;
-  const prefix = type === 'warehouse' ? 'wf' : type === 'office' ? 'of' : 'df';
-  const pageId = type === 'warehouse' ? 'Warehouse' : type === 'office' ? 'Office' : 'Directive';
-  document.querySelectorAll(`#page${pageId} .task-filter-btn`).forEach(b => {
-    b.classList.remove('active','active-prog','active-done');
-  });
-  const btn = document.getElementById(prefix + '-' + f);
-  if (f === 'progress') btn.classList.add('active-prog');
-  else if (f === 'done') btn.classList.add('active-done');
-  else btn.classList.add('active');
-  renderTasks(type);
+taskFilter[type] = f;
+const prefix = type === 'warehouse' ? 'wf' : type === 'office' ? 'of' : 'df';
+const pageId = type === 'warehouse' ? 'Warehouse' : type === 'office' ? 'Office' : 'Directive';
+document.querySelectorAll(`#page${pageId} .task-filter-btn`).forEach(b => {
+b.classList.remove('active','active-prog','active-done');
+});
+const btn = document.getElementById(prefix + '-' + f);
+if (f === 'progress') btn.classList.add('active-prog');
+else if (f === 'done') btn.classList.add('active-done');
+else btn.classList.add('active');
+renderTasks(type);
 }
 
 function renderTasks(type) {
-  type = type || currentTaskType;
-  currentTaskType = type;
-  const tasks = type === 'warehouse' ? warehouseTasks : type === 'office' ? officeTasks : directiveTasks;
-  const el = document.getElementById(type === 'warehouse' ? 'warehouseCards' : type === 'office' ? 'officeCards' : 'directiveCards');
-  const f = taskFilter[type] || 'all';
-  const filtered = f === 'all' ? tasks : tasks.filter(t => t.status === f);
-  // 우선순위 정렬: high > mid > low, 완료는 맨 아래
-  const order = {high:0, mid:1, low:2};
-  const statusOrder = {todo:0, progress:1, done:2};
-  const sorted = [...filtered].sort((a,b) => {
-    if (a.status !== b.status) return statusOrder[a.status] - statusOrder[b.status];
-    return (order[a.priority]||1) - (order[b.priority]||1);
-  });
-  if (!sorted.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📌</div><div>업무가 없습니다</div></div>`;
-    return;
-  }
-  const priLabel = {high:'🔥 높음', mid:'📌 보통', low:'💤 낮음'};
-  const priClass = {high:'task-priority-high', mid:'task-priority-mid', low:'task-priority-low'};
-  const statusLabel = {todo:'예정', progress:'진행중', done:'완료'};
-  const badgeClass  = {todo:'badge-todo', progress:'badge-progress', done:'badge-done'};
-  el.innerHTML = sorted.map(t => `
-    <div class="task-card status-${t.status}">
-      <div class="task-card-top">
-        <span class="task-status-badge ${badgeClass[t.status]}">${statusLabel[t.status]}</span>
-        <span class="task-title">${t.title||'(제목 없음)'}</span>
-      </div>
-      <div class="task-meta">
-        <span class="${priClass[t.priority]}">${priLabel[t.priority]}</span>
-        ${t.due ? `<span>📅 ${t.due}</span>` : ''}
-        <span>${new Date(t.createdAt).toLocaleDateString('ko-KR')}</span>
-      </div>
-      ${t.body ? `<div class="task-body">${t.body}</div>` : ''}
-      <div class="task-actions">
-        ${t.status !== 'progress' && t.status !== 'done' ? `<button class="task-act-btn" onclick="quickStatus('${t.id}','progress','${type}')">진행중으로</button>` : ''}
-        ${t.status !== 'done' ? `<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done','${type}')">완료</button>` : ''}
-        <button class="task-act-btn" onclick="openTaskModal('${type}','${t.id}')">수정</button>
-        ${isAdmin ? `<button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>` : ''}
-      </div>
-    </div>
-  `).join('');
+type = type || currentTaskType;
+currentTaskType = type;
+const tasks = type === 'warehouse' ? warehouseTasks : type === 'office' ? officeTasks : directiveTasks;
+const el = document.getElementById(type === 'warehouse' ? 'warehouseCards' : type === 'office' ? 'officeCards' : 'directiveCards');
+const f = taskFilter[type] || 'all';
+const filtered = f === 'all' ? tasks : tasks.filter(t => t.status === f);
+// 우선순위 정렬: high > mid > low, 완료는 맨 아래
+const order = {high:0, mid:1, low:2};
+const statusOrder = {todo:0, progress:1, done:2};
+const sorted = [...filtered].sort((a,b) => {
+if (a.status !== b.status) return statusOrder[a.status] - statusOrder[b.status];
+return (order[a.priority]||1) - (order[b.priority]||1);
+});
+if (!sorted.length) {
+el.innerHTML = `<div class="empty-state"><div class="empty-icon">📌</div><div>업무가 없습니다</div></div>`;
+return;
+}
+const priLabel = {high:'🔥 높음', mid:'📌 보통', low:'💤 낮음'};
+const priClass = {high:'task-priority-high', mid:'task-priority-mid', low:'task-priority-low'};
+const statusLabel = {todo:'예정', progress:'진행중', done:'완료'};
+const badgeClass  = {todo:'badge-todo', progress:'badge-progress', done:'badge-done'};
+el.innerHTML = sorted.map(t => `<div class="task-card status-${t.status}"> <div class="task-card-top"> <span class="task-status-badge ${badgeClass[t.status]}">${statusLabel[t.status]}</span> <span class="task-title">${t.title||'(제목 없음)'}</span> </div> <div class="task-meta"> <span class="${priClass[t.priority]}">${priLabel[t.priority]}</span> ${t.due ?`<span>📅 ${t.due}</span>`: ''} <span>${new Date(t.createdAt).toLocaleDateString('ko-KR')}</span> </div> ${t.body ?`<div class="task-body">${t.body}</div>`: ''} <div class="task-actions"> ${t.status !== 'progress' && t.status !== 'done' ?`<button class="task-act-btn" onclick="quickStatus('${t.id}','progress','${type}')">진행중으로</button>`: ''} ${t.status !== 'done' ?`<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done','${type}')">완료</button>`: ''} <button class="task-act-btn" onclick="openTaskModal('${type}','${t.id}')">수정</button> ${isAdmin ?`<button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>`: ''} </div> </div>`).join('');
 }
 
 function quickStatus(id, status, type) {
-  const tasks = type === 'warehouse' ? warehouseTasks : officeTasks;
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  t.status = status;
-  saveTasksLocal();
-  renderTasks(type);
+const tasks = type === 'warehouse' ? warehouseTasks : officeTasks;
+const t = tasks.find(t => t.id === id);
+if (!t) return;
+t.status = status;
+saveTasksLocal();
+renderTasks(type);
 }
 
 function openTaskModal(type, id) {
-  currentTaskType = type || currentTaskType;
-  editTaskId = id || null;
-  if (id) {
-    const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
-    const t = tasks.find(t => t.id === id);
-    if (!t) return;
-    const typeLabel2 = currentTaskType==='warehouse'?'🏭 창고업무':currentTaskType==='office'?'🏢 사무실업무':'👔 대표지시';
-    document.getElementById('taskModalTitle').textContent = typeLabel2 + ' 수정';
-    document.getElementById('t_title').value = t.title || '';
-    document.getElementById('t_body').value  = t.body  || '';
-    document.getElementById('t_due').value   = t.due   || '';
-    curTaskStatus   = t.status   || 'todo';
-    curTaskPriority = t.priority || 'mid';
-  } else {
-    const typeLabel = currentTaskType==='warehouse'?'🏭 창고업무':currentTaskType==='office'?'🏢 사무실업무':'👔 대표지시';
-    document.getElementById('taskModalTitle').textContent = typeLabel + ' 추가';
-    document.getElementById('t_title').value = '';
-    document.getElementById('t_body').value  = '';
-    document.getElementById('t_due').value   = '';
-    curTaskStatus   = 'todo';
-    curTaskPriority = 'mid';
-  }
-  refreshTaskModalUI();
-  document.getElementById('taskModal').classList.add('show');
+currentTaskType = type || currentTaskType;
+editTaskId = id || null;
+if (id) {
+const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
+const t = tasks.find(t => t.id === id);
+if (!t) return;
+const typeLabel2 = currentTaskType==='warehouse'?'🏭 창고업무':currentTaskType==='office'?'🏢 사무실업무':'👔 대표지시';
+document.getElementById('taskModalTitle').textContent = typeLabel2 + ' 수정';
+document.getElementById('t_title').value = t.title || '';
+document.getElementById('t_body').value  = t.body  || '';
+document.getElementById('t_due').value   = t.due   || '';
+curTaskStatus   = t.status   || 'todo';
+curTaskPriority = t.priority || 'mid';
+} else {
+const typeLabel = currentTaskType==='warehouse'?'🏭 창고업무':currentTaskType==='office'?'🏢 사무실업무':'👔 대표지시';
+document.getElementById('taskModalTitle').textContent = typeLabel + ' 추가';
+document.getElementById('t_title').value = '';
+document.getElementById('t_body').value  = '';
+document.getElementById('t_due').value   = '';
+curTaskStatus   = 'todo';
+curTaskPriority = 'mid';
+}
+refreshTaskModalUI();
+document.getElementById('taskModal').classList.add('show');
 }
 
 function closeTaskModal() { document.getElementById('taskModal').classList.remove('show'); }
@@ -2156,268 +2624,325 @@ function setTaskStatus(s)   { curTaskStatus   = s; refreshTaskModalUI(); }
 function setTaskPriority(p) { curTaskPriority = p; refreshTaskModalUI(); }
 
 function refreshTaskModalUI() {
-  ['todo','progress','done'].forEach(s => {
-    document.getElementById('ts-'+s).className = 'task-status-opt' + (curTaskStatus===s ? ` sel-${s}` : '');
-  });
-  ['high','mid','low'].forEach(p => {
-    document.getElementById('tp-'+p).className = 'task-pri-opt' + (curTaskPriority===p ? ` sel-${p}` : '');
-  });
+['todo','progress','done'].forEach(s => {
+document.getElementById('ts-'+s).className = 'task-status-opt' + (curTaskStatus===s ? ` sel-${s}` : '');
+});
+['high','mid','low'].forEach(p => {
+document.getElementById('tp-'+p).className = 'task-pri-opt' + (curTaskPriority===p ? ` sel-${p}` : '');
+});
 }
 
 function saveTask() {
-  const title = document.getElementById('t_title').value.trim();
-  if (!title) { showToast('⚠️ 제목을 입력하세요'); return; }
-  const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
-  if (editTaskId) {
-    const t = tasks.find(t => t.id === editTaskId);
-    if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); }
-  } else {
-    tasks.push({ id:Date.now().toString(), title, body:document.getElementById('t_body').value, due:document.getElementById('t_due').value, status:curTaskStatus, priority:curTaskPriority, createdAt:new Date().toISOString() });
-  }
-  saveTasksLocal();
-  closeTaskModal();
-  renderTasks(currentTaskType);
-  showToast('✓ 저장 완료');
+const title = document.getElementById('t_title').value.trim();
+if (!title) { showToast('⚠️ 제목을 입력하세요'); return; }
+const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
+if (editTaskId) {
+const t = tasks.find(t => t.id === editTaskId);
+if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); }
+} else {
+tasks.push({ id:Date.now().toString(), title, body:document.getElementById('t_body').value, due:document.getElementById('t_due').value, status:curTaskStatus, priority:curTaskPriority, createdAt:new Date().toISOString() });
+}
+saveTasksLocal();
+closeTaskModal();
+renderTasks(currentTaskType);
+showToast('✓ 저장 완료');
 }
 
 async function deleteTask(id, type) {
-  if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
-  if (!confirm('이 업무를 삭제할까요?')) return;
-  if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
-  else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
-  else directiveTasks = directiveTasks.filter(t => t.id !== id);
-  localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-  localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-  localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
-  try {
-    await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-  } catch(e) {}
-  renderTasks(type);
-  showToast('✓ 삭제 완료');
+if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+if (!confirm('이 업무를 삭제할까요?')) return;
+if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
+else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
+else directiveTasks = directiveTasks.filter(t => t.id !== id);
+localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+try {
+await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${id}`, {
+method: 'DELETE',
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+});
+} catch(e) {}
+renderTasks(type);
+showToast('✓ 삭제 완료');
 }
 
 function saveTasksLocal() {
-  localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-  localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-  localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
-  syncTasksToCloud();
+localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+syncTasksToCloud();
 }
 
 async function syncTasksToCloud() {
-  const all = [
-    ...warehouseTasks.map(t => ({...t, type:'warehouse'})),
-    ...officeTasks.map(t => ({...t, type:'office'})),
-    ...directiveTasks.map(t => ({...t, type:'directive'}))
-  ];
-  for (const t of all) {
-    const payload = { id:t.id, type:t.type, title:t.title||'', body:t.body||'', status:t.status||'todo', priority:t.priority||'mid', due:t.due||'', data:JSON.stringify(t) };
-    try {
-      let res = await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${t.id}`, {
-        method: 'PATCH',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-        body: JSON.stringify(payload)
-      });
-      const patched = await res.json();
-      if (Array.isArray(patched) && patched.length === 0) {
-        await fetch(`${SB_URL}/rest/v1/tasks`, {
-          method: 'POST',
-          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      }
-    } catch(e) { console.error('업무 클라우드 저장 실패:', e); }
-  }
+const all = [
+...warehouseTasks.map(t => ({...t, type:'warehouse'})),
+...officeTasks.map(t => ({...t, type:'office'})),
+...directiveTasks.map(t => ({...t, type:'directive'}))
+];
+for (const t of all) {
+const payload = { id:t.id, type:t.type, title:t.title||'', body:t.body||'', status:t.status||'todo', priority:t.priority||'mid', due:t.due||'', data:JSON.stringify(t) };
+try {
+let res = await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${t.id}`, {
+method: 'PATCH',
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+body: JSON.stringify(payload)
+});
+const patched = await res.json();
+if (Array.isArray(patched) && patched.length === 0) {
+await fetch(`${SB_URL}/rest/v1/tasks`, {
+method: 'POST',
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+body: JSON.stringify(payload)
+});
+}
+} catch(e) { console.error('업무 클라우드 저장 실패:', e); }
+}
 }
 
 async function loadTasksFromCloud() {
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/tasks?select=type,data&order=created_at.desc`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    if (!res.ok) throw new Error('불러오기 실패');
-    const rows = await res.json();
-    if (!rows.length) { showToast('⚠️ 클라우드 업무 데이터 없음'); return; }
-    warehouseTasks  = [];
-    officeTasks     = [];
-    directiveTasks  = [];
-    rows.forEach(r => {
-      const t = JSON.parse(r.data);
-      if (r.type === 'warehouse') warehouseTasks.push(t);
-      else if (r.type === 'office') officeTasks.push(t);
-      else if (r.type === 'directive') directiveTasks.push(t);
-    });
-    localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-    localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-    localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
-    showToast(`☁️ 업무 ${rows.length}개 불러오기 완료`);
-  } catch(e) { showToast('❌ 업무 불러오기 실패'); }
+try {
+const res = await fetch(`${SB_URL}/rest/v1/tasks?select=type,data&order=created_at.desc`, {
+headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+});
+if (!res.ok) throw new Error('불러오기 실패');
+const rows = await res.json();
+if (!rows.length) { showToast('⚠️ 클라우드 업무 데이터 없음'); return; }
+warehouseTasks  = [];
+officeTasks     = [];
+directiveTasks  = [];
+rows.forEach(r => {
+const t = JSON.parse(r.data);
+if (r.type === 'warehouse') warehouseTasks.push(t);
+else if (r.type === 'office') officeTasks.push(t);
+else if (r.type === 'directive') directiveTasks.push(t);
+});
+localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
+localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+showToast(`☁️ 업무 ${rows.length}개 불러오기 완료`);
+} catch(e) { showToast('❌ 업무 불러오기 실패'); }
+}
+
+// ── Supabase Realtime ──
+function initRealtime() {
+  const wsUrl = `wss://nifmnigvrjfctdimgmda.supabase.co/realtime/v1/websocket?apikey=${SB_KEY}&vsn=1.0.0`;
+  let ws;
+  function connect() {
+    try { ws = new WebSocket(wsUrl); } catch(e) { setTimeout(connect, 5000); return; }
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ topic:'realtime:public:soundlogs', event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'soundlogs'}]}}, ref:'1' }));
+      ws.send(JSON.stringify({ topic:'realtime:public:tasks',     event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'tasks'}]}},     ref:'2' }));
+      setInterval(() => { try { if (ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'})); } catch(e){} }, 20000);
+    };
+
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.event !== 'postgres_changes') return;
+        const { table, eventType, record, old_record } = msg.payload.data;
+
+        if (table === 'soundlogs') {
+          if (eventType === 'INSERT' || eventType === 'UPDATE') {
+            if (!record?.data) return;
+            const log = JSON.parse(record.data);
+            const idx = logs.findIndex(l => l.id === log.id);
+            if (idx >= 0) logs[idx] = log; else logs.push(log);
+            localStorage.setItem('soundlogs', JSON.stringify(logs));
+            const activePage = document.getElementById('pageList');
+            if (activePage && activePage.classList.contains('active')) renderList();
+            showToast('🔄 행사일지 업데이트됨');
+          } else if (eventType === 'DELETE') {
+            if (!old_record?.id) return;
+            logs = logs.filter(l => l.id !== old_record.id);
+            localStorage.setItem('soundlogs', JSON.stringify(logs));
+            if (document.getElementById('pageList').classList.contains('active')) renderList();
+            showToast('🗑 행사일지 삭제됨');
+          }
+        }
+
+        if (table === 'tasks') {
+          if (eventType === 'INSERT' || eventType === 'UPDATE') {
+            if (!record?.data) return;
+            const t = JSON.parse(record.data);
+            const type = record.type;
+            const arr = type==='warehouse' ? warehouseTasks : type==='office' ? officeTasks : directiveTasks;
+            const idx = arr.findIndex(x => x.id === t.id);
+            if (idx >= 0) arr[idx] = t; else arr.push(t);
+            localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
+            localStorage.setItem('officeTasks',    JSON.stringify(officeTasks));
+            localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
+            const pageId = type==='warehouse'?'pageWarehouse':type==='office'?'pageOffice':'pageDirective';
+            if (document.getElementById(pageId)?.classList.contains('active')) renderTasks(type);
+            showToast('🔄 업무 업데이트됨');
+          } else if (eventType === 'DELETE') {
+            if (!old_record?.id) return;
+            const type = old_record.type;
+            if (type==='warehouse') warehouseTasks = warehouseTasks.filter(x=>x.id!==old_record.id);
+            else if (type==='office') officeTasks = officeTasks.filter(x=>x.id!==old_record.id);
+            else directiveTasks = directiveTasks.filter(x=>x.id!==old_record.id);
+            localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
+            localStorage.setItem('officeTasks',    JSON.stringify(officeTasks));
+            localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
+            const pageId = type==='warehouse'?'pageWarehouse':type==='office'?'pageOffice':'pageDirective';
+            if (document.getElementById(pageId)?.classList.contains('active')) renderTasks(type);
+            showToast('🗑 업무 삭제됨');
+          }
+        }
+      } catch(err) { console.error('Realtime 오류:', err); }
+    };
+
+    ws.onclose = () => { setTimeout(connect, 3000); };
+    ws.onerror = () => { try { ws.close(); } catch(e){} };
+  }
+  connect();
 }
 
 // ── 테마 ──
 const THEMES = [
-  // ── 다크 계열 ──
-  {
-    id: 'dark-green',
-    name: '🌲 다크 그린',
-    bg: '#080a0e', surface: '#0f1218', surface2: '#141820', surface3: '#1a2030',
-    border: '#1e2636', border2: '#253248',
-    accent: '#3dba96', accentDim: 'rgba(61,186,150,0.15)', accentSel: 'rgba(61,186,150,0.22)',
-    accent2: '#d97248', accent2Dim: 'rgba(217,114,72,0.13)', accent2Sel: 'rgba(217,114,72,0.22)',
-    gold: '#c9a84c', goldDim: 'rgba(201,168,76,0.12)',
-    text: '#e2e8f4', text2: '#9aaac0', textMuted: '#4a5568',
-    swatches: ['#080a0e','#3dba96','#d97248','#c9a84c']
-  },
-  {
-    id: 'midnight',
-    name: '🌙 미드나잇',
-    bg: '#000000', surface: '#0a0a0a', surface2: '#111111', surface3: '#1a1a1a',
-    border: '#222222', border2: '#333333',
-    accent: '#00ff88', accentDim: 'rgba(0,255,136,0.12)', accentSel: 'rgba(0,255,136,0.2)',
-    accent2: '#ff4444', accent2Dim: 'rgba(255,68,68,0.12)', accent2Sel: 'rgba(255,68,68,0.2)',
-    gold: '#ffcc00', goldDim: 'rgba(255,204,0,0.12)',
-    text: '#ffffff', text2: '#aaaaaa', textMuted: '#555555',
-    swatches: ['#000000','#00ff88','#ff4444','#ffcc00']
-  },
-  // ── 밝은 계열 ──
-  {
-    id: 'light-clean',
-    name: '☀️ 라이트',
-    bg: '#f5f7fa', surface: '#ffffff', surface2: '#eef1f6', surface3: '#e4e8f0',
-    border: '#d0d8e8', border2: '#b8c4da',
-    accent: '#2563eb', accentDim: 'rgba(37,99,235,0.1)', accentSel: 'rgba(37,99,235,0.18)',
-    accent2: '#e05a2b', accent2Dim: 'rgba(224,90,43,0.1)', accent2Sel: 'rgba(224,90,43,0.18)',
-    gold: '#b45309', goldDim: 'rgba(180,83,9,0.1)',
-    text: '#1e293b', text2: '#475569', textMuted: '#94a3b8',
-    swatches: ['#f5f7fa','#2563eb','#e05a2b','#b45309']
-  },
-  {
-    id: 'light-warm',
-    name: '🌤 웜 화이트',
-    bg: '#faf8f5', surface: '#ffffff', surface2: '#f5f0e8', surface3: '#ede5d8',
-    border: '#ddd5c5', border2: '#c8bca8',
-    accent: '#c2410c', accentDim: 'rgba(194,65,12,0.1)', accentSel: 'rgba(194,65,12,0.18)',
-    accent2: '#0369a1', accent2Dim: 'rgba(3,105,161,0.1)', accent2Sel: 'rgba(3,105,161,0.18)',
-    gold: '#92400e', goldDim: 'rgba(146,64,14,0.1)',
-    text: '#292524', text2: '#57534e', textMuted: '#a8a29e',
-    swatches: ['#faf8f5','#c2410c','#0369a1','#92400e']
-  },
-  // ── 파스텔 계열 ──
-  {
-    id: 'pastel-mint',
-    name: '🌿 파스텔 민트',
-    bg: '#f0faf6', surface: '#ffffff', surface2: '#e6f7f0', surface3: '#d4f0e4',
-    border: '#b8e4d0', border2: '#96d4bc',
-    accent: '#0d9488', accentDim: 'rgba(13,148,136,0.12)', accentSel: 'rgba(13,148,136,0.22)',
-    accent2: '#db7093', accent2Dim: 'rgba(219,112,147,0.12)', accent2Sel: 'rgba(219,112,147,0.22)',
-    gold: '#d97706', goldDim: 'rgba(217,119,6,0.12)',
-    text: '#134e4a', text2: '#2d6a62', textMuted: '#7fb5ac',
-    swatches: ['#f0faf6','#0d9488','#db7093','#d97706']
-  },
-  {
-    id: 'pastel-pink',
-    name: '🌸 파스텔 핑크',
-    bg: '#fff0f6', surface: '#ffffff', surface2: '#ffe4ef', surface3: '#ffd6e7',
-    border: '#fbbdd5', border2: '#f9a8c9',
-    accent: '#db2777', accentDim: 'rgba(219,39,119,0.12)', accentSel: 'rgba(219,39,119,0.22)',
-    accent2: '#7c3aed', accent2Dim: 'rgba(124,58,237,0.12)', accent2Sel: 'rgba(124,58,237,0.22)',
-    gold: '#b45309', goldDim: 'rgba(180,83,9,0.12)',
-    text: '#500724', text2: '#9d174d', textMuted: '#f9a8c9',
-    swatches: ['#fff0f6','#db2777','#7c3aed','#b45309']
-  },
-  {
-    id: 'pastel-sky',
-    name: '🩵 파스텔 스카이',
-    bg: '#f0f8ff', surface: '#ffffff', surface2: '#e0f0ff', surface3: '#cce4ff',
-    border: '#b3d4f5', border2: '#90beec',
-    accent: '#0ea5e9', accentDim: 'rgba(14,165,233,0.12)', accentSel: 'rgba(14,165,233,0.22)',
-    accent2: '#f97316', accent2Dim: 'rgba(249,115,22,0.12)', accent2Sel: 'rgba(249,115,22,0.22)',
-    gold: '#ca8a04', goldDim: 'rgba(202,138,4,0.12)',
-    text: '#0c4a6e', text2: '#0369a1', textMuted: '#93c5fd',
-    swatches: ['#f0f8ff','#0ea5e9','#f97316','#ca8a04']
-  },
-  {
-    id: 'pastel-lavender',
-    name: '💜 파스텔 라벤더',
-    bg: '#faf5ff', surface: '#ffffff', surface2: '#f3e8ff', surface3: '#e9d5ff',
-    border: '#d8b4fe', border2: '#c084fc',
-    accent: '#7c3aed', accentDim: 'rgba(124,58,237,0.12)', accentSel: 'rgba(124,58,237,0.22)',
-    accent2: '#ec4899', accent2Dim: 'rgba(236,72,153,0.12)', accent2Sel: 'rgba(236,72,153,0.22)',
-    gold: '#b45309', goldDim: 'rgba(180,83,9,0.12)',
-    text: '#3b0764', text2: '#6b21a8', textMuted: '#c084fc',
-    swatches: ['#faf5ff','#7c3aed','#ec4899','#b45309']
-  },
-  {
-    id: 'pastel-peach',
-    name: '🍑 파스텔 피치',
-    bg: '#fff7f0', surface: '#ffffff', surface2: '#ffede0', surface3: '#ffe0cc',
-    border: '#ffc9a8', border2: '#ffb088',
-    accent: '#ea580c', accentDim: 'rgba(234,88,12,0.12)', accentSel: 'rgba(234,88,12,0.22)',
-    accent2: '#0891b2', accent2Dim: 'rgba(8,145,178,0.12)', accent2Sel: 'rgba(8,145,178,0.22)',
-    gold: '#92400e', goldDim: 'rgba(146,64,14,0.12)',
-    text: '#431407', text2: '#9a3412', textMuted: '#fdba74',
-    swatches: ['#fff7f0','#ea580c','#0891b2','#92400e']
-  },
+// ── 다크 계열 ──
+{
+id: 'dark-green',
+name: '🌲 다크 그린',
+bg: '#080a0e', surface: '#0f1218', surface2: '#141820', surface3: '#1a2030',
+border: '#1e2636', border2: '#253248',
+accent: '#3dba96', accentDim: 'rgba(61,186,150,0.15)', accentSel: 'rgba(61,186,150,0.22)',
+accent2: '#d97248', accent2Dim: 'rgba(217,114,72,0.13)', accent2Sel: 'rgba(217,114,72,0.22)',
+gold: '#c9a84c', goldDim: 'rgba(201,168,76,0.12)',
+text: '#e2e8f4', text2: '#9aaac0', textMuted: '#4a5568',
+swatches: ['#080a0e','#3dba96','#d97248','#c9a84c']
+},
+{
+id: 'midnight',
+name: '🌙 미드나잇',
+bg: '#000000', surface: '#0a0a0a', surface2: '#111111', surface3: '#1a1a1a',
+border: '#222222', border2: '#333333',
+accent: '#00ff88', accentDim: 'rgba(0,255,136,0.12)', accentSel: 'rgba(0,255,136,0.2)',
+accent2: '#ff4444', accent2Dim: 'rgba(255,68,68,0.12)', accent2Sel: 'rgba(255,68,68,0.2)',
+gold: '#ffcc00', goldDim: 'rgba(255,204,0,0.12)',
+text: '#ffffff', text2: '#aaaaaa', textMuted: '#555555',
+swatches: ['#000000','#00ff88','#ff4444','#ffcc00']
+},
+// ── 밝은 계열 ──
+{
+id: 'light-clean',
+name: '☀️ 라이트',
+bg: '#f5f7fa', surface: '#ffffff', surface2: '#eef1f6', surface3: '#e4e8f0',
+border: '#d0d8e8', border2: '#b8c4da',
+accent: '#2563eb', accentDim: 'rgba(37,99,235,0.1)', accentSel: 'rgba(37,99,235,0.18)',
+accent2: '#e05a2b', accent2Dim: 'rgba(224,90,43,0.1)', accent2Sel: 'rgba(224,90,43,0.18)',
+gold: '#b45309', goldDim: 'rgba(180,83,9,0.1)',
+text: '#1e293b', text2: '#475569', textMuted: '#94a3b8',
+swatches: ['#f5f7fa','#2563eb','#e05a2b','#b45309']
+},
+{
+id: 'light-warm',
+name: '🌤 웜 화이트',
+bg: '#faf8f5', surface: '#ffffff', surface2: '#f5f0e8', surface3: '#ede5d8',
+border: '#ddd5c5', border2: '#c8bca8',
+accent: '#c2410c', accentDim: 'rgba(194,65,12,0.1)', accentSel: 'rgba(194,65,12,0.18)',
+accent2: '#0369a1', accent2Dim: 'rgba(3,105,161,0.1)', accent2Sel: 'rgba(3,105,161,0.18)',
+gold: '#92400e', goldDim: 'rgba(146,64,14,0.1)',
+text: '#292524', text2: '#57534e', textMuted: '#a8a29e',
+swatches: ['#faf8f5','#c2410c','#0369a1','#92400e']
+},
+// ── 파스텔 계열 ──
+{
+id: 'pastel-mint',
+name: '🌿 파스텔 민트',
+bg: '#f0faf6', surface: '#ffffff', surface2: '#e6f7f0', surface3: '#d4f0e4',
+border: '#b8e4d0', border2: '#96d4bc',
+accent: '#0d9488', accentDim: 'rgba(13,148,136,0.12)', accentSel: 'rgba(13,148,136,0.22)',
+accent2: '#db7093', accent2Dim: 'rgba(219,112,147,0.12)', accent2Sel: 'rgba(219,112,147,0.22)',
+gold: '#d97706', goldDim: 'rgba(217,119,6,0.12)',
+text: '#134e4a', text2: '#2d6a62', textMuted: '#7fb5ac',
+swatches: ['#f0faf6','#0d9488','#db7093','#d97706']
+},
+{
+id: 'pastel-pink',
+name: '🌸 파스텔 핑크',
+bg: '#fff0f6', surface: '#ffffff', surface2: '#ffe4ef', surface3: '#ffd6e7',
+border: '#fbbdd5', border2: '#f9a8c9',
+accent: '#db2777', accentDim: 'rgba(219,39,119,0.12)', accentSel: 'rgba(219,39,119,0.22)',
+accent2: '#7c3aed', accent2Dim: 'rgba(124,58,237,0.12)', accent2Sel: 'rgba(124,58,237,0.22)',
+gold: '#b45309', goldDim: 'rgba(180,83,9,0.12)',
+text: '#500724', text2: '#9d174d', textMuted: '#f9a8c9',
+swatches: ['#fff0f6','#db2777','#7c3aed','#b45309']
+},
+{
+id: 'pastel-sky',
+name: '🩵 파스텔 스카이',
+bg: '#f0f8ff', surface: '#ffffff', surface2: '#e0f0ff', surface3: '#cce4ff',
+border: '#b3d4f5', border2: '#90beec',
+accent: '#0ea5e9', accentDim: 'rgba(14,165,233,0.12)', accentSel: 'rgba(14,165,233,0.22)',
+accent2: '#f97316', accent2Dim: 'rgba(249,115,22,0.12)', accent2Sel: 'rgba(249,115,22,0.22)',
+gold: '#ca8a04', goldDim: 'rgba(202,138,4,0.12)',
+text: '#0c4a6e', text2: '#0369a1', textMuted: '#93c5fd',
+swatches: ['#f0f8ff','#0ea5e9','#f97316','#ca8a04']
+},
+{
+id: 'pastel-lavender',
+name: '💜 파스텔 라벤더',
+bg: '#faf5ff', surface: '#ffffff', surface2: '#f3e8ff', surface3: '#e9d5ff',
+border: '#d8b4fe', border2: '#c084fc',
+accent: '#7c3aed', accentDim: 'rgba(124,58,237,0.12)', accentSel: 'rgba(124,58,237,0.22)',
+accent2: '#ec4899', accent2Dim: 'rgba(236,72,153,0.12)', accent2Sel: 'rgba(236,72,153,0.22)',
+gold: '#b45309', goldDim: 'rgba(180,83,9,0.12)',
+text: '#3b0764', text2: '#6b21a8', textMuted: '#c084fc',
+swatches: ['#faf5ff','#7c3aed','#ec4899','#b45309']
+},
+{
+id: 'pastel-peach',
+name: '🍑 파스텔 피치',
+bg: '#fff7f0', surface: '#ffffff', surface2: '#ffede0', surface3: '#ffe0cc',
+border: '#ffc9a8', border2: '#ffb088',
+accent: '#ea580c', accentDim: 'rgba(234,88,12,0.12)', accentSel: 'rgba(234,88,12,0.22)',
+accent2: '#0891b2', accent2Dim: 'rgba(8,145,178,0.12)', accent2Sel: 'rgba(8,145,178,0.22)',
+gold: '#92400e', goldDim: 'rgba(146,64,14,0.12)',
+text: '#431407', text2: '#9a3412', textMuted: '#fdba74',
+swatches: ['#fff7f0','#ea580c','#0891b2','#92400e']
+},
 ];
 
 let currentTheme = localStorage.getItem('soundTheme') || 'dark-green';
 
 function applyTheme(id) {
-  const t = THEMES.find(t => t.id === id);
-  if (!t) return;
-  const root = document.documentElement;
-  root.style.setProperty('--bg', t.bg);
-  root.style.setProperty('--surface', t.surface);
-  root.style.setProperty('--surface2', t.surface2);
-  root.style.setProperty('--surface3', t.surface3);
-  root.style.setProperty('--border', t.border);
-  root.style.setProperty('--border2', t.border2);
-  root.style.setProperty('--accent', t.accent);
-  root.style.setProperty('--accent-dim', t.accentDim);
-  root.style.setProperty('--accent-selected', t.accentSel);
-  root.style.setProperty('--accent2', t.accent2);
-  root.style.setProperty('--accent2-dim', t.accent2Dim);
-  root.style.setProperty('--accent2-selected', t.accent2Sel);
-  root.style.setProperty('--gold', t.gold);
-  root.style.setProperty('--gold-dim', t.goldDim);
-  root.style.setProperty('--text', t.text);
-  root.style.setProperty('--text2', t.text2);
-  root.style.setProperty('--text-muted', t.textMuted);
-  root.style.setProperty('--unselected-bg', t.surface2);
-  root.style.setProperty('--unselected-border', t.border);
-  currentTheme = id;
-  localStorage.setItem('soundTheme', id);
+const t = THEMES.find(t => t.id === id);
+if (!t) return;
+const root = document.documentElement;
+root.style.setProperty('--bg', t.bg);
+root.style.setProperty('--surface', t.surface);
+root.style.setProperty('--surface2', t.surface2);
+root.style.setProperty('--surface3', t.surface3);
+root.style.setProperty('--border', t.border);
+root.style.setProperty('--border2', t.border2);
+root.style.setProperty('--accent', t.accent);
+root.style.setProperty('--accent-dim', t.accentDim);
+root.style.setProperty('--accent-selected', t.accentSel);
+root.style.setProperty('--accent2', t.accent2);
+root.style.setProperty('--accent2-dim', t.accent2Dim);
+root.style.setProperty('--accent2-selected', t.accent2Sel);
+root.style.setProperty('--gold', t.gold);
+root.style.setProperty('--gold-dim', t.goldDim);
+root.style.setProperty('--text', t.text);
+root.style.setProperty('--text2', t.text2);
+root.style.setProperty('--text-muted', t.textMuted);
+root.style.setProperty('--unselected-bg', t.surface2);
+root.style.setProperty('--unselected-border', t.border);
+currentTheme = id;
+localStorage.setItem('soundTheme', id);
 }
 
 function openThemeModal() {
-  const grid = document.getElementById('themeGrid');
-  grid.innerHTML = THEMES.map(t => `
-    <div class="theme-card ${currentTheme === t.id ? 'active' : ''}"
-      style="background:${t.surface};border-color:${currentTheme===t.id?t.accent:'transparent'}"
-      onclick="applyTheme('${t.id}');renderThemeGrid()">
-      <div class="theme-card-name" style="color:${t.text}">${t.name}</div>
-      <div class="theme-swatches">
-        ${t.swatches.map(s=>`<div class="theme-swatch" style="background:${s}"></div>`).join('')}
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('themeModal').classList.add('show');
+const grid = document.getElementById('themeGrid');
+grid.innerHTML = THEMES.map(t => ` <div class="theme-card ${currentTheme === t.id ? 'active' : ''}" style="background:${t.surface};border-color:${currentTheme===t.id?t.accent:'transparent'}" onclick="applyTheme('${t.id}');renderThemeGrid()"> <div class="theme-card-name" style="color:${t.text}">${t.name}</div> <div class="theme-swatches"> ${t.swatches.map(s=>`<div class="theme-swatch" style="background:${s}"></div>`).join('')} </div> </div> `).join('');
+document.getElementById('themeModal').classList.add('show');
 }
 
 function renderThemeGrid() {
-  const grid = document.getElementById('themeGrid');
-  grid.innerHTML = THEMES.map(t => `
-    <div class="theme-card ${currentTheme === t.id ? 'active' : ''}"
-      style="background:${t.surface};border-color:${currentTheme===t.id?t.accent:'transparent'}"
-      onclick="applyTheme('${t.id}');renderThemeGrid()">
-      <div class="theme-card-name" style="color:${t.text}">${t.name}</div>
-      <div class="theme-swatches">
-        ${t.swatches.map(s=>`<div class="theme-swatch" style="background:${s}"></div>`).join('')}
-      </div>
-    </div>
-  `).join('');
+const grid = document.getElementById('themeGrid');
+grid.innerHTML = THEMES.map(t => ` <div class="theme-card ${currentTheme === t.id ? 'active' : ''}" style="background:${t.surface};border-color:${currentTheme===t.id?t.accent:'transparent'}" onclick="applyTheme('${t.id}');renderThemeGrid()"> <div class="theme-card-name" style="color:${t.text}">${t.name}</div> <div class="theme-swatches"> ${t.swatches.map(s=>`<div class="theme-swatch" style="background:${s}"></div>`).join('')} </div> </div> `).join('');
 }
 
 function closeThemeModal() { document.getElementById('themeModal').classList.remove('show'); }
@@ -2428,9 +2953,50 @@ document.getElementById('pageList').style.display = 'flex';
 document.getElementById('pageWarehouse').style.display = 'none';
 document.getElementById('pageOffice').style.display = 'none';
 document.getElementById('pageDirective').style.display = 'none';
+document.getElementById('pageVehicle').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
 renderList();
 initRealtime();
+
+// ── 자동저장 ──
+let autoSaveTimer = null;
+function triggerAutoSave() {
+  const dot = document.getElementById('autosaveDot');
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    const log = getFormData();
+    if (!log) return;
+    localStorage.setItem('soundlogs', JSON.stringify(logs));
+    if (dot) { dot.classList.add('active'); setTimeout(() => dot.classList.remove('active'), 1500); }
+  }, 800);
+}
+document.getElementById('pageForm').addEventListener('input', triggerAutoSave);
+document.getElementById('pageForm').addEventListener('change', triggerAutoSave);
+function scrollToTop() {
+  const formScroll = document.querySelector('.form-scroll');
+  const activePage = document.querySelector('.page.active');
+  if (formScroll && document.getElementById('pageForm').classList.contains('active')) {
+    formScroll.scrollTo({ top: 0, behavior: 'smooth' });
+  } else if (activePage) {
+    activePage.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// 스크롤 감지 → 버튼 표시
+function setupScrollTopBtn() {
+  const btn = document.getElementById('scrollTopBtn');
+  if (!btn) return;
+  const checkScroll = (el) => {
+    if (!el) return;
+    el.addEventListener('scroll', () => {
+      if (el.scrollTop > 200) btn.classList.add('show');
+      else btn.classList.remove('show');
+    }, { passive: true });
+  };
+  document.querySelectorAll('.page, .form-scroll').forEach(checkScroll);
+}
+setupScrollTopBtn();
 </script>
+
 </body>
 </html>
