@@ -664,18 +664,179 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .task-pri-opt.sel-high { border-color: var(--accent2); background: var(--accent2-dim); color: var(--accent2); }
 .task-pri-opt.sel-mid { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
 .task-pri-opt.sel-low { border-color: var(--border2); background: var(--surface2); color: var(--text-muted); }
+
+/* ─── LOGIN SCREEN ─── */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 28px;
+  padding-top: calc(40px + env(safe-area-inset-top,0px));
+}
+.login-logo { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; color: var(--accent); letter-spacing: 4px; margin-bottom: 6px; }
+.login-logo span { color: var(--accent2); }
+.login-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 40px; font-family: 'JetBrains Mono', monospace; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
+.login-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.login-field { display: flex; flex-direction: column; gap: 6px; }
+.login-field label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.5px; }
+.login-field input { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 15px; padding: 12px 14px; outline: none; width: 100%; transition: border-color 0.15s; }
+.login-field input:focus { border-color: var(--accent); }
+.login-btn { background: var(--accent); color: #0a0c10; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: opacity 0.15s; }
+.login-btn:active { opacity: 0.75; }
+.login-err { font-size: 13px; color: var(--accent2); text-align: center; min-height: 18px; font-weight: 600; }
+.login-divider { text-align: center; font-size: 12px; color: var(--text-muted); padding: 4px 0; }
+.login-register-btn { background: none; border: 1.5px solid var(--border2); color: var(--text-muted); border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s; }
+.login-register-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* ─── USER MANAGEMENT MODAL ─── */
+.user-mgmt-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 970;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.user-mgmt-overlay.show { opacity: 1; pointer-events: all; }
+.user-mgmt-sheet {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0; padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom,0px));
+  width: 100%; max-width: 640px;
+  transform: translateY(40px); transition: transform 0.25s;
+  max-height: 88dvh; display: flex; flex-direction: column; gap: 14px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.user-mgmt-overlay.show .user-mgmt-sheet { transform: translateY(0); }
+.user-card {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.user-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--accent-dim); border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: var(--accent); flex-shrink: 0;
+}
+.user-avatar.admin { background: var(--accent2-dim); border-color: var(--accent2); color: var(--accent2); }
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.user-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+.user-online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+.user-online-dot.online { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+/* ─── ACCESS LOG MODAL ─── */
+.log-entry {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 12px;
+}
+.log-entry-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.log-entry-user { font-weight: 700; color: var(--accent); }
+.log-entry-time { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-left: auto; }
+.log-entry-action { color: var(--text2); }
+.log-type-login { border-left: 3px solid var(--accent); }
+.log-type-logout { border-left: 3px solid var(--text-muted); }
+.log-type-create { border-left: 3px solid var(--gold); }
+.log-type-delete { border-left: 3px solid var(--accent2); }
+.log-type-update { border-left: 3px solid #7c9fd4; }
 </style>
 
 </head>
 <body>
+
+<!-- ═══ 로그인 화면 ═══ -->
+<div id="loginScreen">
+  <div class="login-logo">SOUND<span>LOG</span></div>
+  <div class="login-sub">SOUND EQUIPMENT MANAGEMENT</div>
+  <div class="login-card" id="loginCard">
+    <div class="login-title">🔐 로그인</div>
+    <div class="login-field">
+      <label>아이디</label>
+      <input id="loginId" type="text" placeholder="아이디 입력" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>비밀번호</label>
+      <input id="loginPw" type="password" placeholder="비밀번호 입력" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-divider">── 또는 ──</div>
+    <button class="login-register-btn" onclick="showRegisterForm()">신규 계정 등록</button>
+  </div>
+  <!-- 회원가입 카드 (기본 숨김) -->
+  <div class="login-card" id="registerCard" style="display:none;">
+    <div class="login-title">📝 신규 계정 등록</div>
+    <div class="login-field">
+      <label>아이디 (영문+숫자, 4자 이상)</label>
+      <input id="regId" type="text" placeholder="사용할 아이디">
+    </div>
+    <div class="login-field">
+      <label>이름 (실명)</label>
+      <input id="regName" type="text" placeholder="이름">
+    </div>
+    <div class="login-field">
+      <label>비밀번호 (4자 이상)</label>
+      <input id="regPw" type="password" placeholder="비밀번호">
+    </div>
+    <div class="login-field">
+      <label>관리자 승인 코드</label>
+      <input id="regAdminCode" type="password" placeholder="관리자에게 문의">
+    </div>
+    <div class="login-err" id="regErr"></div>
+    <button class="login-btn" onclick="doRegister()">등록 요청</button>
+    <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
+  </div>
+</div>
+
+<!-- ═══ 사용자 관리 모달 ═══ -->
+<div class="user-mgmt-overlay" id="userMgmtModal">
+  <div class="user-mgmt-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);">👥 사용자 관리</div>
+      <button onclick="closeUserMgmt()" style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <!-- 탭 -->
+    <div style="display:flex;gap:8px;">
+      <button id="umTab_users" onclick="switchUmTab('users')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);">👥 사용자</button>
+      <button id="umTab_logs" onclick="switchUmTab('logs')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">📋 접속·행동 로그</button>
+    </div>
+    <!-- 사용자 탭 -->
+    <div id="umUsersPanel">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">현재 등록된 사용자 목록입니다. 삭제 시 즉시 로그인 불가.</div>
+      <div id="userListContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+    <!-- 로그 탭 -->
+    <div id="umLogsPanel" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <select id="logFilterUser" onchange="renderAccessLogs()" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;min-width:0;">
+          <option value="">전체 사용자</option>
+        </select>
+        <select id="logFilterType" onchange="renderAccessLogs()" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;min-width:0;">
+          <option value="">전체 유형</option>
+          <option value="login">로그인</option>
+          <option value="logout">로그아웃</option>
+          <option value="create">생성</option>
+          <option value="update">수정</option>
+          <option value="delete">삭제</option>
+        </select>
+        <button onclick="clearAccessLogs()" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:8px;color:var(--accent2);font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">전체삭제</button>
+      </div>
+      <div id="accessLogContainer" style="display:flex;flex-direction:column;gap:6px;max-height:50dvh;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
 <div id="app">
   <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">↑</button>
   <header>
     <div class="logo">SOUND<span>LOG</span></div>
-    <span id="headerDate" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);"></span>
+    <span id="headerUserBadge" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(61,186,150,0.3);border-radius:20px;padding:3px 10px;flex-shrink:0;white-space:nowrap;"></span>
+    <span style="flex:1;"></span>
     <button onclick="location.reload(true)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">↺</button>
     <button onclick="openThemeModal()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">🎨</button>
-    <button onclick="toggleAdmin()" id="adminBtn" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">관리자</button>
+    <button onclick="openUserMgmt()" id="adminBtn" style="display:none;background:none;border:1px solid var(--accent2);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👥 관리</button>
+    <button onclick="doLogout()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">로그아웃</button>
   </header>
 
   <!-- NAV TABS -->
@@ -839,6 +1000,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               <option>스포츠</option>
               <option>통영국제음악당</option>
               <option>통영시청</option>
+              <option>버스킹</option>
               <option>기타</option>
             </select>
           </div>
@@ -957,10 +1119,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div class="equip-opt" data-val="d&b" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
             <div class="equip-opt" data-val="JBL" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
             <div class="equip-opt" data-val="MAUI" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
-            <div class="equip-opt" data-val="L-Acoustics" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>L-Acoustics</div>
-            <div class="equip-opt" data-val="Meyer Sound" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Meyer Sound</div>
-            <div class="equip-opt" data-val="Nexo" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Nexo</div>
-            <div class="equip-opt" data-val="QSC" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>QSC</div>
+            <div class="equip-opt" data-val="기타" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>기타</div>
           </div>
           <div id="speakerModelWrap" style="display:none;margin-top:10px">
             <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
@@ -1275,13 +1434,292 @@ const MONITOR_ITEMS = [
   { key: 'inear',     label: '5. 인이어' },
 ];
 
-// ── 상태 ──
+// ════════════════════════════════════════
+// ── 인증 & 사용자 시스템 ──
+// ════════════════════════════════════════
+const ADMIN_USER = { id: 'admin', name: '관리자', role: 'admin' };
+const REGISTER_CODE = '6293'; // 신규 가입 시 필요한 관리자 승인 코드
+
+// 사용자 저장소: localStorage 'sl_users'
+// [{id, name, pw, role:'admin'|'user', createdAt, lastLogin}]
+function getUsers() { return JSON.parse(localStorage.getItem('sl_users') || '[]'); }
+function saveUsers(u) { localStorage.setItem('sl_users', JSON.stringify(u)); }
+
+// 접속/행동 로그: localStorage 'sl_access_logs'
+// [{id, userId, userName, type:'login'|'logout'|'create'|'update'|'delete', target, detail, ts}]
+function getAccessLogs() { return JSON.parse(localStorage.getItem('sl_access_logs') || '[]'); }
+function saveAccessLogs(l) { localStorage.setItem('sl_access_logs', JSON.stringify(l)); }
+
+function addAccessLog(type, target, detail) {
+  if (!currentUser) return;
+  const logs2 = getAccessLogs();
+  logs2.push({
+    id: Date.now().toString() + Math.random().toString(36).slice(2,6),
+    userId: currentUser.id,
+    userName: currentUser.name,
+    role: currentUser.role,
+    type,
+    target: target || '',
+    detail: detail || '',
+    ts: new Date().toISOString()
+  });
+  // 최대 500개만 유지
+  if (logs2.length > 500) logs2.splice(0, logs2.length - 500);
+  saveAccessLogs(logs2);
+  // Supabase에도 비동기 동기화
+  sbSyncLog(logs2[logs2.length - 1]);
+}
+
+async function sbSyncLog(entry) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/access_logs`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: entry.id,
+        user_id: entry.userId,
+        user_name: entry.userName,
+        role: entry.role,
+        type: entry.type,
+        target: entry.target,
+        detail: entry.detail,
+        created_at: entry.ts
+      })
+    });
+  } catch(e) { /* 실패해도 로컬에 이미 있음 */ }
+}
+
+// 초기 관리자 계정 생성 (없으면)
+(function initAdminAccount() {
+  let users = getUsers();
+  if (!users.find(u => u.id === 'admin')) {
+    users.push({ id: 'admin', name: '관리자', pw: '6293', role: 'admin', createdAt: new Date().toISOString(), lastLogin: null });
+    saveUsers(users);
+  }
+})();
+
+let currentUser = null; // 현재 로그인 유저
+let isAdmin = false;
+
+function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  if (!id || !pw) { errEl.textContent = '아이디와 비밀번호를 입력하세요'; return; }
+  const users = getUsers();
+  const user = users.find(u => u.id === id && u.pw === pw);
+  if (!user) { errEl.textContent = '❌ 아이디 또는 비밀번호가 틀렸습니다'; return; }
+  // 로그인 성공
+  user.lastLogin = new Date().toISOString();
+  saveUsers(users);
+  currentUser = user;
+  isAdmin = (user.role === 'admin');
+  // 세션 저장
+  sessionStorage.setItem('sl_session', JSON.stringify({ id: user.id, name: user.name, role: user.role }));
+  addAccessLog('login', 'system', `${user.name} 로그인`);
+  afterLogin();
+}
+
+function doLogout() {
+  if (!currentUser) return;
+  addAccessLog('logout', 'system', `${currentUser.name} 로그아웃`);
+  currentUser = null;
+  isAdmin = false;
+  sessionStorage.removeItem('sl_session');
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPw').value = '';
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  showLoginForm();
+}
+
+function afterLogin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  // 헤더 유저 배지
+  const badge = document.getElementById('headerUserBadge');
+  if (badge) badge.textContent = (isAdmin ? '👑 ' : '👤 ') + currentUser.name;
+  // 관리자 버튼 표시
+  const adminBtn = document.getElementById('adminBtn');
+  if (adminBtn) adminBtn.style.display = isAdmin ? 'block' : 'none';
+  // 삭제 버튼 처리
+  const fb = document.getElementById('formDeleteBtn');
+  if (fb) fb.style.display = isAdmin ? 'block' : 'none';
+  renderList();
+  autoLoadAll();
+  initRealtime();
+}
+
+function doRegister() {
+  const id   = document.getElementById('regId').value.trim();
+  const name = document.getElementById('regName').value.trim();
+  const pw   = document.getElementById('regPw').value;
+  const code = document.getElementById('regAdminCode').value;
+  const errEl = document.getElementById('regErr');
+  errEl.textContent = '';
+  if (code !== REGISTER_CODE) { errEl.textContent = '❌ 관리자 승인 코드가 틀렸습니다'; return; }
+  if (!id || id.length < 4) { errEl.textContent = '아이디는 4자 이상이어야 합니다'; return; }
+  if (!/^[a-zA-Z0-9_]+$/.test(id)) { errEl.textContent = '아이디는 영문·숫자·_만 사용 가능합니다'; return; }
+  if (!name) { errEl.textContent = '이름을 입력하세요'; return; }
+  if (!pw || pw.length < 4) { errEl.textContent = '비밀번호는 4자 이상이어야 합니다'; return; }
+  const users = getUsers();
+  if (users.find(u => u.id === id)) { errEl.textContent = '❌ 이미 사용 중인 아이디입니다'; return; }
+  users.push({ id, name, pw, role: 'user', createdAt: new Date().toISOString(), lastLogin: null });
+  saveUsers(users);
+  errEl.style.color = 'var(--accent)';
+  errEl.textContent = '✓ 등록 완료! 로그인하세요';
+  setTimeout(() => { errEl.style.color = ''; showLoginForm(); }, 1500);
+}
+
+function showRegisterForm() {
+  document.getElementById('loginCard').style.display = 'none';
+  document.getElementById('registerCard').style.display = 'flex';
+  document.getElementById('registerCard').style.flexDirection = 'column';
+}
+function showLoginForm() {
+  document.getElementById('loginCard').style.display = 'flex';
+  document.getElementById('loginCard').style.flexDirection = 'column';
+  document.getElementById('registerCard').style.display = 'none';
+}
+
+// 세션 복원 (새로고침 시)
+(function restoreSession() {
+  const s = sessionStorage.getItem('sl_session');
+  if (s) {
+    try {
+      const sess = JSON.parse(s);
+      const users = getUsers();
+      const user = users.find(u => u.id === sess.id);
+      if (user) {
+        currentUser = user;
+        isAdmin = (user.role === 'admin');
+        // 로그인 화면 숨김 처리는 DOMContentLoaded 후
+        window.addEventListener('DOMContentLoaded', () => { afterLogin(); });
+        return;
+      }
+    } catch(e) {}
+  }
+  // 세션 없으면 로그인 화면 표시
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('app').style.display = 'none';
+  });
+})();
+
+// ─── 사용자 관리 모달 ───
+let currentUmTab = 'users';
+function openUserMgmt() {
+  if (!isAdmin) return;
+  renderUserList();
+  renderAccessLogs();
+  switchUmTab('users');
+  document.getElementById('userMgmtModal').classList.add('show');
+}
+function closeUserMgmt() { document.getElementById('userMgmtModal').classList.remove('show'); }
+
+function switchUmTab(tab) {
+  currentUmTab = tab;
+  ['users','logs'].forEach(t => {
+    const btn = document.getElementById('umTab_' + t);
+    if (!btn) return;
+    if (t === tab) {
+      btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);';
+    } else {
+      btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);';
+    }
+  });
+  document.getElementById('umUsersPanel').style.display = tab === 'users' ? 'block' : 'none';
+  document.getElementById('umLogsPanel').style.display  = tab === 'logs'  ? 'block' : 'none';
+}
+
+function renderUserList() {
+  const users = getUsers();
+  const el = document.getElementById('userListContainer');
+  const accessLogs = getAccessLogs();
+  el.innerHTML = users.map(u => {
+    const isCurrentUser = currentUser && u.id === currentUser.id;
+    const lastLog = [...accessLogs].reverse().find(l => l.userId === u.id && l.type === 'login');
+    const lastLoginStr = u.lastLogin ? new Date(u.lastLogin).toLocaleString('ko-KR') : '없음';
+    const isAdminUser = u.role === 'admin';
+    return `
+    <div class="user-card">
+      <div class="user-avatar ${isAdminUser ? 'admin' : ''}">${u.name.charAt(0)}</div>
+      <div class="user-info">
+        <div class="user-name">${u.name} ${isAdminUser ? '👑' : ''} ${isCurrentUser ? '<span style="font-size:10px;color:var(--accent);font-weight:400;">(나)</span>' : ''}</div>
+        <div class="user-meta">ID: ${u.id} · 최근접속: ${lastLoginStr}</div>
+        <div class="user-meta" style="color:var(--text-muted);margin-top:2px;">가입: ${new Date(u.createdAt).toLocaleDateString('ko-KR')}</div>
+      </div>
+      ${!isAdminUser ? `<button onclick="deleteUser('${u.id}')" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:7px;color:var(--accent2);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;flex-shrink:0;">삭제</button>` : '<span style="font-size:10px;color:var(--text-muted);">삭제불가</span>'}
+    </div>`;
+  }).join('');
+}
+
+function deleteUser(userId) {
+  if (!isAdmin) return;
+  const users = getUsers();
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  if (!confirm(`'${user.name}' 계정을 삭제할까요?\n이 사용자는 더 이상 로그인할 수 없습니다.`)) return;
+  const updated = users.filter(u => u.id !== userId);
+  saveUsers(updated);
+  addAccessLog('delete', 'user', `사용자 삭제: ${user.name}(${userId})`);
+  renderUserList();
+  showToast(`✓ ${user.name} 계정 삭제 완료`);
+}
+
+function renderAccessLogs() {
+  const filterUser = document.getElementById('logFilterUser')?.value || '';
+  const filterType = document.getElementById('logFilterType')?.value || '';
+  // 유저 필터 옵션 업데이트
+  const users = getUsers();
+  const userSel = document.getElementById('logFilterUser');
+  if (userSel) {
+    const cur = userSel.value;
+    userSel.innerHTML = '<option value="">전체 사용자</option>' + users.map(u => `<option value="${u.id}" ${cur===u.id?'selected':''}>${u.name}</option>`).join('');
+  }
+  let logs2 = getAccessLogs();
+  if (filterUser) logs2 = logs2.filter(l => l.userId === filterUser);
+  if (filterType) logs2 = logs2.filter(l => l.type === filterType);
+  logs2 = [...logs2].reverse(); // 최신순
+  const el = document.getElementById('accessLogContainer');
+  if (!logs2.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">로그가 없습니다</div>';
+    return;
+  }
+  const typeLabel = { login:'🔵 로그인', logout:'⚫ 로그아웃', create:'🟡 생성', update:'🔷 수정', delete:'🔴 삭제' };
+  const typeClass = { login:'log-type-login', logout:'log-type-logout', create:'log-type-create', update:'log-type-update', delete:'log-type-delete' };
+  el.innerHTML = logs2.map(l => `
+    <div class="log-entry ${typeClass[l.type]||''}">
+      <div class="log-entry-top">
+        <span class="log-entry-user">${l.userName}</span>
+        <span style="font-size:10px;color:var(--text-muted);background:var(--surface3);padding:1px 6px;border-radius:10px;">${l.role==='admin'?'관리자':'사용자'}</span>
+        <span class="log-entry-time">${new Date(l.ts).toLocaleString('ko-KR')}</span>
+      </div>
+      <div class="log-entry-action">${typeLabel[l.type]||l.type} · ${l.target} ${l.detail ? '· ' + l.detail : ''}</div>
+    </div>`).join('');
+}
+
+function clearAccessLogs() {
+  if (!isAdmin) return;
+  if (!confirm('모든 접속/행동 로그를 삭제할까요?')) return;
+  saveAccessLogs([]);
+  renderAccessLogs();
+  showToast('✓ 로그 전체 삭제');
+}
+
+// ─── 기존 toggleAdmin 대체 (빈 함수로 유지, 하위 호환) ───
+function toggleAdmin() { openUserMgmt(); }
+
+// ── 날짜 ──
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
+document.getElementById('headerDate') && (document.getElementById('headerDate').textContent = fmtDate(today()));
 let logs        = JSON.parse(localStorage.getItem('soundlogs')  || '[]');
 let mdStore     = JSON.parse(localStorage.getItem('mdStore')    || '[]');
 // mdStore 항목: { id, filename, content, savedAt, logId }
 
 let currentId       = null;
-let isAdmin         = false;
 let soundInstallDay = '당일';
 let stageInstallDay = '당일';
 let monitorChecks   = {};
@@ -1298,12 +1736,6 @@ let _pendingMDContent  = '';
 let _pendingMDFilename = '';
 let _pendingMDLogId    = '';
 
-// ── 날짜 ──
-function today() { return new Date().toISOString().split('T')[0]; }
-function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
-document.getElementById('headerDate').textContent = fmtDate(today());
-
-// ── 탭 전환 ──
 // ── 페이지 전환 ──
 function showList() {
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
@@ -1321,34 +1753,6 @@ function showForm() {
   p.querySelector('.form-scroll').scrollTop = 0;
   const fb = document.getElementById('formDeleteBtn');
   if (fb) fb.style.display = isAdmin ? 'block' : 'none';
-}
-
-// ── 관리자 ──
-function toggleAdmin() {
-  if (isAdmin) {
-    isAdmin = false;
-    document.getElementById('adminBtn').style.color = 'var(--text-muted)';
-    document.getElementById('adminBtn').style.borderColor = 'var(--border2)';
-    document.getElementById('adminBtn').textContent = '관리자';
-    const fb = document.getElementById('formDeleteBtn');
-    if (fb) fb.style.display = 'none';
-    renderList();
-    showToast('관리자 로그아웃');
-    return;
-  }
-  const pw = prompt('관리자 비밀번호를 입력하세요:');
-  if (pw === '6293') {
-    isAdmin = true;
-    document.getElementById('adminBtn').style.color = 'var(--accent2)';
-    document.getElementById('adminBtn').style.borderColor = 'var(--accent2)';
-    document.getElementById('adminBtn').textContent = '관리자 ✓';
-    const fb = document.getElementById('formDeleteBtn');
-    if (fb) fb.style.display = 'block';
-    renderList();
-    showToast('✓ 관리자 로그인');
-  } else if (pw !== null) {
-    showToast('❌ 비밀번호가 틀렸습니다');
-  }
 }
 
 // ── 리스트 렌더 ──
@@ -1515,9 +1919,12 @@ function newLog() {
     stairHas: null, stairPos:[],
     equipment:[],
     preIssues:'', duringIssues:'', resolution:'',
-    clientFeedback:'', memo:'', createdAt: new Date().toISOString()
+    clientFeedback:'', memo:'', createdAt: new Date().toISOString(),
+    createdBy: currentUser ? currentUser.id : 'unknown',
+    createdByName: currentUser ? currentUser.name : '알 수 없음'
   };
   logs.push(log);
+  addAccessLog('create', '행사일지', `새 일지 작성 시작`);
   fillForm(log);
   showForm();
 }
@@ -1716,13 +2123,10 @@ function selectConsoleModel(el) {
 // 카테고리가 있는 브랜드: { sub: [...], main: [...] }
 // 일반 브랜드: [...]
 const SPEAKER_MODELS = {
-  'd&b':        { sub: ['d&b sub', '직접입력'], main: ['V8', '직접입력'] },
-  'JBL':        { sub: ['d&b sub', '직접입력'], main: ['625', '직접입력'] },
-  'MAUI':       ['LD', '직접입력'],
-  'L-Acoustics':['K1','K2','K3','Kara II','Kara','Syva','X15 HiQ','X12','직접입력'],
-  'Meyer Sound':['LEOPARD','LYON','PANTHER','MILO','ULTRA-X40','UPA-1P','1100-LFC','직접입력'],
-  'Nexo':       ['GEO M10','GEO M6','STM M28','PS15 R2','ID24','직접입력'],
-  'QSC':        ['KS212C','KS118','K12.2','KW153','TouchMix','직접입력']
+  'd&b':  { sub: ['d&b sub', '직접입력'], main: ['V8', '직접입력'] },
+  'JBL':  { sub: ['d&b sub', '직접입력'], main: ['625', '직접입력'] },
+  'MAUI': ['LD', '직접입력'],
+  '기타':  ['직접입력']
 };
 
 let speakerBrand = '';
@@ -1738,6 +2142,14 @@ function selectSpeakerBrand(el) {
   speakerSelected = speakerBrand;
   const modelData = SPEAKER_MODELS[speakerBrand] || [];
   const grid = document.getElementById('speakerModelGrid');
+  // 기타: 모델 목록 없이 직접입력 바로 표시
+  if (speakerBrand === '기타') {
+    grid.innerHTML = '';
+    document.getElementById('speakerModelWrap').style.display = 'block';
+    document.getElementById('speakerCustomWrap').style.display = 'block';
+    speakerModel = '직접입력';
+    return;
+  }
   // 카테고리(서브/메인) 분리 여부 확인
   if (!Array.isArray(modelData) && modelData.sub) {
     grid.innerHTML = `
@@ -2151,8 +2563,10 @@ function saveMaintModal() {
   };
   if (idxRaw === '') {
     vehicleData[type].maintenance.push(entry);
+    addAccessLog('create', '차량정비', `추가: ${type} - ${item}`);
   } else {
     vehicleData[type].maintenance[parseInt(idxRaw)] = entry;
+    addAccessLog('update', '차량정비', `수정: ${type} - ${item}`);
   }
   closeMaintModal();
   renderMaintenanceList(type);
@@ -2175,9 +2589,11 @@ function updateMaintenance(type, idx, field, val) {
 function deleteMaintenance(type, idx) {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  const item = vehicleData[type].maintenance[idx]?.item || '';
   vehicleData[type].maintenance.splice(idx,1);
   renderMaintenanceList(type);
   saveVehicleData();
+  addAccessLog('delete', '차량정비', `삭제: ${type} - ${item}`);
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
   showToast('✓ 삭제 완료');
@@ -2342,6 +2758,7 @@ const log = getFormData();
 if (!log) return;
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 updateTitle();
+addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
 showToast('✓ 저장 완료');
 }
 async function sbDeleteLog(id) {
@@ -2354,23 +2771,29 @@ headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
 }
 
 async function deleteLog() {
-if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
 if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
+const log = logs.find(l => l.id === currentId);
+const logName = log ? (log.eventName || log.date) : currentId;
 showToast('삭제 중…');
 await sbDeleteLog(currentId);
 logs = logs.filter(l => l.id !== currentId);
 localStorage.setItem('soundlogs', JSON.stringify(logs));
+addAccessLog('delete', '행사일지', `삭제: ${logName}`);
 showList();
 showToast('✓ 삭제 완료');
 }
 
 async function deleteLogById(id) {
-if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
 if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
+const log = logs.find(l => l.id === id);
+const logName = log ? (log.eventName || log.date) : id;
 showToast('삭제 중…');
 await sbDeleteLog(id);
 logs = logs.filter(l => l.id !== id);
 localStorage.setItem('soundlogs', JSON.stringify(logs));
+addAccessLog('delete', '행사일지', `삭제: ${logName}`);
 renderList();
 showToast('✓ 삭제 완료');
 }
@@ -2453,6 +2876,7 @@ const log = getFormData();
 if (!log) return;
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 updateTitle();
+addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
 showToast('저장 중…');
 try {
 await sbUpsertLog(log);
@@ -2645,8 +3069,10 @@ const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType
 if (editTaskId) {
 const t = tasks.find(t => t.id === editTaskId);
 if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); }
+addAccessLog('update', currentTaskType, `업무수정: ${title}`);
 } else {
 tasks.push({ id:Date.now().toString(), title, body:document.getElementById('t_body').value, due:document.getElementById('t_due').value, status:curTaskStatus, priority:curTaskPriority, createdAt:new Date().toISOString() });
+addAccessLog('create', currentTaskType, `업무추가: ${title}`);
 }
 saveTasksLocal();
 closeTaskModal();
@@ -2655,14 +3081,18 @@ showToast('✓ 저장 완료');
 }
 
 async function deleteTask(id, type) {
-if (!isAdmin) { showToast('❌ 관리자 로그인 필요'); return; }
+if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
 if (!confirm('이 업무를 삭제할까요?')) return;
+const tasks = type === 'warehouse' ? warehouseTasks : type === 'office' ? officeTasks : directiveTasks;
+const task = tasks.find(t => t.id === id);
+const taskTitle = task ? task.title : id;
 if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
 else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
 else directiveTasks = directiveTasks.filter(t => t.id !== id);
 localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
 localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
 localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+addAccessLog('delete', type, `업무삭제: ${taskTitle}`);
 try {
 await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${id}`, {
 method: 'DELETE',
@@ -2955,16 +3385,19 @@ function closeThemeModal() { document.getElementById('themeModal').classList.rem
 
 // ── 초기화 ──
 applyTheme(currentTheme);
+// 앱은 로그인 후에만 표시 (세션 복원은 위 restoreSession IIFE에서 처리)
 document.getElementById('pageList').style.display = 'flex';
 document.getElementById('pageWarehouse').style.display = 'none';
 document.getElementById('pageOffice').style.display = 'none';
 document.getElementById('pageDirective').style.display = 'none';
 document.getElementById('pageVehicle').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
-renderList();
-initRealtime();
+// app은 기본 숨김 (세션 없으면 로그인 화면만 표시)
+if (!sessionStorage.getItem('sl_session')) {
+  document.getElementById('app').style.display = 'none';
+}
 
-// 앱 시작 시 자동으로 클라우드 데이터 불러오기
+// 앱 시작 시 자동으로 클라우드 데이터 불러오기 (afterLogin에서 호출됨)
 async function autoLoadAll() {
   try {
     // 1. 행사일지 - 전체 불러오기
@@ -3015,7 +3448,6 @@ async function autoLoadAll() {
 
   } catch(e) { console.error('자동 불러오기 실패:', e); }
 }
-autoLoadAll();
 
 // ── 자동저장 ──
 let autoSaveTimer = null;
