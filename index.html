@@ -956,6 +956,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
             <div class="equip-opt" data-val="d&b" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
             <div class="equip-opt" data-val="JBL" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
+            <div class="equip-opt" data-val="MAUI" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
             <div class="equip-opt" data-val="L-Acoustics" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>L-Acoustics</div>
             <div class="equip-opt" data-val="Meyer Sound" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Meyer Sound</div>
             <div class="equip-opt" data-val="Nexo" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>Nexo</div>
@@ -1669,10 +1670,10 @@ function toggleStairPos(el) {
 // ── 콘솔/스피커 선택 ──
 // 브랜드별 모델 목록
 const CONSOLE_MODELS = {
-  'Midas': ['PRO1','PRO2','PRO2C','PRO3','PRO6','PRO9','M32','M32R','M32C','HD96','HD96-AIR','직접입력'],
-  'Behringer': ['X32','X32 COMPACT','X32 RACK','X32 PRODUCER','WING','WING COMPACT','WING RACK','직접입력'],
-  'Allen & Heath': ['SQ-5','SQ-6','SQ-7','Avantis','Avantis Solo','dLive C1500','dLive C2500','dLive S3000','dLive S5000','dLive S7000','직접입력'],
-  'Yamaha': ['QL1','QL5','CL3','CL5','DM7','DM7 Compact','RIVAGE PM3','RIVAGE PM5','RIVAGE PM7','RIVAGE PM10','직접입력']
+  'Midas':        ['M32R', '직접입력'],
+  'Behringer':    ['WING', '직접입력'],
+  'Allen & Heath':['SQ-7', '직접입력'],
+  'Yamaha':       ['DM7',  '직접입력']
 };
 
 let consoleBrand = '';
@@ -1712,13 +1713,16 @@ function selectConsoleModel(el) {
 }
 
 // 브랜드별 스피커 모델 목록
+// 카테고리가 있는 브랜드: { sub: [...], main: [...] }
+// 일반 브랜드: [...]
 const SPEAKER_MODELS = {
-  'd&b': ['V-Series (V8/V12)','Y-Series (Y8/Y12)','J-Series (J8/J12)','SL-Series (SL-GSub)','KSL-Series','xS-Series','T-Series','E-Series','직접입력'],
-  'JBL': ['VTX A8','VTX A12','VTX V20','SRX906LA','SRX912LA','SRX918S','SRX828SP','VRX932LA','PRX835W','직접입력'],
-  'L-Acoustics': ['K1','K2','K3','Kara II','Kara','Syva','X15 HiQ','X12','직접입력'],
-  'Meyer Sound': ['LEOPARD','LYON','PANTHER','MILO','ULTRA-X40','UPA-1P','1100-LFC','직접입력'],
-  'Nexo': ['GEO M10','GEO M6','STM M28','PS15 R2','ID24','직접입력'],
-  'QSC': ['KS212C','KS118','K12.2','KW153','TouchMix','직접입력']
+  'd&b':        { sub: ['d&b sub', '직접입력'], main: ['V8', '직접입력'] },
+  'JBL':        { sub: ['d&b sub', '직접입력'], main: ['625', '직접입력'] },
+  'MAUI':       ['LD', '직접입력'],
+  'L-Acoustics':['K1','K2','K3','Kara II','Kara','Syva','X15 HiQ','X12','직접입력'],
+  'Meyer Sound':['LEOPARD','LYON','PANTHER','MILO','ULTRA-X40','UPA-1P','1100-LFC','직접입력'],
+  'Nexo':       ['GEO M10','GEO M6','STM M28','PS15 R2','ID24','직접입력'],
+  'QSC':        ['KS212C','KS118','K12.2','KW153','TouchMix','직접입력']
 };
 
 let speakerBrand = '';
@@ -1732,11 +1736,21 @@ function selectSpeakerBrand(el) {
   speakerBrand = el.dataset.val;
   speakerModel = '';
   speakerSelected = speakerBrand;
-  const models = SPEAKER_MODELS[speakerBrand] || [];
+  const modelData = SPEAKER_MODELS[speakerBrand] || [];
   const grid = document.getElementById('speakerModelGrid');
-  grid.innerHTML = models.map(m =>
-    `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
-  ).join('');
+  // 카테고리(서브/메인) 분리 여부 확인
+  if (!Array.isArray(modelData) && modelData.sub) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:4px;">🔉 서브우퍼</div>
+      ${modelData.sub.map(m => `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
+      <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:4px;">🔊 메인</div>
+      ${modelData.main.map(m => `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
+    `;
+  } else {
+    grid.innerHTML = modelData.map(m =>
+      `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
+    ).join('');
+  }
   document.getElementById('speakerModelWrap').style.display = 'block';
   document.getElementById('speakerCustomWrap').style.display = 'none';
 }
@@ -1786,10 +1800,20 @@ function refreshSpeakerUI() {
     o.querySelector('.equip-opt-dot').textContent = isBrand ? '●' : '';
   });
   if (speakerBrand && SPEAKER_MODELS[speakerBrand]) {
+    const modelData = SPEAKER_MODELS[speakerBrand];
     const grid = document.getElementById('speakerModelGrid');
-    grid.innerHTML = SPEAKER_MODELS[speakerBrand].map(m =>
-      `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
-    ).join('');
+    if (!Array.isArray(modelData) && modelData.sub) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:4px;">🔉 서브우퍼</div>
+        ${modelData.sub.map(m => `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
+        <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:4px;">🔊 메인</div>
+        ${modelData.main.map(m => `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
+      `;
+    } else {
+      grid.innerHTML = modelData.map(m =>
+        `<div class="equip-opt" data-val="${m}" onclick="selectSpeakerModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
+      ).join('');
+    }
     document.getElementById('speakerModelWrap').style.display = 'block';
     grid.querySelectorAll('.equip-opt').forEach(o => {
       const modelPart = speakerSelected ? speakerSelected.replace(speakerBrand + ' ', '') : '';
