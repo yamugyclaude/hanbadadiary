@@ -33,6 +33,7 @@
 --safe-top: env(safe-area-inset-top, 0px);
 --safe-bot: env(safe-area-inset-bottom, 0px);
 --radius: 10px;
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -1302,25 +1303,6 @@ function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
 document.getElementById('headerDate').textContent = fmtDate(today());
 
 // ── 탭 전환 ──
-function switchTab(tab) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
-
-  if (tab === 'list') {
-    document.getElementById('tab-list').classList.add('active');
-    const p = document.getElementById('pageList');
-    p.style.display = 'flex';
-    p.classList.add('active');
-    renderList();
-  } else {
-    document.getElementById('tab-mdstore').classList.add('active');
-    const p = document.getElementById('pageMdStore');
-    p.style.display = 'flex';
-    p.classList.add('active');
-    renderMdStore();
-  }
-}
-
 // ── 페이지 전환 ──
 function showList() {
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
@@ -2583,7 +2565,7 @@ el.innerHTML = sorted.map(t => `<div class="task-card status-${t.status}"> <div 
 }
 
 function quickStatus(id, status, type) {
-const tasks = type === 'warehouse' ? warehouseTasks : officeTasks;
+const tasks = type === 'warehouse' ? warehouseTasks : type === 'office' ? officeTasks : directiveTasks;
 const t = tasks.find(t => t.id === id);
 if (!t) return;
 t.status = status;
@@ -3013,15 +2995,40 @@ autoLoadAll();
 
 // ── 자동저장 ──
 let autoSaveTimer = null;
+let autoCloudTimer = null;
 function triggerAutoSave() {
   const dot = document.getElementById('autosaveDot');
   clearTimeout(autoSaveTimer);
+  clearTimeout(autoCloudTimer);
+
+  // 800ms 후 로컬 저장
   autoSaveTimer = setTimeout(() => {
     const log = getFormData();
     if (!log) return;
     localStorage.setItem('soundlogs', JSON.stringify(logs));
-    if (dot) { dot.classList.add('active'); setTimeout(() => dot.classList.remove('active'), 1500); }
+    if (dot) { dot.classList.add('active'); }
   }, 800);
+
+  // 3초 후 클라우드 저장 (입력이 멈춘 뒤)
+  autoCloudTimer = setTimeout(async () => {
+    const log = getFormData();
+    if (!log) return;
+    try {
+      await sbUpsertLog(log);
+      if (dot) {
+        dot.style.background = 'var(--accent)';
+        dot.title = '클라우드 자동저장 완료';
+        setTimeout(() => { dot.classList.remove('active'); dot.style.background = ''; }, 1500);
+      }
+    } catch(e) {
+      // 클라우드 실패 시 dot을 주황색으로 표시
+      if (dot) {
+        dot.style.background = 'var(--accent2)';
+        dot.title = '로컬저장됨 (클라우드 실패)';
+        setTimeout(() => { dot.classList.remove('active'); dot.style.background = ''; }, 2000);
+      }
+    }
+  }, 3000);
 }
 document.getElementById('pageForm').addEventListener('input', triggerAutoSave);
 document.getElementById('pageForm').addEventListener('change', triggerAutoSave);
