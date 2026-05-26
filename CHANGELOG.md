@@ -1,0 +1,38 @@
+# CHANGELOG — SoundLog (한바다 작업일지)
+
+변경사항은 배포할 때마다 이 파일에 기록합니다.
+
+---
+
+## [2026-05-26] — 멀티기기 동기화 3가지 수정
+
+**커밋**: `472b5ff`
+
+### 수정
+- **사용자 계정 클라우드 동기화**
+  - `syncUsersToCloud()` / `loadUsersFromCloud()` 함수 추가
+  - Supabase `vehicle_data` 테이블의 `id='sl_users'` 행에 사용자 배열 저장 (신규 테이블 불필요)
+  - `doLogin`: 로컬 미발견 시 자동으로 클라우드 조회 후 재시도 (다른 기기에서 로그인 가능)
+  - `doRegister` / `deleteUser`: 변경 시 즉시 클라우드 반영
+  - `autoLoadAll`: 로그인 직후 사용자 목록 최신화
+  - `initRealtime`: `sl_users` 행 변경 실시간 수신
+
+- **차량 데이터 Realtime 구독 추가**
+  - `vehicle_data` 테이블을 WebSocket 구독 목록에 추가
+  - 다른 기기에서 차량 정보 저장 시 수동 새로고침 없이 즉시 반영
+
+- **업무 저장 API 최적화**
+  - `syncOneTaskToCloud(task, type)` 함수 추가
+  - 업무 1개 변경(저장·상태변경) 시 해당 건만 Supabase upsert
+  - `saveTasksLocal()`에서 전체 업무 일괄 업로드 제거
+
+---
+
+## [이전] — 초기 구축
+
+- 행사일지, 창고/사무실/대표지시 업무, 차량 관리 기능
+- Supabase 연동 (soundlogs, tasks, vehicle_data, access_logs)
+- 로그인/회원가입 시스템 (관리자 승인 코드: 6293)
+- WebSocket Realtime (soundlogs, tasks)
+- 다크/라이트/파스텔 테마 선택
+- GitHub Pages 배포
