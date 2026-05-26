@@ -785,6 +785,28 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 #photoLightbox.open { display: flex; }
 #photoLightbox img { max-width: 96vw; max-height: 88vh; object-fit: contain; border-radius: 8px; }
 #photoLightboxClose { position: absolute; top: 14px; right: 18px; color: #fff; font-size: 36px; cursor: pointer; background: none; border: none; line-height: 1; padding: 4px; font-weight: 300; }
+
+/* ── 구글 캘린더 섹션 ── */
+.gcal-section { margin: 0 16px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+.gcal-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; }
+.gcal-header-left { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; color: var(--text); }
+.gcal-header-right { display: flex; align-items: center; gap: 6px; }
+.gcal-icon-btn { background: var(--surface2); border: 1px solid var(--border2); border-radius: 7px; color: var(--text-muted); font-size: 13px; padding: 4px 10px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
+.gcal-chevron { font-size: 11px; color: var(--text-muted); margin-left: 2px; }
+.gcal-body { padding: 0 14px 12px; border-top: 1px solid var(--border); }
+.gcal-event { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.gcal-event:last-child { border-bottom: none; }
+.gcal-date-badge { min-width: 44px; text-align: center; background: var(--surface2); border-radius: 8px; padding: 5px 4px; flex-shrink: 0; }
+.gcal-date-month { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+.gcal-date-day { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.1; font-family: 'JetBrains Mono', monospace; }
+.gcal-date-wd { font-size: 10px; color: var(--text-muted); }
+.gcal-event-title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.gcal-event-time { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.gcal-event.is-today .gcal-date-badge { background: var(--accent-dim); border: 1px solid rgba(61,186,150,0.4); }
+.gcal-event.is-today .gcal-date-day { color: var(--accent); }
+.gcal-event.is-today .gcal-date-wd { color: var(--accent); }
+.gcal-event.is-today .gcal-event-title { color: var(--accent); }
+.gcal-msg { padding: 14px 0; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
 </style>
 
 </head>
@@ -901,6 +923,24 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <button class="btn btn-new" onclick="newLog()">＋ 새 행사일지</button>
       <button class="btn btn-secondary" onclick="gistLoad()" style="background:var(--gold-dim);color:var(--gold);border-color:rgba(201,168,76,0.35)">☁️ 불러오기</button>
     </div>
+
+    <!-- 구글 캘린더 섹션 -->
+    <div class="gcal-section">
+      <div class="gcal-header" onclick="toggleGCal()">
+        <div class="gcal-header-left">📅 <span>일정</span></div>
+        <div class="gcal-header-right">
+          <button class="gcal-icon-btn" onclick="event.stopPropagation();fetchGCalEvents()">↺</button>
+          <button class="gcal-icon-btn" onclick="event.stopPropagation();openGCalSettings()">⚙️</button>
+          <span class="gcal-chevron" id="gcalChevron">▲</span>
+        </div>
+      </div>
+      <div id="gcalBody">
+        <div class="gcal-body">
+          <div id="gcalEventList"><div class="gcal-msg">구글 캘린더 연동 설정을 해주세요.<br><button class="gcal-icon-btn" style="margin-top:8px" onclick="openGCalSettings()">⚙️ 설정하기</button></div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="log-cards" id="logCards"></div>
   </div>
 
@@ -1352,6 +1392,29 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <img id="photoLightboxImg" src="" alt="">
 </div>
 
+<!-- 구글 캘린더 설정 모달 -->
+<div class="modal-overlay" id="gcalSettingsModal">
+  <div class="modal-sheet">
+    <div class="modal-title">📅 구글 캘린더 설정</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.7">
+      구글 클라우드 콘솔에서 <b>Calendar API 키</b>를 발급하고,<br>
+      캘린더를 <b>공개 설정</b>한 뒤 캘린더 ID를 입력하세요.
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>API 키</label>
+      <input id="gcalApiKey" type="text" placeholder="AIzaSy..." autocomplete="off">
+    </div>
+    <div class="field" style="margin-bottom:18px">
+      <label>캘린더 ID</label>
+      <input id="gcalCalendarId" type="text" placeholder="xxx@group.calendar.google.com 또는 이메일">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" onclick="document.getElementById('gcalSettingsModal').classList.remove('show')">취소</button>
+      <button class="btn btn-primary" style="flex:1" onclick="saveGCalSettings()">저장 & 불러오기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 날짜 범위 선택 모달 -->
 
 <div class="modal-overlay" id="dateRangeModal">
@@ -1659,6 +1722,7 @@ function afterLogin() {
   renderList();
   autoLoadAll();
   initRealtime();
+  if (gcalConfig.apiKey && gcalConfig.calendarId) fetchGCalEvents();
 }
 
 function doRegister() {
@@ -2492,6 +2556,85 @@ log.equipment.push({ item:card.querySelector('.eq-name')?.value||'', qty:card.qu
 });
 
 return log;
+}
+
+// ── 구글 캘린더 ──
+let gcalConfig = JSON.parse(localStorage.getItem('gcal_config') || '{"apiKey":"","calendarId":""}');
+let gcalExpanded = true;
+
+function toggleGCal() {
+  gcalExpanded = !gcalExpanded;
+  document.getElementById('gcalBody').style.display = gcalExpanded ? 'block' : 'none';
+  document.getElementById('gcalChevron').textContent = gcalExpanded ? '▲' : '▼';
+}
+
+function openGCalSettings() {
+  document.getElementById('gcalApiKey').value = gcalConfig.apiKey || '';
+  document.getElementById('gcalCalendarId').value = gcalConfig.calendarId || '';
+  document.getElementById('gcalSettingsModal').classList.add('show');
+}
+
+function saveGCalSettings() {
+  gcalConfig.apiKey = document.getElementById('gcalApiKey').value.trim();
+  gcalConfig.calendarId = document.getElementById('gcalCalendarId').value.trim();
+  localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
+  document.getElementById('gcalSettingsModal').classList.remove('show');
+  fetchGCalEvents();
+}
+
+async function fetchGCalEvents() {
+  const { apiKey, calendarId } = gcalConfig;
+  const listEl = document.getElementById('gcalEventList');
+  if (!listEl) return;
+  if (!apiKey || !calendarId) {
+    listEl.innerHTML = '<div class="gcal-msg">구글 캘린더 연동 설정을 해주세요.<br><button class="gcal-icon-btn" style="margin-top:8px" onclick="openGCalSettings()">⚙️ 설정하기</button></div>';
+    return;
+  }
+  listEl.innerHTML = '<div class="gcal-msg">불러오는 중…</div>';
+  try {
+    const now = new Date().toISOString();
+    const future = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${encodeURIComponent(apiKey)}&timeMin=${now}&timeMax=${future}&singleEvents=true&orderBy=startTime&maxResults=20`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    renderGCalEvents(data.items || []);
+  } catch(e) {
+    listEl.innerHTML = `<div class="gcal-msg">⚠️ 불러오기 실패<br><small>${e.message}</small></div>`;
+  }
+}
+
+function renderGCalEvents(events) {
+  const listEl = document.getElementById('gcalEventList');
+  if (!listEl) return;
+  if (!events.length) {
+    listEl.innerHTML = '<div class="gcal-msg">30일 내 일정이 없습니다.</div>';
+    return;
+  }
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayEnd   = new Date(todayStart.getTime() + 86400000);
+  const WD = ['일','월','화','수','목','금','토'];
+  listEl.innerHTML = events.map(ev => {
+    const allDay = !ev.start.dateTime;
+    const start  = allDay ? new Date(ev.start.date + 'T00:00:00') : new Date(ev.start.dateTime);
+    const end    = allDay ? new Date(ev.end.date   + 'T00:00:00') : new Date(ev.end.dateTime);
+    const isToday = start >= todayStart && start < todayEnd;
+    const timeStr = allDay ? '종일' : `${start.getHours().toString().padStart(2,'0')}:${start.getMinutes().toString().padStart(2,'0')} ~ ${end.getHours().toString().padStart(2,'0')}:${end.getMinutes().toString().padStart(2,'0')}`;
+    return `<div class="gcal-event${isToday ? ' is-today' : ''}">
+      <div class="gcal-date-badge">
+        <div class="gcal-date-month">${start.getMonth()+1}월</div>
+        <div class="gcal-date-day">${start.getDate()}</div>
+        <div class="gcal-date-wd">${WD[start.getDay()]}</div>
+      </div>
+      <div>
+        <div class="gcal-event-title">${ev.summary||'(제목 없음)'}</div>
+        <div class="gcal-event-time">${timeStr}${ev.location ? ' · 📍'+ev.location : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── 전기 ──
