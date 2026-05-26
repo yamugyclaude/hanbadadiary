@@ -1124,10 +1124,10 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <div class="equip-select-block">
           <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
           <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-            <div class="equip-opt" data-val="Midas" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
-            <div class="equip-opt" data-val="Behringer" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
-            <div class="equip-opt" data-val="Allen &amp; Heath" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
-            <div class="equip-opt" data-val="Yamaha" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
+            <div class="equip-opt" data-val="Midas" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
+            <div class="equip-opt" data-val="Behringer" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
+            <div class="equip-opt" data-val="Allen &amp; Heath" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
+            <div class="equip-opt" data-val="Yamaha" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
           </div>
           <div id="consoleInputWrap" style="display:none;margin-top:10px">
             <input id="f_consoleModel" type="text" placeholder="모델명 직접 입력 (예: M32R)">
@@ -1989,7 +1989,7 @@ function doMDSave(mode) {
 function newLog() {
   currentId = Date.now().toString();
   monitorChecks = {}; consoleSelected = ''; speakerSelected = '';
-  consoleBrand = ''; speakerBrands = new Set();
+  consoleBrands = new Set(); speakerBrands = new Set();
   soundPhotos = [null,null,null,null]; stagePhotos = [null,null,null,null];
   weatherSelected = [];
   announcerHas = null; bannerHas = null; trussHas = null; stairHas = null;
@@ -2025,9 +2025,13 @@ function editLog(id) {
   consoleSelected = log.consoleSelected||'';
   speakerSelected = log.speakerSelected||'';
   // 브랜드 복원
-  consoleBrand = '';
-  const cBrands = ['Midas','Behringer','Allen & Heath','Yamaha'];
-  for (const b of cBrands) { if (consoleSelected.startsWith(b)) { consoleBrand = b; break; } }
+  consoleBrands = new Set();
+  if (Array.isArray(log.consoleBrands)) {
+    log.consoleBrands.forEach(b => consoleBrands.add(b));
+  } else {
+    const cBrands = ['Midas','Behringer','Allen & Heath','Yamaha'];
+    for (const b of cBrands) { if (consoleSelected.startsWith(b)) { consoleBrands.add(b); break; } }
+  }
   // speakerBrands 복원 — 저장된 브랜드 목록(배열) 또는 레거시 문자열 파싱
   speakerBrands = new Set();
   if (Array.isArray(log.speakerBrands)) {
@@ -2077,7 +2081,10 @@ function fillForm(log) {
   document.getElementById('f_trussW').value          = log.trussW||'';
   document.getElementById('f_trussH').value          = log.trussH||'';
   // 콘솔/스피커 모델 입력 복원 (브랜드 제거한 모델명만)
-  const cModelVal = consoleBrand ? (consoleSelected.startsWith(consoleBrand) ? consoleSelected.slice(consoleBrand.length).trim() : consoleSelected) : consoleSelected;
+  const cBrandStr = [...consoleBrands].join(' + ');
+  const cModelVal = (cBrandStr && consoleSelected.startsWith(cBrandStr))
+    ? consoleSelected.slice(cBrandStr.length).replace(/^\s*\|\s*/, '').trim()
+    : consoleSelected;
   // 스피커 모델: 저장된 speakerSelected에서 브랜드 prefix 제거
   const sBrandStr = [...speakerBrands].join(' + ');
   const sModelVal = (sBrandStr && speakerSelected.startsWith(sBrandStr))
@@ -2086,7 +2093,7 @@ function fillForm(log) {
   document.getElementById('f_consoleModel').value = cModelVal;
   document.getElementById('f_speakerModel').value  = sModelVal;
   // 콘솔/스피커 입력 wrap 표시 여부
-  document.getElementById('consoleInputWrap').style.display = (consoleBrand || cModelVal) ? 'block' : 'none';
+  document.getElementById('consoleInputWrap').style.display = (consoleBrands.size > 0 || cModelVal) ? 'block' : 'none';
   document.getElementById('speakerInputWrap').style.display = (speakerBrands.size > 0 || sModelVal) ? 'block' : 'none';
 
   soundInstallDay = log.soundInstallDay || '당일';
@@ -2181,17 +2188,22 @@ function toggleStairPos(el) {
 }
 
 // ── 콘솔/스피커 선택 (심플) ──
-let consoleBrand = '';
+let consoleBrands = new Set();
 let speakerBrands = new Set();
 
-function selectConsoleBrand(el) {
-  document.querySelectorAll('#consoleBrandGrid .equip-opt').forEach(o => {
-    o.classList.remove('selected'); o.querySelector('.equip-opt-dot').textContent = '';
-  });
-  el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
-  consoleBrand = el.dataset.val;
-  document.getElementById('consoleInputWrap').style.display = 'block';
-  document.getElementById('f_consoleModel').focus();
+function toggleConsoleBrand(el) {
+  const val = el.dataset.val;
+  if (consoleBrands.has(val)) {
+    consoleBrands.delete(val);
+    el.classList.remove('selected');
+    el.querySelector('.equip-opt-dot').textContent = '';
+  } else {
+    consoleBrands.add(val);
+    el.classList.add('selected');
+    el.querySelector('.equip-opt-dot').textContent = '●';
+  }
+  document.getElementById('consoleInputWrap').style.display = consoleBrands.size > 0 ? 'block' : 'none';
+  if (consoleBrands.size === 1) document.getElementById('f_consoleModel').focus();
 }
 
 function toggleSpeakerBrand(el) {
@@ -2211,11 +2223,11 @@ function toggleSpeakerBrand(el) {
 
 function refreshConsoleUI() {
   document.querySelectorAll('#consoleBrandGrid .equip-opt').forEach(o => {
-    const sel = consoleBrand && o.dataset.val === consoleBrand;
+    const sel = consoleBrands.has(o.dataset.val);
     o.classList.toggle('selected', sel);
     o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
   });
-  if (consoleBrand) document.getElementById('consoleInputWrap').style.display = 'block';
+  document.getElementById('consoleInputWrap').style.display = consoleBrands.size > 0 ? 'block' : 'none';
 }
 
 function refreshSpeakerUI() {
@@ -2383,7 +2395,9 @@ log.stairPos        = [];
 document.querySelectorAll('#stairGrid .stair-item.checked').forEach(el => log.stairPos.push(el.dataset.pos));
 // 콘솔/스피커 저장
 const cModel = document.getElementById('f_consoleModel')?.value?.trim() || '';
-log.consoleSelected = consoleBrand ? (consoleBrand + (cModel ? ' ' + cModel : '')) : cModel;
+const cBrandStr = [...consoleBrands].join(' + ');
+log.consoleSelected = cBrandStr ? (cBrandStr + (cModel ? ' | ' + cModel : '')) : cModel;
+log.consoleBrands   = [...consoleBrands];
 const sModel = document.getElementById('f_speakerModel')?.value?.trim() || '';
 const sBrandStr = [...speakerBrands].join(' + ');
 log.speakerSelected = sBrandStr ? (sBrandStr + (sModel ? ' | ' + sModel : '')) : sModel;
