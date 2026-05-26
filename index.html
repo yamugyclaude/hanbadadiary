@@ -740,6 +740,31 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .log-type-create { border-left: 3px solid var(--gold); }
 .log-type-delete { border-left: 3px solid var(--accent2); }
 .log-type-update { border-left: 3px solid #7c9fd4; }
+
+/* ─── 사진 업로드 ─── */
+.photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.photo-slot {
+  aspect-ratio: 4/3;
+  background: var(--surface2);
+  border: 1.5px dashed var(--border2);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.photo-slot:active { border-color: var(--accent); opacity: 0.85; }
+.photo-slot img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
+.photo-plus { font-size: 26px; color: var(--text-muted); pointer-events: none; }
+.photo-del-btn {
+  position: absolute; top: 5px; right: 5px;
+  background: rgba(0,0,0,0.55); color: #fff;
+  border: none; border-radius: 50%;
+  width: 24px; height: 24px;
+  font-size: 13px; cursor: pointer;
+  display: none; align-items: center; justify-content: center; z-index: 10;
+}
+.photo-slot.has-photo .photo-del-btn { display: flex; }
+.photo-slot.has-photo .photo-plus { display: none; }
 </style>
 
 </head>
@@ -1104,13 +1129,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div class="equip-opt" data-val="Allen &amp; Heath" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
             <div class="equip-opt" data-val="Yamaha" onclick="selectConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
           </div>
-          <!-- 모델 선택 -->
-          <div id="consoleModelWrap" style="display:none;margin-top:10px">
-            <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
-            <div class="equip-option-grid" id="consoleModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
-            <div id="consoleCustomWrap" style="display:none;margin-top:8px">
-              <input id="f_consoleCustom" type="text" placeholder="모델명 직접 입력">
-            </div>
+          <div id="consoleInputWrap" style="display:none;margin-top:10px">
+            <input id="f_consoleModel" type="text" placeholder="모델명 직접 입력 (예: M32R)">
           </div>
         </div>
         <div class="equip-select-block">
@@ -1121,14 +1141,30 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div class="equip-opt" data-val="MAUI" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
             <div class="equip-opt" data-val="기타" onclick="selectSpeakerBrand(this)"><div class="equip-opt-dot"></div>기타</div>
           </div>
-          <div id="speakerModelWrap" style="display:none;margin-top:10px">
-            <div class="equip-select-label" style="margin-bottom:8px;color:var(--text2);font-size:11px;letter-spacing:0.5px;">└ 모델 선택</div>
-            <div class="equip-option-grid" id="speakerModelGrid" style="grid-template-columns:repeat(2,1fr)"></div>
-            <div id="speakerCustomWrap" style="display:none;margin-top:8px">
-              <input id="f_speakerCustom" type="text" placeholder="모델명 직접 입력" oninput="_buildSpeakerSelected()">
-            </div>
+          <div id="speakerInputWrap" style="display:none;margin-top:10px">
+            <input id="f_speakerModel" type="text" placeholder="모델명 직접 입력 (예: V8, J-SUB)">
           </div>
         </div>
+        <div class="field" style="margin-top:6px">
+          <label>📷 음향 현장사진 (최대 4장)</label>
+          <div class="photo-grid" style="margin-top:8px">
+            <div class="photo-slot" id="soundPhoto_0" onclick="triggerPhotoUpload('sound',0)"><input type="file" id="soundPhotoInput_0" accept="image/*" style="display:none" onchange="loadPhoto('sound',0,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',0,event)">✕</button></div>
+            <div class="photo-slot" id="soundPhoto_1" onclick="triggerPhotoUpload('sound',1)"><input type="file" id="soundPhotoInput_1" accept="image/*" style="display:none" onchange="loadPhoto('sound',1,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',1,event)">✕</button></div>
+            <div class="photo-slot" id="soundPhoto_2" onclick="triggerPhotoUpload('sound',2)"><input type="file" id="soundPhotoInput_2" accept="image/*" style="display:none" onchange="loadPhoto('sound',2,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',2,event)">✕</button></div>
+            <div class="photo-slot" id="soundPhoto_3" onclick="triggerPhotoUpload('sound',3)"><input type="file" id="soundPhotoInput_3" accept="image/*" style="display:none" onchange="loadPhoto('sound',3,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',3,event)">✕</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 모니터 스피커 세팅 -->
+    <div class="section-block collapsed" id="sec6">
+      <div class="section-header" onclick="toggleSection('sec6')">
+        <div class="section-header-left"><span class="section-icon">🔊</span><span class="section-title">모니터 스피커 세팅</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="monitor-check-list" id="monitorCheckList"></div>
       </div>
     </div>
 
@@ -1184,7 +1220,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             </div>
           </div>
         </div>
-        <div class="field">
+        <div class="field" style="margin-bottom:14px">
           <label>계단 설치</label>
           <div class="toggle-group">
             <div class="toggle-opt" id="stair_yes" onclick="toggleStair(true)"><div class="toggle-check" id="stair_yes_check"></div>있음</div>
@@ -1200,30 +1236,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- 모니터 스피커 세팅 -->
-    <div class="section-block collapsed" id="sec6">
-      <div class="section-header" onclick="toggleSection('sec6')">
-        <div class="section-header-left"><span class="section-icon">🔊</span><span class="section-title">모니터 스피커 세팅</span></div>
-        <span class="section-chevron">▼</span>
-      </div>
-      <div class="section-content">
-        <div class="monitor-check-list" id="monitorCheckList"></div>
-      </div>
-    </div>
-
-    <!-- 이슈 -->
-    <div class="section-block collapsed" id="sec7">
-      <div class="section-header" onclick="toggleSection('sec7')">
-        <div class="section-header-left"><span class="section-icon">⚠️</span><span class="section-title">이슈 & 해결</span></div>
-        <span class="section-chevron">▼</span>
-      </div>
-      <div class="section-content">
-        <div class="field"><label>사전 이슈</label><textarea id="f_preIssues" placeholder="현장 도착 후 발견된 문제"></textarea></div>
-        <div class="field"><label>진행 중 이슈</label><textarea id="f_duringIssues" placeholder="행사 중 발생한 문제"></textarea></div>
-        <div class="field"><label>해결 내용</label><textarea id="f_resolution" placeholder="이슈 해결 방법 및 결과"></textarea></div>
+        <div class="field">
+          <label>📷 무대 현장사진 (최대 4장)</label>
+          <div class="photo-grid" style="margin-top:8px">
+            <div class="photo-slot" id="stagePhoto_0" onclick="triggerPhotoUpload('stage',0)"><input type="file" id="stagePhotoInput_0" accept="image/*" style="display:none" onchange="loadPhoto('stage',0,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('stage',0,event)">✕</button></div>
+            <div class="photo-slot" id="stagePhoto_1" onclick="triggerPhotoUpload('stage',1)"><input type="file" id="stagePhotoInput_1" accept="image/*" style="display:none" onchange="loadPhoto('stage',1,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('stage',1,event)">✕</button></div>
+            <div class="photo-slot" id="stagePhoto_2" onclick="triggerPhotoUpload('stage',2)"><input type="file" id="stagePhotoInput_2" accept="image/*" style="display:none" onchange="loadPhoto('stage',2,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('stage',2,event)">✕</button></div>
+            <div class="photo-slot" id="stagePhoto_3" onclick="triggerPhotoUpload('stage',3)"><input type="file" id="stagePhotoInput_3" accept="image/*" style="display:none" onchange="loadPhoto('stage',3,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('stage',3,event)">✕</button></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1265,6 +1286,19 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
     </div>
 
+    <!-- 이슈 -->
+    <div class="section-block collapsed" id="sec7">
+      <div class="section-header" onclick="toggleSection('sec7')">
+        <div class="section-header-left"><span class="section-icon">⚠️</span><span class="section-title">이슈 & 해결</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="field"><label>사전 이슈</label><textarea id="f_preIssues" placeholder="현장 도착 후 발견된 문제"></textarea></div>
+        <div class="field"><label>진행 중 이슈</label><textarea id="f_duringIssues" placeholder="행사 중 발생한 문제"></textarea></div>
+        <div class="field"><label>해결 내용</label><textarea id="f_resolution" placeholder="이슈 해결 방법 및 결과"></textarea></div>
+      </div>
+    </div>
+
     <!-- 메모 -->
     <div class="section-block collapsed" id="sec8">
       <div class="section-header" onclick="toggleSection('sec8')">
@@ -1273,7 +1307,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
       <div class="section-content">
         <div class="field"><label>고객 피드백</label><textarea id="f_clientFeedback" placeholder="고객 반응 및 피드백"></textarea></div>
-        <div class="field"><label>내부 메모</label><textarea id="f_memo" placeholder="다음 행사를 위한 메모"></textarea></div>
+        <div class="field"><label>내부 메모</label><textarea id="f_memo" placeholder="다음 행사를 위한 메모" style="min-height:246px"></textarea></div>
       </div>
     </div>
 
@@ -1955,7 +1989,8 @@ function doMDSave(mode) {
 function newLog() {
   currentId = Date.now().toString();
   monitorChecks = {}; consoleSelected = ''; speakerSelected = '';
-  speakerSubSelected = new Set(); speakerMainSelected = new Set();
+  consoleBrand = ''; speakerBrand = '';
+  soundPhotos = [null,null,null,null]; stagePhotos = [null,null,null,null];
   weatherSelected = [];
   announcerHas = null; bannerHas = null; trussHas = null; stairHas = null;
   const log = {
@@ -1963,8 +1998,8 @@ function newLog() {
     engineer:'', stagedirector:'', staff1:'', staff2:'',
     announcerHas: null, announcerName:'', announcerTel:'',
     callTimeSound:'', callTimeStage:'', rehearsals:[], showTime:'', endTime:'', teardownEnd:'',
-    consoleSelected:'', speakerSelected:'', speakerCustom:'',
-    speakerSubSelected: [], speakerMainSelected: [],
+    consoleSelected:'', speakerSelected:'',
+    soundPhotos:[null,null,null,null], stagePhotos:[null,null,null,null],
     monitorChecks:{},
     stageW:'', stageD:'',
     bannerHas: null, bannerW:'', bannerH:'',
@@ -1988,18 +2023,16 @@ function editLog(id) {
   const log = logs.find(l => l.id === id);
   monitorChecks   = JSON.parse(JSON.stringify(log.monitorChecks||{}));
   consoleSelected = log.consoleSelected||'';
-  // consoleBrand 복원 (브랜드명이 consoleSelected 앞에 있음)
-  consoleBrand = '';
-  for (const brand of Object.keys(typeof CONSOLE_MODELS !== 'undefined' ? CONSOLE_MODELS : {})) {
-    if (consoleSelected.startsWith(brand)) { consoleBrand = brand; break; }
-  }
   speakerSelected = log.speakerSelected||'';
+  // 브랜드 복원
+  consoleBrand = '';
+  const cBrands = ['Midas','Behringer','Allen & Heath','Yamaha'];
+  for (const b of cBrands) { if (consoleSelected.startsWith(b)) { consoleBrand = b; break; } }
   speakerBrand = '';
-  speakerSubSelected = new Set(log.speakerSubSelected || []);
-  speakerMainSelected = new Set(log.speakerMainSelected || []);
-  for (const brand of Object.keys(typeof SPEAKER_MODELS !== 'undefined' ? SPEAKER_MODELS : {})) {
-    if (speakerSelected.startsWith(brand)) { speakerBrand = brand; break; }
-  }
+  const sBrands = ['d&b','JBL','MAUI','기타'];
+  for (const b of sBrands) { if (speakerSelected.startsWith(b)) { speakerBrand = b; break; } }
+  soundPhotos = [...(log.soundPhotos||[null,null,null,null])];
+  stagePhotos = [...(log.stagePhotos||[null,null,null,null])];
   weatherSelected = Array.isArray(log.weather) ? [...log.weather] : (log.weather ? [log.weather] : []);
   announcerHas    = log.announcerHas ?? null;
   bannerHas       = log.bannerHas   ?? null;
@@ -2038,7 +2071,14 @@ function fillForm(log) {
   document.getElementById('f_bannerH').value         = log.bannerH||'';
   document.getElementById('f_trussW').value          = log.trussW||'';
   document.getElementById('f_trussH').value          = log.trussH||'';
-  document.getElementById('f_speakerCustom').value   = log.speakerCustom||'';
+  // 콘솔/스피커 모델 입력 복원 (브랜드 제거한 모델명만)
+  const cModelVal = consoleBrand ? (consoleSelected.startsWith(consoleBrand) ? consoleSelected.slice(consoleBrand.length).trim() : consoleSelected) : consoleSelected;
+  const sModelVal = speakerBrand ? (speakerSelected.startsWith(speakerBrand) ? speakerSelected.slice(speakerBrand.length).trim() : speakerSelected) : speakerSelected;
+  document.getElementById('f_consoleModel').value = cModelVal;
+  document.getElementById('f_speakerModel').value  = sModelVal;
+  // 콘솔/스피커 입력 wrap 표시 여부
+  document.getElementById('consoleInputWrap').style.display = (consoleBrand || cModelVal) ? 'block' : 'none';
+  document.getElementById('speakerInputWrap').style.display = (speakerBrand || sModelVal) ? 'block' : 'none';
 
   soundInstallDay = log.soundInstallDay || '당일';
   stageInstallDay = log.stageInstallDay || '당일';
@@ -2054,6 +2094,8 @@ function fillForm(log) {
   renderMonitorChecklist();
   renderRehearsals(log.rehearsals||[]);
   renderEquipment(log.equipment||[]);
+  renderPhotoSlots('sound', soundPhotos);
+  renderPhotoSlots('stage', stagePhotos);
   updateTitle();
   document.getElementById('mdPreview').style.display = 'none';
 }
@@ -2129,17 +2171,9 @@ function toggleStairPos(el) {
   el.querySelector('.stair-check').textContent = el.classList.contains('checked') ? '✓' : '';
 }
 
-// ── 콘솔/스피커 선택 ──
-// 브랜드별 모델 목록
-const CONSOLE_MODELS = {
-  'Midas':        ['M32R', '직접입력'],
-  'Behringer':    ['WING', '직접입력'],
-  'Allen & Heath':['SQ-7', '직접입력'],
-  'Yamaha':       ['DM7',  '직접입력']
-};
-
+// ── 콘솔/스피커 선택 (심플) ──
 let consoleBrand = '';
-let consoleModel = '';
+let speakerBrand = '';
 
 function selectConsoleBrand(el) {
   document.querySelectorAll('#consoleBrandGrid .equip-opt').forEach(o => {
@@ -2147,91 +2181,8 @@ function selectConsoleBrand(el) {
   });
   el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
   consoleBrand = el.dataset.val;
-  consoleModel = '';
-  consoleSelected = consoleBrand;
-  // 모델 목록 렌더
-  const models = CONSOLE_MODELS[consoleBrand] || [];
-  const grid = document.getElementById('consoleModelGrid');
-  grid.innerHTML = models.map(m =>
-    `<div class="equip-opt" data-val="${m}" onclick="selectConsoleModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
-  ).join('');
-  document.getElementById('consoleModelWrap').style.display = 'block';
-  document.getElementById('consoleCustomWrap').style.display = 'none';
-}
-
-function selectConsoleModel(el) {
-  document.querySelectorAll('#consoleModelGrid .equip-opt').forEach(o => {
-    o.classList.remove('selected'); o.classList.remove('selected-model'); o.querySelector('.equip-opt-dot').textContent = '';
-  });
-  el.classList.add('selected-model'); el.querySelector('.equip-opt-dot').textContent = '●';
-  consoleModel = el.dataset.val;
-  if (consoleModel === '직접입력') {
-    document.getElementById('consoleCustomWrap').style.display = 'block';
-    consoleSelected = consoleBrand;
-  } else {
-    document.getElementById('consoleCustomWrap').style.display = 'none';
-    consoleSelected = consoleBrand + ' ' + consoleModel;
-  }
-}
-
-// 브랜드별 스피커 모델 목록
-// 카테고리가 있는 브랜드: { sub: [...], main: [...] }
-// 일반 브랜드: [...]
-const SPEAKER_MODELS = {
-  'd&b':  { sub: ['V-SUB', 'SL-SUB', 'J-SUB', 'KSL-SUB', '직접입력'], main: ['V8', 'V12', 'Y8', 'Y12', 'J8', 'KSL8', '직접입력'] },
-  'JBL':  { sub: ['VTX-S28', 'SRX818', 'VRX918', '직접입력'], main: ['VTX A12', 'VTX A8', 'SRX835', 'VRX932', '직접입력'] },
-  'MAUI': ['MAUI 28', 'MAUI 44', 'MAUI 11', '직접입력'],
-  '기타':  ['직접입력']
-};
-
-let speakerBrand = '';
-// 서브·메인 각각 복수 선택 (Set)
-let speakerSubSelected = new Set();
-let speakerMainSelected = new Set();
-
-function _buildSpeakerSelected() {
-  // speakerSelected = "브랜드 | 서브:X,Y / 메인:A,B" 형태로 조합
-  const subs  = [...speakerSubSelected].filter(v => v !== '직접입력');
-  const mains = [...speakerMainSelected].filter(v => v !== '직접입력');
-  const hasCustom = speakerSubSelected.has('직접입력') || speakerMainSelected.has('직접입력');
-  let parts = [];
-  if (subs.length)  parts.push('서브:' + subs.join(','));
-  if (mains.length) parts.push('메인:' + mains.join(','));
-  if (hasCustom) {
-    const custom = document.getElementById('f_speakerCustom')?.value?.trim();
-    if (custom) parts.push('직접:' + custom);
-  }
-  speakerSelected = speakerBrand + (parts.length ? ' | ' + parts.join(' / ') : '');
-  document.getElementById('speakerCustomWrap').style.display =
-    (speakerSubSelected.has('직접입력') || speakerMainSelected.has('직접입력')) ? 'block' : 'none';
-}
-
-function toggleSpeakerSub(el) {
-  const val = el.dataset.val;
-  if (speakerSubSelected.has(val)) {
-    speakerSubSelected.delete(val);
-    el.classList.remove('selected-model');
-    el.querySelector('.equip-opt-dot').textContent = '';
-  } else {
-    speakerSubSelected.add(val);
-    el.classList.add('selected-model');
-    el.querySelector('.equip-opt-dot').textContent = '●';
-  }
-  _buildSpeakerSelected();
-}
-
-function toggleSpeakerMain(el) {
-  const val = el.dataset.val;
-  if (speakerMainSelected.has(val)) {
-    speakerMainSelected.delete(val);
-    el.classList.remove('selected-model');
-    el.querySelector('.equip-opt-dot').textContent = '';
-  } else {
-    speakerMainSelected.add(val);
-    el.classList.add('selected-model');
-    el.querySelector('.equip-opt-dot').textContent = '●';
-  }
-  _buildSpeakerSelected();
+  document.getElementById('consoleInputWrap').style.display = 'block';
+  document.getElementById('f_consoleModel').focus();
 }
 
 function selectSpeakerBrand(el) {
@@ -2240,97 +2191,80 @@ function selectSpeakerBrand(el) {
   });
   el.classList.add('selected'); el.querySelector('.equip-opt-dot').textContent = '●';
   speakerBrand = el.dataset.val;
-  speakerSubSelected = new Set();
-  speakerMainSelected = new Set();
-  speakerSelected = speakerBrand;
-  const modelData = SPEAKER_MODELS[speakerBrand] || [];
-  const grid = document.getElementById('speakerModelGrid');
-  if (speakerBrand === '기타') {
-    grid.innerHTML = '';
-    document.getElementById('speakerModelWrap').style.display = 'block';
-    document.getElementById('speakerCustomWrap').style.display = 'block';
-    return;
-  }
-  if (!Array.isArray(modelData) && modelData.sub) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:4px;">🔉 서브우퍼 (복수선택 가능)</div>
-      ${modelData.sub.map(m => `<div class="equip-opt" data-val="${m}" data-cat="sub" onclick="toggleSpeakerSub(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
-      <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:8px;margin-bottom:4px;">🔊 메인스피커 (복수선택 가능)</div>
-      ${modelData.main.map(m => `<div class="equip-opt" data-val="${m}" data-cat="main" onclick="toggleSpeakerMain(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
-    `;
-  } else {
-    grid.innerHTML = modelData.map(m =>
-      `<div class="equip-opt" data-val="${m}" data-cat="main" onclick="toggleSpeakerMain(this)"><div class="equip-opt-dot"></div>${m}</div>`
-    ).join('');
-  }
-  document.getElementById('speakerModelWrap').style.display = 'block';
-  document.getElementById('speakerCustomWrap').style.display = 'none';
+  document.getElementById('speakerInputWrap').style.display = 'block';
+  document.getElementById('f_speakerModel').focus();
 }
-
-// 하위호환 - 단일 선택 함수 (refreshSpeakerUI 복원용)
-function selectSpeakerModel(el) { /* deprecated - use toggleSpeakerSub/Main */ }
 
 function refreshConsoleUI() {
-  // 브랜드 선택 복원
   document.querySelectorAll('#consoleBrandGrid .equip-opt').forEach(o => {
-    const isBrand = consoleBrand && consoleSelected && consoleSelected.startsWith(o.dataset.val);
-    o.classList.toggle('selected', isBrand);
-    o.querySelector('.equip-opt-dot').textContent = isBrand ? '●' : '';
+    const sel = consoleBrand && o.dataset.val === consoleBrand;
+    o.classList.toggle('selected', sel);
+    o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
   });
-  if (consoleBrand && CONSOLE_MODELS[consoleBrand]) {
-    const models = CONSOLE_MODELS[consoleBrand];
-    const grid = document.getElementById('consoleModelGrid');
-    grid.innerHTML = models.map(m =>
-      `<div class="equip-opt" data-val="${m}" onclick="selectConsoleModel(this)"><div class="equip-opt-dot"></div>${m}</div>`
-    ).join('');
-    document.getElementById('consoleModelWrap').style.display = 'block';
-    // 모델 선택 복원
-    grid.querySelectorAll('.equip-opt').forEach(o => {
-      const modelPart = consoleSelected ? consoleSelected.replace(consoleBrand + ' ', '') : '';
-      const sel = o.dataset.val === modelPart;
-      o.classList.remove('selected'); o.classList.toggle('selected-model', sel);
-      o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
-    });
-  }
+  if (consoleBrand) document.getElementById('consoleInputWrap').style.display = 'block';
 }
+
 function refreshSpeakerUI() {
   document.querySelectorAll('#speakerBrandGrid .equip-opt').forEach(o => {
-    const isBrand = speakerBrand && o.dataset.val === speakerBrand;
-    o.classList.toggle('selected', isBrand);
-    o.querySelector('.equip-opt-dot').textContent = isBrand ? '●' : '';
+    const sel = speakerBrand && o.dataset.val === speakerBrand;
+    o.classList.toggle('selected', sel);
+    o.querySelector('.equip-opt-dot').textContent = sel ? '●' : '';
   });
-  if (speakerBrand && SPEAKER_MODELS[speakerBrand]) {
-    const modelData = SPEAKER_MODELS[speakerBrand];
-    const grid = document.getElementById('speakerModelGrid');
-    if (!Array.isArray(modelData) && modelData.sub) {
-      grid.innerHTML = `
-        <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:4px;">🔉 서브우퍼 (복수선택 가능)</div>
-        ${modelData.sub.map(m => `<div class="equip-opt" data-val="${m}" data-cat="sub" onclick="toggleSpeakerSub(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
-        <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:8px;margin-bottom:4px;">🔊 메인스피커 (복수선택 가능)</div>
-        ${modelData.main.map(m => `<div class="equip-opt" data-val="${m}" data-cat="main" onclick="toggleSpeakerMain(this)"><div class="equip-opt-dot"></div>${m}</div>`).join('')}
-      `;
-      // 저장된 선택 복원
-      grid.querySelectorAll('.equip-opt').forEach(o => {
-        const cat = o.dataset.cat;
-        const isSelected = (cat === 'sub' && speakerSubSelected.has(o.dataset.val)) ||
-                           (cat === 'main' && speakerMainSelected.has(o.dataset.val));
-        o.classList.toggle('selected-model', isSelected);
-        o.querySelector('.equip-opt-dot').textContent = isSelected ? '●' : '';
-      });
-    } else {
-      grid.innerHTML = modelData.map(m =>
-        `<div class="equip-opt" data-val="${m}" data-cat="main" onclick="toggleSpeakerMain(this)"><div class="equip-opt-dot"></div>${m}</div>`
-      ).join('');
-      grid.querySelectorAll('.equip-opt').forEach(o => {
-        const isSelected = speakerMainSelected.has(o.dataset.val);
-        o.classList.toggle('selected-model', isSelected);
-        o.querySelector('.equip-opt-dot').textContent = isSelected ? '●' : '';
-      });
+  if (speakerBrand) document.getElementById('speakerInputWrap').style.display = 'block';
+}
+
+// ── 사진 업로드 ──
+let soundPhotos = [null, null, null, null];
+let stagePhotos = [null, null, null, null];
+
+function triggerPhotoUpload(type, idx) {
+  document.getElementById(type + 'PhotoInput_' + idx).click();
+}
+
+function loadPhoto(type, idx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => resizeImage(e.target.result, base64 => {
+    setPhotoSlot(type, idx, base64);
+  });
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function resizeImage(src, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const MAX = 800;
+    let w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+      else        { w = Math.round(w * MAX / h); h = MAX; }
     }
-    document.getElementById('speakerModelWrap').style.display = 'block';
-    const hasCustom = speakerSubSelected.has('직접입력') || speakerMainSelected.has('직접입력') || speakerBrand === '기타';
-    document.getElementById('speakerCustomWrap').style.display = hasCustom ? 'block' : 'none';
-  }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    cb(canvas.toDataURL('image/jpeg', 0.7));
+  };
+  img.src = src;
+}
+
+function setPhotoSlot(type, idx, base64) {
+  if (type === 'sound') soundPhotos[idx] = base64;
+  else stagePhotos[idx] = base64;
+  const slot = document.getElementById(type + 'Photo_' + idx);
+  if (!slot) return;
+  slot.style.backgroundImage = base64 ? `url(${base64})` : '';
+  slot.classList.toggle('has-photo', !!base64);
+}
+
+function deletePhoto(type, idx, e) {
+  e.stopPropagation();
+  setPhotoSlot(type, idx, null);
+}
+
+function renderPhotoSlots(type, arr) {
+  (arr || []).forEach((b64, i) => setPhotoSlot(type, i, b64 || null));
 }
 
 // ── 설치 날짜 선택 ──
@@ -2423,7 +2357,7 @@ const fields = ['date','eventType','eventName','clientManager','venue','engineer
 'callTimeSound','callTimeStage','showTime','endTime','teardownEnd',
 'preIssues','duringIssues','resolution','clientFeedback','memo',
 'announcerName','announcerTel',
-'stageW','stageD','bannerW','bannerH','trussW','trussH','speakerCustom','consoleCustom','callDateSound','callDateStage'];
+'stageW','stageD','bannerW','bannerH','trussW','trussH','callDateSound','callDateStage'];
 fields.forEach(f => { log[f] = document.getElementById('f_'+f)?.value||''; });
 
 log.weather         = [...weatherSelected];
@@ -2433,19 +2367,16 @@ log.trussHas        = trussHas;
 log.stairHas        = stairHas;
 log.stairPos        = [];
 document.querySelectorAll('#stairGrid .stair-item.checked').forEach(el => log.stairPos.push(el.dataset.pos));
-if (consoleModel === '직접입력') {
-const custom = document.getElementById('f_consoleCustom')?.value || '';
-log.consoleSelected = consoleBrand + (custom ? ' ' + custom : '');
-} else {
+// 콘솔/스피커 저장
+const cModel = document.getElementById('f_consoleModel')?.value?.trim() || '';
+log.consoleSelected = consoleBrand ? (consoleBrand + (cModel ? ' ' + cModel : '')) : cModel;
+const sModel = document.getElementById('f_speakerModel')?.value?.trim() || '';
+log.speakerSelected = speakerBrand ? (speakerBrand + (sModel ? ' ' + sModel : '')) : sModel;
 log.soundInstallDay = soundInstallDay;
 log.stageInstallDay = stageInstallDay;
-log.consoleSelected = consoleSelected;
-}
-// 스피커 저장 - 다중 선택 포함
-_buildSpeakerSelected(); // custom input 최신값 반영
-log.speakerSelected   = speakerSelected;
-log.speakerSubSelected  = [...speakerSubSelected];
-log.speakerMainSelected = [...speakerMainSelected];
+// 사진 저장
+log.soundPhotos = [...soundPhotos];
+log.stagePhotos = [...stagePhotos];
 
 // 전기
 log.elecType = elecType;
