@@ -1445,6 +1445,47 @@ const REGISTER_CODE = '6293'; // 신규 가입 시 필요한 관리자 승인 �
 function getUsers() { return JSON.parse(localStorage.getItem('sl_users') || '[]'); }
 function saveUsers(u) { localStorage.setItem('sl_users', JSON.stringify(u)); }
 
+// 사용자 목록을 vehicle_data 테이블 sl_users 행에 저장 (신규 테이블 불필요)
+async function syncUsersToCloud() {
+  try {
+    const users = getUsers();
+    const payload = { id: 'sl_users', v15: users, v35: [] };
+    let res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.sl_users`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload)
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+  } catch(e) { /* 실패 시 로컬만 유지 */ }
+}
+
+async function loadUsersFromCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.sl_users&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows.length || !Array.isArray(rows[0].v15)) return;
+    const cloudUsers = rows[0].v15;
+    const localUsers = getUsers();
+    let changed = false;
+    cloudUsers.forEach(cu => {
+      const idx = localUsers.findIndex(lu => lu.id === cu.id);
+      if (idx >= 0) { localUsers[idx] = cu; changed = true; }
+      else { localUsers.push(cu); changed = true; }
+    });
+    if (changed) saveUsers(localUsers);
+  } catch(e) { /* 실패 시 로컬 그대로 */ }
+}
+
 // 접속/행동 로그: localStorage 'sl_access_logs'
 // [{id, userId, userName, type:'login'|'logout'|'create'|'update'|'delete', target, detail, ts}]
 function getAccessLogs() { return JSON.parse(localStorage.getItem('sl_access_logs') || '[]'); }
@@ -1501,14 +1542,21 @@ async function sbSyncLog(entry) {
 let currentUser = null; // 현재 로그인 유저
 let isAdmin = false;
 
-function doLogin() {
+async function doLogin() {
   const id = document.getElementById('loginId').value.trim();
   const pw = document.getElementById('loginPw').value;
   const errEl = document.getElementById('loginErr');
   errEl.textContent = '';
   if (!id || !pw) { errEl.textContent = '아이디와 비밀번호를 입력하세요'; return; }
-  const users = getUsers();
-  const user = users.find(u => u.id === id && u.pw === pw);
+  let users = getUsers();
+  let user = users.find(u => u.id === id && u.pw === pw);
+  // 로컬에 없으면 클라우드에서 사용자 목록 가져와 재시도
+  if (!user) {
+    errEl.textContent = '☁️ 확인 중...';
+    await loadUsersFromCloud();
+    users = getUsers();
+    user = users.find(u => u.id === id && u.pw === pw);
+  }
   if (!user) { errEl.textContent = '❌ 아이디 또는 비밀번호가 틀렸습니다'; return; }
   // 로그인 성공
   user.lastLogin = new Date().toISOString();
@@ -1566,8 +1614,10 @@ function doRegister() {
   if (!pw || pw.length < 4) { errEl.textContent = '비밀번호는 4자 이상이어야 합니다'; return; }
   const users = getUsers();
   if (users.find(u => u.id === id)) { errEl.textContent = '❌ 이미 사용 중인 아이디입니다'; return; }
-  users.push({ id, name, pw, role: 'user', createdAt: new Date().toISOString(), lastLogin: null });
+  const newUser = { id, name, pw, role: 'user', createdAt: new Date().toISOString(), lastLogin: null };
+  users.push(newUser);
   saveUsers(users);
+  syncUsersToCloud();
   errEl.style.color = 'var(--accent)';
   errEl.textContent = '✓ 등록 완료! 로그인하세요';
   setTimeout(() => { errEl.style.color = ''; showLoginForm(); }, 1500);
@@ -1663,6 +1713,7 @@ function deleteUser(userId) {
   if (!confirm(`'${user.name}' 계정을 삭제할까요?\n이 사용자는 더 이상 로그인할 수 없습니다.`)) return;
   const updated = users.filter(u => u.id !== userId);
   saveUsers(updated);
+  syncUsersToCloud();
   addAccessLog('delete', 'user', `사용자 삭제: ${user.name}(${userId})`);
   renderUserList();
   showToast(`✓ ${user.name} 계정 삭제 완료`);
@@ -3065,6 +3116,7 @@ const t = tasks.find(t => t.id === id);
 if (!t) return;
 t.status = status;
 saveTasksLocal();
+syncOneTaskToCloud(t, type);
 renderTasks(type);
 }
 
@@ -3113,15 +3165,19 @@ function saveTask() {
 const title = document.getElementById('t_title').value.trim();
 if (!title) { showToast('⚠️ 제목을 입력하세요'); return; }
 const tasks = currentTaskType === 'warehouse' ? warehouseTasks : currentTaskType === 'office' ? officeTasks : directiveTasks;
+let savedTask = null;
 if (editTaskId) {
 const t = tasks.find(t => t.id === editTaskId);
-if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); }
+if (t) { t.title=title; t.body=document.getElementById('t_body').value; t.due=document.getElementById('t_due').value; t.status=curTaskStatus; t.priority=curTaskPriority; t.updatedAt=new Date().toISOString(); savedTask=t; }
 addAccessLog('update', currentTaskType, `업무수정: ${title}`);
 } else {
-tasks.push({ id:Date.now().toString(), title, body:document.getElementById('t_body').value, due:document.getElementById('t_due').value, status:curTaskStatus, priority:curTaskPriority, createdAt:new Date().toISOString() });
+const newTask = { id:Date.now().toString(), title, body:document.getElementById('t_body').value, due:document.getElementById('t_due').value, status:curTaskStatus, priority:curTaskPriority, createdAt:new Date().toISOString() };
+tasks.push(newTask);
+savedTask = newTask;
 addAccessLog('create', currentTaskType, `업무추가: ${title}`);
 }
 saveTasksLocal();
+if (savedTask) syncOneTaskToCloud(savedTask, currentTaskType);
 closeTaskModal();
 renderTasks(currentTaskType);
 showToast('✓ 저장 완료');
@@ -3154,7 +3210,6 @@ function saveTasksLocal() {
 localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
 localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
 localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
-syncTasksToCloud();
 }
 
 async function syncTasksToCloud() {
@@ -3181,6 +3236,25 @@ body: JSON.stringify(payload)
 }
 } catch(e) { console.error('업무 클라우드 저장 실패:', e); }
 }
+}
+
+async function syncOneTaskToCloud(task, type) {
+const payload = { id:task.id, type, title:task.title||'', body:task.body||'', status:task.status||'todo', priority:task.priority||'mid', due:task.due||'', data:JSON.stringify({...task, type}) };
+try {
+  let res = await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${task.id}`, {
+    method: 'PATCH',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify(payload)
+  });
+  const patched = await res.json();
+  if (Array.isArray(patched) && patched.length === 0) {
+    await fetch(`${SB_URL}/rest/v1/tasks`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  }
+} catch(e) { console.error('업무 클라우드 저장 실패:', e); }
 }
 
 async function loadTasksFromCloud() {
@@ -3215,8 +3289,9 @@ function initRealtime() {
     try { ws = new WebSocket(wsUrl); } catch(e) { setTimeout(connect, 5000); return; }
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ topic:'realtime:public:soundlogs', event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'soundlogs'}]}}, ref:'1' }));
-      ws.send(JSON.stringify({ topic:'realtime:public:tasks',     event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'tasks'}]}},     ref:'2' }));
+      ws.send(JSON.stringify({ topic:'realtime:public:soundlogs',   event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'soundlogs'}]}},   ref:'1' }));
+      ws.send(JSON.stringify({ topic:'realtime:public:tasks',       event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'tasks'}]}},       ref:'2' }));
+      ws.send(JSON.stringify({ topic:'realtime:public:vehicle_data',event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'vehicle_data'}]}},ref:'3' }));
       setInterval(() => { try { if (ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'})); } catch(e){} }, 20000);
     };
 
@@ -3271,6 +3346,23 @@ function initRealtime() {
             const pageId = type==='warehouse'?'pageWarehouse':type==='office'?'pageOffice':'pageDirective';
             if (document.getElementById(pageId)?.classList.contains('active')) renderTasks(type);
             showToast('🗑 업무 삭제됨');
+          }
+        }
+        if (table === 'vehicle_data') {
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'singleton') {
+            if (record.v15) vehicleData.v15 = record.v15;
+            if (record.v35) vehicleData.v35 = record.v35;
+            localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+            if (document.getElementById('pageVehicle')?.classList.contains('active')) renderVehiclePage();
+            showToast('🔄 차량 데이터 업데이트됨');
+          }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'sl_users' && Array.isArray(record.v15)) {
+            const localUsers = getUsers();
+            record.v15.forEach(cu => {
+              const idx = localUsers.findIndex(lu => lu.id === cu.id);
+              if (idx >= 0) localUsers[idx] = cu; else localUsers.push(cu);
+            });
+            saveUsers(localUsers);
           }
         }
       } catch(err) { console.error('Realtime 오류:', err); }
@@ -3492,6 +3584,9 @@ async function autoLoadAll() {
         localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
       }
     }
+
+    // 4. 사용자 데이터 동기화
+    await loadUsersFromCloud();
 
   } catch(e) { console.error('자동 불러오기 실패:', e); }
 }
