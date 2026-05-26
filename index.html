@@ -71,20 +71,16 @@ flex-shrink: 0;
 
 /* ─── NAV TABS ─── */
 .nav-tabs {
-display: flex;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
 background: var(--surface);
 border-bottom: 1px solid var(--border);
 flex-shrink: 0;
--ms-overflow-style: none;
-scrollbar-width: none;
 }
-.nav-tabs::-webkit-scrollbar { display: none; }
 .nav-tab {
-flex: 1;
-min-width: 80px;
-padding: 11px 0;
+padding: 10px 4px;
 text-align: center;
-font-size: 13px;
+font-size: 12px;
 font-weight: 700;
 color: var(--text-muted);
 cursor: pointer;
@@ -92,8 +88,10 @@ border-bottom: 2px solid transparent;
 transition: all 0.15s;
 user-select: none;
 white-space: nowrap;
+border-top: 1px solid var(--border);
 }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab:nth-child(-n+3) { border-top: none; }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-dim); }
 .nav-tab:active { opacity: 0.7; }
 
 /* ─── PAGES ─── */
@@ -902,7 +900,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
   <!-- NAV TABS -->
 
-  <div class="nav-tabs" style="overflow-x:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;">
+  <div class="nav-tabs">
     <div class="nav-tab active" id="tab-list" onclick="switchTab('list')">📋 행사일지</div>
     <div class="nav-tab" id="tab-calendar" onclick="switchTab('calendar')">📅 일정</div>
     <div class="nav-tab" id="tab-warehouse" onclick="switchTab('warehouse')">🏭 창고업무</div>
