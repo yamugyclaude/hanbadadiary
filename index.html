@@ -693,9 +693,10 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 /* ─── CHECKLIST MODAL ─── */
 .checklist-overlay { display: none; position: fixed; inset: 0; z-index: 10000; background: var(--bg); flex-direction: column; }
 .checklist-overlay.open { display: flex; }
-.checklist-topbar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; padding-top: calc(14px + env(safe-area-inset-top,0px)); }
+.checklist-topbar { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; background: var(--surface); border-bottom: none; flex-shrink: 0; padding-top: calc(14px + env(safe-area-inset-top,0px)); }
 .checklist-topbar-title { font-size: 15px; font-weight: 800; color: var(--text); flex: 1; }
-.checklist-close-btn { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; padding: 0 4px; }
+.checklist-close-btn { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
+.checklist-btnbar { display: flex; align-items: center; gap: 8px; padding: 0 16px 10px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
 .checklist-body { flex: 1; overflow-y: auto; padding: 16px; }
 .checklist-cat-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
 .checklist-cat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); }
@@ -837,11 +838,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <div class="checklist-overlay" id="checklistOverlay">
   <div class="checklist-topbar">
     <div class="checklist-topbar-title">📋 행사 나가기 전 챙겨야 할 물품</div>
+    <button class="checklist-close-btn" onclick="closeChecklist()">✕</button>
+  </div>
+  <div class="checklist-btnbar">
     <span class="checklist-progress" id="clProgress"></span>
     <button class="checklist-reset-btn" onclick="resetChecklistChecks()">↺ 초기화</button>
     <button class="checklist-reset-btn" style="background:rgba(61,186,150,0.15);border-color:rgba(61,186,150,0.4);color:var(--accent);" onclick="manualSaveChecklist()">💾 저장</button>
     <button class="checklist-reset-btn" style="background:var(--gold-dim);border-color:rgba(201,168,76,0.4);color:var(--gold);" onclick="manualLoadChecklist()">☁️ 불러오기</button>
-    <button class="checklist-close-btn" onclick="closeChecklist()">✕</button>
   </div>
   <div class="checklist-body" id="checklistBody"></div>
 </div>
