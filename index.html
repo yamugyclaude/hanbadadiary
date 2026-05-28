@@ -702,10 +702,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .checklist-cat-title { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 0.5px; }
 .checklist-add-btn { background: var(--accent-dim); border: 1px solid rgba(61,186,150,0.35); color: var(--accent); border-radius: 7px; font-size: 18px; font-weight: 700; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .checklist-items { padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-.checklist-item { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; }
-.checklist-item-name { flex: 1; font-size: 14px; color: var(--text); }
+.checklist-item { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; cursor: pointer; transition: all 0.15s; }
+.checklist-item.checked { background: rgba(61,186,150,0.08); border-color: rgba(61,186,150,0.25); }
+.checklist-check-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+.checklist-item-name { flex: 1; font-size: 14px; color: var(--text); transition: all 0.15s; }
+.checklist-item.checked .checklist-item-name { text-decoration: line-through; color: var(--text-muted); }
 .checklist-item-edit { background: var(--surface3); border: 1px solid var(--border2); color: var(--text2); border-radius: 6px; font-size: 11px; font-weight: 700; padding: 4px 9px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
 .checklist-item-del { background: var(--accent2-dim); border: 1px solid rgba(217,114,72,0.3); color: var(--accent2); border-radius: 6px; font-size: 11px; font-weight: 700; padding: 4px 9px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
+.checklist-reset-btn { background: rgba(217,114,72,0.15); border: 1.5px solid rgba(217,114,72,0.4); color: var(--accent2); border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; white-space: nowrap; }
+.checklist-progress { font-size: 12px; color: var(--text-muted); margin: 0 8px; font-family: 'JetBrains Mono', monospace; }
 .checklist-empty { color: var(--text-muted); font-size: 13px; padding: 8px 4px; text-align: center; }
 .checklist-input-row { display: flex; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface); }
 .checklist-input-row input { flex: 1; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 14px; padding: 9px 12px; outline: none; }
@@ -832,6 +837,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <div class="checklist-overlay" id="checklistOverlay">
   <div class="checklist-topbar">
     <div class="checklist-topbar-title">📋 행사 나가기 전 챙겨야 할 물품</div>
+    <span class="checklist-progress" id="clProgress"></span>
+    <button class="checklist-reset-btn" onclick="resetChecklistChecks()">↺ 초기화</button>
     <button class="checklist-close-btn" onclick="closeChecklist()">✕</button>
   </div>
   <div class="checklist-body" id="checklistBody"></div>
@@ -2703,9 +2710,14 @@ function refreshElecUI(log) {
 const CHECKLIST_CATS = ['무대설치', '음향설치', '우천시'];
 let checklistData = JSON.parse(localStorage.getItem('checklistData') || '{"무대설치":[],"음향설치":[],"우천시":[]}');
 CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; });
+// 체크 상태 (품목과 별도 저장 — 초기화 가능)
+let checklistChecked = JSON.parse(localStorage.getItem('checklistChecked') || '{}');
 
 function saveChecklist() {
   localStorage.setItem('checklistData', JSON.stringify(checklistData));
+}
+function saveChecklistChecked() {
+  localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
 }
 
 function openChecklist() {
@@ -2715,6 +2727,39 @@ function openChecklist() {
 
 function closeChecklist() {
   document.getElementById('checklistOverlay').classList.remove('open');
+}
+
+function updateChecklistProgress() {
+  let total = 0, done = 0;
+  CHECKLIST_CATS.forEach(cat => {
+    (checklistData[cat] || []).forEach((item, idx) => {
+      total++;
+      if (checklistChecked[cat + '_' + idx]) done++;
+    });
+  });
+  const el = document.getElementById('clProgress');
+  if (el) el.textContent = total ? `${done}/${total}` : '';
+}
+
+function toggleChecklistItem(cat, idx) {
+  const key = cat + '_' + idx;
+  checklistChecked[key] = !checklistChecked[key];
+  saveChecklistChecked();
+  // DOM 직접 업데이트 (리렌더 없이)
+  const itemEl = document.getElementById('clItem_' + cat + '_' + idx);
+  if (itemEl) {
+    itemEl.classList.toggle('checked', !!checklistChecked[key]);
+    const icon = itemEl.querySelector('.checklist-check-icon');
+    if (icon) icon.textContent = checklistChecked[key] ? '✅' : '⬜';
+  }
+  updateChecklistProgress();
+}
+
+function resetChecklistChecks() {
+  checklistChecked = {};
+  saveChecklistChecked();
+  renderChecklistBody();
+  showToast('↺ 체크 초기화 완료');
 }
 
 function renderChecklistBody() {
@@ -2730,13 +2775,16 @@ function renderChecklistBody() {
         <button class="checklist-add-btn" onclick="showChecklistInput('${cat}')">＋</button>
       </div>
       <div class="checklist-items" id="clItems_${cat}">
-        ${items.length === 0 ? '<div class="checklist-empty">품목 없음</div>' :
-          items.map((item, idx) => `
-            <div class="checklist-item" id="clItem_${cat}_${idx}">
+        ${items.length === 0 ? '<div class="checklist-empty">품목 없음 — ＋ 버튼으로 추가</div>' :
+          items.map((item, idx) => {
+            const checked = !!checklistChecked[cat + '_' + idx];
+            return `<div class="checklist-item${checked ? ' checked' : ''}" id="clItem_${cat}_${idx}" onclick="toggleChecklistItem('${cat}',${idx})">
+              <span class="checklist-check-icon">${checked ? '✅' : '⬜'}</span>
               <span class="checklist-item-name">${item}</span>
-              <button class="checklist-item-edit" onclick="editChecklistItem('${cat}',${idx})">수정</button>
-              <button class="checklist-item-del" onclick="deleteChecklistItem('${cat}',${idx})">삭제</button>
-            </div>`).join('')}
+              <button class="checklist-item-edit" onclick="event.stopPropagation();editChecklistItem('${cat}',${idx})">수정</button>
+              <button class="checklist-item-del" onclick="event.stopPropagation();deleteChecklistItem('${cat}',${idx})">삭제</button>
+            </div>`;
+          }).join('')}
       </div>
       <div class="checklist-input-row" id="clInputRow_${cat}" style="display:none;">
         <input id="clInput_${cat}" type="text" placeholder="품목 입력" onkeydown="if(event.key==='Enter')confirmChecklistInput('${cat}')">
@@ -2744,10 +2792,10 @@ function renderChecklistBody() {
       </div>`;
     body.appendChild(block);
   });
+  updateChecklistProgress();
 }
 
 function showChecklistInput(cat) {
-  // 다른 카테고리 입력창 닫기
   CHECKLIST_CATS.forEach(c => {
     const row = document.getElementById('clInputRow_' + c);
     if (row) row.style.display = 'none';
@@ -2772,7 +2820,6 @@ function confirmChecklistInput(cat) {
 }
 
 function editChecklistItem(cat, idx) {
-  // 다른 입력창 닫기
   CHECKLIST_CATS.forEach(c => {
     const row = document.getElementById('clInputRow_' + c);
     if (row) row.style.display = 'none';
@@ -2792,6 +2839,9 @@ function editChecklistItem(cat, idx) {
 function deleteChecklistItem(cat, idx) {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  // 해당 항목 체크 상태도 제거
+  delete checklistChecked[cat + '_' + idx];
+  saveChecklistChecked();
   checklistData[cat].splice(idx, 1);
   saveChecklist();
   renderChecklistBody();
