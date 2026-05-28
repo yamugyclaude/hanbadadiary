@@ -2725,42 +2725,42 @@ function saveChecklistChecked() {
 }
 
 async function _syncChecklistCloud() {
-  try {
-    const payload = { items: checklistData, checked: checklistChecked };
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist`, {
-      method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ v15: payload })
+  const payload = { items: checklistData, checked: checklistChecked };
+  const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist`, {
+    method: 'PATCH',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify({ v15: payload })
+  });
+  if (!res.ok) throw new Error('PATCH 실패: ' + res.status);
+  const patched = await res.json();
+  if (Array.isArray(patched) && patched.length === 0) {
+    const res2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'checklist', v15: payload })
     });
-    const patched = await res.json();
-    if (Array.isArray(patched) && patched.length === 0) {
-      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'checklist', v15: payload })
-      });
-    }
-  } catch(e) { console.error('체크리스트 동기화 실패:', e); }
+    if (!res2.ok) throw new Error('POST 실패: ' + res2.status);
+  }
 }
 
 async function loadChecklistFromCloud() {
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist&select=v15`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    const rows = await res.json();
-    if (!rows.length || !rows[0].v15) return;
-    const d = rows[0].v15;
-    if (d.items) {
-      checklistData = d.items;
-      CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; });
-      localStorage.setItem('checklistData', JSON.stringify(checklistData));
-    }
-    if (d.checked) {
-      checklistChecked = d.checked;
-      localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
-    }
-  } catch(e) { console.error('체크리스트 불러오기 실패:', e); }
+  const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist&select=v15`, {
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+  });
+  if (!res.ok) throw new Error('불러오기 실패: ' + res.status);
+  const rows = await res.json();
+  if (!rows.length || !rows[0].v15) return false; // 클라우드에 데이터 없음
+  const d = rows[0].v15;
+  if (d.items) {
+    checklistData = d.items;
+    CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; });
+    localStorage.setItem('checklistData', JSON.stringify(checklistData));
+  }
+  if (d.checked) {
+    checklistChecked = d.checked;
+    localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
+  }
+  return true;
 }
 
 async function openChecklist() {
@@ -2811,15 +2811,26 @@ function resetChecklistChecks() {
 
 async function manualSaveChecklist() {
   showToast('저장 중…');
-  await _syncChecklistCloud();
-  showToast('💾 체크리스트 저장 완료 ☁️');
+  try {
+    await _syncChecklistCloud();
+    showToast('✅ 서버 저장 완료!');
+  } catch(e) {
+    showToast('❌ 저장 실패 — 네트워크를 확인하세요');
+    console.error(e);
+  }
 }
 
 async function manualLoadChecklist() {
   showToast('불러오는 중…');
-  await loadChecklistFromCloud();
-  renderChecklistBody();
-  showToast('☁️ 불러오기 완료');
+  try {
+    const found = await loadChecklistFromCloud();
+    renderChecklistBody();
+    if (found) showToast('✅ 불러오기 완료!');
+    else showToast('⚠️ 서버에 저장된 데이터가 없습니다');
+  } catch(e) {
+    showToast('❌ 불러오기 실패 — 네트워크를 확인하세요');
+    console.error(e);
+  }
 }
 
 function renderChecklistBody() {
