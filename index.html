@@ -2670,6 +2670,7 @@ let vehicleData = JSON.parse(localStorage.getItem('vehicleData') || '{"v15":{"nu
 // 기존 데이터에 새 필드 없으면 기본값 추가
 ['v15','v35'].forEach(t => {
   if (!vehicleData[t]) vehicleData[t] = {};
+  if (!Array.isArray(vehicleData[t].maintenance)) vehicleData[t].maintenance = []; // 핵심: 배열 없으면 추가
   if (vehicleData[t].current_km === undefined) vehicleData[t].current_km = '';
   if (vehicleData[t].fuel === undefined) vehicleData[t].fuel = '';
   if (vehicleData[t].ins_start === undefined) vehicleData[t].ins_start = '';
@@ -2858,12 +2859,16 @@ function _makeVehicleCloudPayload() {
 }
 function _applyVehicleCloudData(raw) {
   if (!raw) return;
+  const ensureMaintenance = (obj) => {
+    if (!Array.isArray(obj.maintenance)) obj.maintenance = [];
+  };
   if (raw._format === 'combined') {
-    if (raw.v15) vehicleData.v15 = raw.v15;
-    if (raw.v35) vehicleData.v35 = raw.v35;
-  } else if (raw.maintenance) {
+    if (raw.v15) { vehicleData.v15 = raw.v15; ensureMaintenance(vehicleData.v15); }
+    if (raw.v35) { vehicleData.v35 = raw.v35; ensureMaintenance(vehicleData.v35); }
+  } else if (raw.maintenance !== undefined) {
     // 구버전 호환: v15 단독 데이터
     vehicleData.v15 = raw;
+    ensureMaintenance(vehicleData.v15);
   }
 }
 
