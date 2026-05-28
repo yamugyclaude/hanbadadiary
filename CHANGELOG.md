@@ -4,6 +4,24 @@
 
 ---
 
+## [2026-05-28] — 3.5톤 차량 데이터 저장 버그 수정
+
+**커밋**: `(pending)`
+
+### 수정
+- **3.5톤 마이티 데이터 클라우드 저장 안 되는 문제 수정**
+  - Supabase `vehicle_data` 테이블의 `v35` 컬럼 의존성 제거
+  - v15 + v35 데이터를 `v15` 컬럼 하나에 합쳐서 저장 (`_format: 'combined'` 마커)
+  - 구버전 데이터 하위 호환 유지
+- **정비 기록 저장 시 자동 클라우드 동기화 추가**
+  - 기존: 정비 기록 저장이 로컬(localStorage)에만 저장됨
+  - 수정: `saveMaintModal()` / `deleteMaintenance()` 호출 시 `_syncVehicleCloud()` 자동 실행
+  - 토스트 메시지에 ☁️ 아이콘 추가
+- `_syncVehicleCloud()` — 조용한 백그라운드 클라우드 동기화 함수 신설
+- `_applyVehicleCloudData()` — 클라우드 데이터 적용 (combined/legacy 둘 다 지원)
+
+---
+
 ## [2026-05-26] — 행사일지 폼 UI 대대적 개편
 
 **커밋**: `ec08104`

@@ -2818,9 +2818,10 @@ function saveMaintModal() {
   closeMaintModal();
   renderMaintenanceList(type);
   saveVehicleData();
+  _syncVehicleCloud();
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = `(${vehicleData[type].maintenance.length}건)`;
-  showToast('✓ 정비 기록 저장 완료');
+  showToast('✓ 정비 기록 저장 완료 ☁️');
   // 히스토리 모달이 열려 있었다면 목록 새로고침
   if (document.getElementById('vehicleHistoryModal').classList.contains('show')) {
     renderVehicleHistoryTab(type);
@@ -2840,6 +2841,7 @@ function deleteMaintenance(type, idx) {
   vehicleData[type].maintenance.splice(idx,1);
   renderMaintenanceList(type);
   saveVehicleData();
+  _syncVehicleCloud();
   addAccessLog('delete', '차량정비', `삭제: ${type} - ${item}`);
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
@@ -2850,24 +2852,47 @@ function saveVehicleData() {
   localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
 }
 
-async function saveVehicleManual() {
-  saveVehicleData();
-  if (navigator.vibrate) navigator.vibrate(40);
-  showToast('저장 중…');
+// v15 컬럼 하나에 v15+v35 합쳐서 저장 (v35 컬럼 없어도 동작)
+function _makeVehicleCloudPayload() {
+  return { _format: 'combined', v15: vehicleData.v15, v35: vehicleData.v35 };
+}
+function _applyVehicleCloudData(raw) {
+  if (!raw) return;
+  if (raw._format === 'combined') {
+    if (raw.v15) vehicleData.v15 = raw.v15;
+    if (raw.v35) vehicleData.v35 = raw.v35;
+  } else if (raw.maintenance) {
+    // 구버전 호환: v15 단독 데이터
+    vehicleData.v15 = raw;
+  }
+}
+
+// 조용한 백그라운드 클라우드 동기화 (토스트 없음)
+async function _syncVehicleCloud() {
   try {
+    const combined = _makeVehicleCloudPayload();
     const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton`, {
       method: 'PATCH',
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ v15: vehicleData.v15, v35: vehicleData.v35 })
+      body: JSON.stringify({ v15: combined })
     });
     const patched = await res.json();
     if (Array.isArray(patched) && patched.length === 0) {
       await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'singleton', v15: vehicleData.v15, v35: vehicleData.v35 })
+        body: JSON.stringify({ id: 'singleton', v15: combined })
       });
     }
+  } catch(e) { console.error('차량 클라우드 동기화 실패:', e); }
+}
+
+async function saveVehicleManual() {
+  saveVehicleData();
+  if (navigator.vibrate) navigator.vibrate(40);
+  showToast('저장 중…');
+  try {
+    await _syncVehicleCloud();
     showToast('🚛 차량 정보 저장 완료 ☁️');
   } catch(e) {
     showToast('✓ 로컬 저장 완료 (클라우드 실패)');
@@ -2878,13 +2903,12 @@ async function saveVehicleManual() {
 async function loadVehicleFromCloud() {
   showToast('☁️ 불러오는 중…');
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15,v35`, {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
     const rows = await res.json();
-    if (!rows.length || (!rows[0].v15 && !rows[0].v35)) { showToast('⚠️ 클라우드 데이터 없음'); return; }
-    if (rows[0].v15) vehicleData.v15 = rows[0].v15;
-    if (rows[0].v35) vehicleData.v35 = rows[0].v35;
+    if (!rows.length || !rows[0].v15) { showToast('⚠️ 클라우드 데이터 없음'); return; }
+    _applyVehicleCloudData(rows[0].v15);
     localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
     renderVehiclePage();
     showToast('☁️ 차량 정보 불러오기 완료');
@@ -3503,8 +3527,7 @@ function initRealtime() {
         }
         if (table === 'vehicle_data') {
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'singleton') {
-            if (record.v15) vehicleData.v15 = record.v15;
-            if (record.v35) vehicleData.v35 = record.v35;
+            if (record.v15) _applyVehicleCloudData(record.v15);
             localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
             if (document.getElementById('pageVehicle')?.classList.contains('active')) renderVehiclePage();
             showToast('🔄 차량 데이터 업데이트됨');
@@ -3727,14 +3750,13 @@ async function autoLoadAll() {
     }
 
     // 3. 차량 데이터
-    const vehRes = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15,v35`, {
+    const vehRes = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
     if (vehRes.ok) {
       const vehRows = await vehRes.json();
-      if (vehRows.length && (vehRows[0].v15 || vehRows[0].v35)) {
-        if (vehRows[0].v15) vehicleData.v15 = vehRows[0].v15;
-        if (vehRows[0].v35) vehicleData.v35 = vehRows[0].v35;
+      if (vehRows.length && vehRows[0].v15) {
+        _applyVehicleCloudData(vehRows[0].v15);
         localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
       }
     }
