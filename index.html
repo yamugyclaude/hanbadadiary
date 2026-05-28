@@ -2715,9 +2715,50 @@ let checklistChecked = JSON.parse(localStorage.getItem('checklistChecked') || '{
 
 function saveChecklist() {
   localStorage.setItem('checklistData', JSON.stringify(checklistData));
+  _syncChecklistCloud();
 }
 function saveChecklistChecked() {
   localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
+  _syncChecklistCloud();
+}
+
+async function _syncChecklistCloud() {
+  try {
+    const payload = { items: checklistData, checked: checklistChecked };
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: payload })
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'checklist', v15: payload })
+      });
+    }
+  } catch(e) { console.error('체크리스트 동기화 실패:', e); }
+}
+
+async function loadChecklistFromCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    const rows = await res.json();
+    if (!rows.length || !rows[0].v15) return;
+    const d = rows[0].v15;
+    if (d.items) {
+      checklistData = d.items;
+      CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; });
+      localStorage.setItem('checklistData', JSON.stringify(checklistData));
+    }
+    if (d.checked) {
+      checklistChecked = d.checked;
+      localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
+    }
+  } catch(e) { console.error('체크리스트 불러오기 실패:', e); }
 }
 
 function openChecklist() {
@@ -3728,6 +3769,12 @@ function initRealtime() {
             });
             saveUsers(localUsers);
           }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'checklist' && record.v15) {
+            const d = record.v15;
+            if (d.items) { checklistData = d.items; CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; }); localStorage.setItem('checklistData', JSON.stringify(checklistData)); }
+            if (d.checked) { checklistChecked = d.checked; localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked)); }
+            if (document.getElementById('checklistOverlay')?.classList.contains('open')) renderChecklistBody();
+          }
         }
       } catch(err) { console.error('Realtime 오류:', err); }
     };
@@ -3951,6 +3998,9 @@ async function autoLoadAll() {
 
     // 4. 사용자 데이터 동기화
     await loadUsersFromCloud();
+
+    // 5. 체크리스트 동기화
+    await loadChecklistFromCloud();
 
   } catch(e) { console.error('자동 불러오기 실패:', e); }
 }
