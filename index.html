@@ -2761,9 +2761,13 @@ async function loadChecklistFromCloud() {
   } catch(e) { console.error('체크리스트 불러오기 실패:', e); }
 }
 
-function openChecklist() {
-  renderChecklistBody();
+async function openChecklist() {
   document.getElementById('checklistOverlay').classList.add('open');
+  await loadChecklistFromCloud();
+  // 클라우드에 데이터 없으면 로컬 데이터 즉시 업로드
+  const totalItems = CHECKLIST_CATS.reduce((n, c) => n + (checklistData[c]?.length || 0), 0);
+  if (totalItems > 0) _syncChecklistCloud();
+  renderChecklistBody();
 }
 
 function closeChecklist() {
