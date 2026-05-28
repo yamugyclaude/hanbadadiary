@@ -839,6 +839,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="checklist-topbar-title">📋 행사 나가기 전 챙겨야 할 물품</div>
     <span class="checklist-progress" id="clProgress"></span>
     <button class="checklist-reset-btn" onclick="resetChecklistChecks()">↺ 초기화</button>
+    <button class="checklist-reset-btn" style="background:rgba(61,186,150,0.15);border-color:rgba(61,186,150,0.4);color:var(--accent);" onclick="manualSaveChecklist()">💾 저장</button>
+    <button class="checklist-reset-btn" style="background:var(--gold-dim);border-color:rgba(201,168,76,0.4);color:var(--gold);" onclick="manualLoadChecklist()">☁️ 불러오기</button>
     <button class="checklist-close-btn" onclick="closeChecklist()">✕</button>
   </div>
   <div class="checklist-body" id="checklistBody"></div>
@@ -2805,6 +2807,19 @@ function resetChecklistChecks() {
   saveChecklistChecked();
   renderChecklistBody();
   showToast('↺ 체크 초기화 완료');
+}
+
+async function manualSaveChecklist() {
+  showToast('저장 중…');
+  await _syncChecklistCloud();
+  showToast('💾 체크리스트 저장 완료 ☁️');
+}
+
+async function manualLoadChecklist() {
+  showToast('불러오는 중…');
+  await loadChecklistFromCloud();
+  renderChecklistBody();
+  showToast('☁️ 불러오기 완료');
 }
 
 function renderChecklistBody() {
