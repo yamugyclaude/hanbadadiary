@@ -1036,6 +1036,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .view-mode .setup-direct-btn { display:none !important; }
 .view-mode .inline-equip-btn { pointer-events:none; cursor:default; }
 .view-mode .setup-chip-del { display:none !important; }
+.view-mode .sound-setup-view-btn { display:inline-flex !important; background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:8px; font-size:12px; font-weight:700; padding:5px 12px; cursor:pointer; font-family:"Noto Sans KR",sans-serif; align-items:center; gap:4px; }
+.view-mode #secZone .section-header::after { content:" 👁"; font-size:11px; color:var(--accent); cursor:pointer; }
 /* 단일장소 카테고리 */
 .setup-cat-block { margin-bottom:12px; }
 .setup-cat-label { font-size:11px; font-weight:800; color:var(--gold); letter-spacing:0.5px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
@@ -1280,6 +1282,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
 <!-- ═══ 호버 미리보기 ═══ -->
 <div id="hoverPreview" class="hover-preview"></div>
+
+<!-- ═══ 음향장비 세팅 요약 팝업 ═══ -->
+<div class="equip-modal-overlay" id="soundSetupViewModal" onclick="if(event.target===this)closeSoundSetupView()">
+  <div class="equip-modal-card" style="max-width:560px;">
+    <div class="equip-modal-header">
+      <span class="equip-modal-title">🔊 음향장비 세팅 요약</span>
+      <button class="equip-modal-close" onclick="closeSoundSetupView()">✕</button>
+    </div>
+    <div id="soundSetupViewBody" style="padding:16px;overflow-y:auto;max-height:75vh;"></div>
+    <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeSoundSetupView()">✕ 닫기</button></div>
+  </div>
+</div>
 
 <!-- ═══ 장비 선택 팝업 ═══ -->
 <div class="equip-modal-overlay" id="equipPickerModal" onclick="if(event.target===this)closeEquipPicker()">
@@ -1767,49 +1781,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
     </div>
 
-    <!-- 설치 음향장비 목록 -->
-    <div class="section-block collapsed" id="sec3">
-      <div class="section-header" onclick="toggleSection('sec3')">
-        <div class="section-header-left"><span class="section-icon">✅</span><span class="section-title">설치 음향장비 목록</span></div>
-        <span class="section-chevron">▼</span>
-      </div>
-      <div class="section-content">
-        <div class="equip-select-block">
-          <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
-          <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-            <div class="equip-opt" data-val="Midas" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
-            <div class="equip-opt" data-val="Behringer" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
-            <div class="equip-opt" data-val="Allen &amp; Heath" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
-            <div class="equip-opt" data-val="Yamaha" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
-          </div>
-          <div id="consoleInputWrap" style="display:none;margin-top:10px">
-            <input id="f_consoleModel" type="text" placeholder="모델명 직접 입력 (예: M32R)">
-          </div>
-        </div>
-        <div class="equip-select-block">
-          <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
-          <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-            <div class="equip-opt" data-val="d&b" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
-            <div class="equip-opt" data-val="JBL" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
-            <div class="equip-opt" data-val="MAUI" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
-            <div class="equip-opt" data-val="기타" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>기타</div>
-          </div>
-          <div id="speakerInputWrap" style="display:none;margin-top:10px">
-            <input id="f_speakerModel" type="text" placeholder="모델명 직접 입력 (예: V8, J-SUB)">
-          </div>
-        </div>
-        <div class="field" style="margin-top:6px">
-          <label>📷 음향 현장사진 (최대 4장)</label>
-          <div class="photo-grid" style="margin-top:8px">
-            <div class="photo-slot" id="soundPhoto_0" onclick="triggerPhotoUpload('sound',0)"><input type="file" id="soundPhotoInput_0" accept="image/*" style="display:none" onchange="loadPhoto('sound',0,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',0,event)">✕</button></div>
-            <div class="photo-slot" id="soundPhoto_1" onclick="triggerPhotoUpload('sound',1)"><input type="file" id="soundPhotoInput_1" accept="image/*" style="display:none" onchange="loadPhoto('sound',1,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',1,event)">✕</button></div>
-            <div class="photo-slot" id="soundPhoto_2" onclick="triggerPhotoUpload('sound',2)"><input type="file" id="soundPhotoInput_2" accept="image/*" style="display:none" onchange="loadPhoto('sound',2,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',2,event)">✕</button></div>
-            <div class="photo-slot" id="soundPhoto_3" onclick="triggerPhotoUpload('sound',3)"><input type="file" id="soundPhotoInput_3" accept="image/*" style="display:none" onchange="loadPhoto('sound',3,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',3,event)">✕</button></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 모니터 스피커 세팅 -->
     <div class="section-block collapsed" id="sec6">
       <div class="section-header" onclick="toggleSection('sec6')">
@@ -1824,8 +1795,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <!-- 장비 세팅 계획 -->
     <div class="section-block" id="secZone">
       <div class="section-header" onclick="toggleSection('secZone')">
-        <div class="section-header-left"><span class="section-icon">📍</span><span class="section-title">장비 세팅</span></div>
-        <span class="section-chevron">▼</span>
+        <div class="section-header-left"><span class="section-icon">🔊</span><span class="section-title">음향장비 세팅</span></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="sound-setup-view-btn" onclick="event.stopPropagation();openSoundSetupView()" style="display:none;">👁 요약</button>
+          <span class="section-chevron">▼</span>
+        </div>
       </div>
       <div class="section-content">
         <div class="setup-mode-toggle">
@@ -1838,6 +1812,45 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <div id="setupSinglePanel">
           <div id="setupInlineCats"></div>
           <button class="setup-direct-btn" style="margin-top:8px;width:100%;" onclick="openDirectInput(null)">✏️ 목록에 없는 장비 직접 입력</button>
+          <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+            <div class="equip-select-block">
+                      <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
+                      <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
+                        <div class="equip-opt" data-val="Midas" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
+                        <div class="equip-opt" data-val="Behringer" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
+                        <div class="equip-opt" data-val="Allen &amp; Heath" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
+                        <div class="equip-opt" data-val="Yamaha" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
+                      </div>
+                      <div id="consoleInputWrap" style="display:none;margin-top:10px">
+                        <input id="f_consoleModel" type="text" placeholder="모델명 직접 입력 (예: M32R)">
+                      </div>
+                    </div>
+            <div style="margin-top:10px;">
+            <div class="equip-select-block">
+                      <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
+                      <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
+                        <div class="equip-opt" data-val="d&b" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
+                        <div class="equip-opt" data-val="JBL" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
+                        <div class="equip-opt" data-val="MAUI" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
+                        <div class="equip-opt" data-val="기타" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>기타</div>
+                      </div>
+                      <div id="speakerInputWrap" style="display:none;margin-top:10px">
+                        <input id="f_speakerModel" type="text" placeholder="모델명 직접 입력 (예: V8, J-SUB)">
+                      </div>
+                    </div>
+            </div>
+            <div style="margin-top:10px;">
+            <div class="field" style="margin-top:6px">
+                      <label>📷 음향 현장사진 (최대 4장)</label>
+                      <div class="photo-grid" style="margin-top:8px">
+                        <div class="photo-slot" id="soundPhoto_0" onclick="triggerPhotoUpload('sound',0)"><input type="file" id="soundPhotoInput_0" accept="image/*" style="display:none" onchange="loadPhoto('sound',0,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',0,event)">✕</button></div>
+                        <div class="photo-slot" id="soundPhoto_1" onclick="triggerPhotoUpload('sound',1)"><input type="file" id="soundPhotoInput_1" accept="image/*" style="display:none" onchange="loadPhoto('sound',1,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',1,event)">✕</button></div>
+                        <div class="photo-slot" id="soundPhoto_2" onclick="triggerPhotoUpload('sound',2)"><input type="file" id="soundPhotoInput_2" accept="image/*" style="display:none" onchange="loadPhoto('sound',2,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',2,event)">✕</button></div>
+                        <div class="photo-slot" id="soundPhoto_3" onclick="triggerPhotoUpload('sound',3)"><input type="file" id="soundPhotoInput_3" accept="image/*" style="display:none" onchange="loadPhoto('sound',3,this)"><span class="photo-plus">＋</span><button class="photo-del-btn" onclick="deletePhoto('sound',3,event)">✕</button></div>
+                      </div>
+                    </div>
+            </div>
+          </div>
         </div>
         <!-- 구역별 -->
         <div id="setupZonePanel" style="display:none;">
@@ -2619,6 +2632,77 @@ function closeLightbox() {
   document.getElementById('photoLightboxImg').src = '';
 }
 
+// ── 음향장비 세팅 요약 팝업 ──
+function openSoundSetupView(logId) {
+  const log = logs.find(l => l.id === logId) || logs.find(l => l.id === currentId);
+  if (!log) return;
+  const body = document.getElementById('soundSetupViewBody');
+  if (!body) return;
+
+  const mode = log.setupMode || 'single';
+  const items = log.setupItems || [];
+  const zones = log.zones || [];
+  const console_ = log.consoleSelected || '';
+  const speaker_ = log.speakerSelected || '';
+  const photos = (log.soundPhotos || []).filter(Boolean);
+
+  let html = '';
+
+  // 콘솔/스피커
+  if (console_ || speaker_) {
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;">';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">🎛️ 콘솔 / 스피커</div>';
+    if (console_) html += '<div style="font-size:13px;color:var(--text);margin-bottom:4px;">콘솔: ' + console_ + '</div>';
+    if (speaker_) html += '<div style="font-size:13px;color:var(--text);">스피커: ' + speaker_ + '</div>';
+    html += '</div>';
+  }
+
+  if (mode === 'single' && items.length) {
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;">';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📦 투입 장비</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    items.forEach(item => {
+      html += '<span style="background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;">';
+      html += item.name + (item.qty ? ' <span style="color:var(--accent);font-size:11px;">· ' + item.qty + '</span>' : '');
+      html += '</span>';
+    });
+    html += '</div></div>';
+  }
+
+  if (mode === 'zone' && zones.length) {
+    const COLORS = ['var(--accent)','var(--gold)','var(--accent2)','#5b9cf6'];
+    zones.forEach((z, i) => {
+      html += '<div style="background:var(--surface2);border:1px solid var(--border);border-left:4px solid ' + COLORS[i%4] + ';border-radius:10px;padding:12px 14px;margin-bottom:10px;">';
+      html += '<div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;">📍 ' + z.name + '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      (z.items||[]).forEach(item => {
+        html += '<span style="background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700;">';
+        html += item.name + (item.qty ? ' <span style="color:var(--accent);font-size:11px;">· ' + item.qty + '</span>' : '');
+        html += '</span>';
+      });
+      html += '</div></div>';
+    });
+  }
+
+  if (photos.length) {
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📷 현장사진</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">';
+    photos.forEach(p => {
+      html += '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:zoom-in;" onclick="_eqLightbox('' + p + '')">';
+      html += '<img src="' + p + '" style="width:100%;height:100%;object-fit:cover;">';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  if (!html) html = '<div style="text-align:center;padding:30px;color:var(--text-muted);">등록된 장비 정보가 없습니다</div>';
+
+  body.innerHTML = html;
+  document.getElementById('soundSetupViewModal').classList.add('open');
+}
+function closeSoundSetupView() { document.getElementById('soundSetupViewModal').classList.remove('open'); }
+
 // ── 장비 세팅 (단일/구역) ──
 let _setupMode = 'single';
 let _setupItems = [];
@@ -2676,7 +2760,8 @@ function renderInlineCats(containerId, draftTarget) {
   if (!el) return;
   const isDraft = draftTarget !== null; // zone draft
   // 사용 가능한 장비 (사용중만)
-  const cats = EQUIP_CATS.filter(cat => (equipmentData[cat]||[]).some(e => e.status !== 'retired'));
+  // 음향장비만 표시
+  const cats = ['음향장비'].filter(cat => (equipmentData[cat]||[]).some(e => e.status !== 'retired'));
   if (!cats.length) {
     el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">장비관리 탭에서 장비를 먼저 등록하세요.</div>';
     return;
