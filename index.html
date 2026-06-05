@@ -972,6 +972,19 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .view-mode .equip-opt, .view-mode .toggle-opt { pointer-events: none; }
 .view-mode .add-row-btn { display: none !important; }
 .view-mode .rh-del-btn, .view-mode .eq-del-btn { display: none !important; }
+.view-mode #soundEquipPicker { display: none !important; }
+.view-mode .sound-equip-chip-del { display: none !important; }
+.view-mode .sound-view-btn { display: inline-flex !important; }
+/* 음향장비 세팅 */
+.sound-equip-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.12s; white-space:nowrap; }
+.sound-equip-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.sound-equip-btn.sel { background:var(--accent-dim); border-color:rgba(61,186,150,0.6); color:var(--accent); }
+.sound-equip-cat-label { font-size:11px; font-weight:800; color:var(--gold); display:flex; align-items:center; gap:8px; padding:8px 0 5px; }
+.sound-equip-cat-label::after { content:''; flex:1; height:1px; background:var(--border2); }
+.sound-equip-chip { display:inline-flex; align-items:center; gap:5px; background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:20px; padding:5px 10px 5px 13px; font-size:12px; font-weight:700; }
+.sound-equip-chip-qty { font-size:10px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
+.sound-equip-chip-del { background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:0; line-height:1; }
+.sound-equip-chip-del:hover { color:var(--accent2); }
 .view-mode .photo-slot { cursor: default; }
 .view-mode .photo-slot.has-photo { cursor: zoom-in; }
 .view-mode .photo-slot .photo-del-btn { display: none !important; }
@@ -1642,13 +1655,21 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
     </div>
 
-    <!-- 설치 음향장비 목록 -->
-    <div class="section-block collapsed" id="sec3">
-      <div class="section-header" onclick="toggleSection('sec3')">
-        <div class="section-header-left"><span class="section-icon">✅</span><span class="section-title">설치 음향장비 목록</span></div>
-        <span class="section-chevron">▼</span>
+    <!-- 음향장비 세팅 -->
+    <div class="section-block" id="secSoundSetup">
+      <div class="section-header" onclick="toggleSection('secSoundSetup')">
+        <div class="section-header-left"><span class="section-icon">🔊</span><span class="section-title">음향장비 세팅</span></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="sound-view-btn" onclick="event.stopPropagation();openSoundSetupView()" style="display:none;background:var(--accent-dim);border:1.5px solid rgba(61,186,150,0.4);color:var(--accent);border-radius:8px;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👁 요약</button>
+          <span class="section-chevron">▼</span>
+        </div>
       </div>
       <div class="section-content">
+        <!-- 선택된 장비 칩 -->
+        <div id="soundEquipChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+        <!-- 장비관리 음향장비 목록 -->
+        <div id="soundEquipPicker" style="margin-bottom:14px;"></div>
+        <!-- 콘솔 브랜드 -->
         <div class="equip-select-block">
           <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
           <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
@@ -1850,6 +1871,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <button class="btn btn-primary" onclick="saveAndSync()">✓ 저장</button>
 </div>
 
+  </div>
+</div>
+
+<!-- 음향장비 세팅 요약 팝업 -->
+<div class="equip-modal-overlay" id="soundSetupModal" onclick="if(event.target===this)closeSoundSetupView()">
+  <div class="equip-modal-card" style="max-width:560px;">
+    <div class="equip-modal-header">
+      <span class="equip-modal-title">🔊 음향장비 세팅 요약</span>
+      <button class="equip-modal-close" onclick="closeSoundSetupView()">✕</button>
+    </div>
+    <div id="soundSetupViewBody" style="padding:16px;overflow-y:auto;max-height:75vh;"></div>
+    <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeSoundSetupView()">✕ 닫기</button></div>
   </div>
 </div>
 
@@ -2400,6 +2433,106 @@ let _pendingMDLogId    = '';
 // ── 페이지 전환 ──
 let isViewMode = false;
 
+// ── 음향장비 세팅 ──
+let soundEquipItems = []; // [{equipId, name, model, qty}]
+
+function renderSoundEquipPicker() {
+  const el = document.getElementById('soundEquipPicker');
+  if (!el) return;
+  const items = (equipmentData['음향장비'] || []).filter(e => e.status !== 'retired');
+  if (!items.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">장비관리 탭에서 음향장비를 먼저 등록하세요.</div>';
+    return;
+  }
+  el.innerHTML = '<div class="sound-equip-cat-label">🔊 음향장비 목록 (클릭하여 선택)</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+    items.map(function(eq) {
+      const sel = soundEquipItems.some(function(x) { return x.equipId === eq.id; });
+      return '<button class="sound-equip-btn' + (sel ? ' sel' : '') + '" ' +
+        'data-eid="' + eq.id + '" data-ename="' + eq.name.replace(/"/g,'&quot;') + '" data-emodel="' + (eq.model||'').replace(/"/g,'&quot;') + '" ' +
+        'onclick="toggleSoundEquip(this)">' +
+        eq.name + (eq.model ? ' <span style="font-size:10px;color:var(--text-muted);">' + eq.model + '</span>' : '') +
+        '</button>';
+    }).join('') + '</div>';
+}
+
+function toggleSoundEquip(btn) {
+  const equipId = btn.dataset.eid;
+  const name = btn.dataset.ename;
+  const model = btn.dataset.emodel;
+  const idx = soundEquipItems.findIndex(function(x) { return x.equipId === equipId; });
+  if (idx >= 0) {
+    soundEquipItems.splice(idx, 1);
+  } else {
+    const qty = prompt('수량을 입력하세요 (예: 2조, 1EA — 빈칸도 가능):') || '';
+    soundEquipItems.push({ equipId: equipId, name: name, model: model, qty: qty.trim() });
+  }
+  renderSoundEquipPicker();
+  renderSoundEquipChips();
+}
+
+function renderSoundEquipChips() {
+  const el = document.getElementById('soundEquipChips');
+  if (!el) return;
+  if (!soundEquipItems.length) { el.innerHTML = ''; return; }
+  el.innerHTML = soundEquipItems.map(function(item) {
+    return '<span class="sound-equip-chip">' +
+      item.name +
+      (item.qty ? '<span class="sound-equip-chip-qty">· ' + item.qty + '</span>' : '') +
+      '<button class="sound-equip-chip-del" onclick="removeSoundEquip(\'' + item.equipId + '\')">✕</button>' +
+      '</span>';
+  }).join('');
+}
+
+function removeSoundEquip(equipId) {
+  soundEquipItems = soundEquipItems.filter(function(x) { return x.equipId !== equipId; });
+  renderSoundEquipPicker();
+  renderSoundEquipChips();
+}
+
+function openSoundSetupView() {
+  const log = logs.find(function(l) { return l.id === currentId; });
+  if (!log) return;
+  const items = log.soundEquipItems || [];
+  const console_ = log.consoleSelected || '';
+  const speaker_ = log.speakerSelected || '';
+  const photos = (log.soundPhotos || []).filter(Boolean);
+  let html = '';
+  if (console_ || speaker_) {
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;">';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">🎛️ 콘솔 / 스피커</div>';
+    if (console_) html += '<div style="font-size:13px;color:var(--text);margin-bottom:4px;">콘솔: ' + console_ + '</div>';
+    if (speaker_) html += '<div style="font-size:13px;color:var(--text);">스피커: ' + speaker_ + '</div>';
+    html += '</div>';
+  }
+  if (items.length) {
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;">';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📦 투입 장비</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    items.forEach(function(item) {
+      html += '<span style="background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;">';
+      html += item.name;
+      if (item.qty) html += ' <span style="color:var(--accent);font-size:11px;">· ' + item.qty + '</span>';
+      html += '</span>';
+    });
+    html += '</div></div>';
+  }
+  if (photos.length) {
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📷 현장사진</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">';
+    photos.forEach(function(p) {
+      html += '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:zoom-in;" onclick="openLightbox(\'' + p + '\')">';
+      html += '<img src="' + p + '" style="width:100%;height:100%;object-fit:cover;"></div>';
+    });
+    html += '</div></div>';
+  }
+  if (!html) html = '<div style="text-align:center;padding:30px;color:var(--text-muted);">등록된 음향장비 정보가 없습니다</div>';
+  document.getElementById('soundSetupViewBody').innerHTML = html;
+  document.getElementById('soundSetupModal').classList.add('open');
+}
+function closeSoundSetupView() { document.getElementById('soundSetupModal').classList.remove('open'); }
+
 function showList() {
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
   const p = document.getElementById('pageList');
@@ -2616,6 +2749,7 @@ function newLog() {
   monitorChecks = {}; consoleSelected = ''; speakerSelected = '';
   consoleBrands = new Set(); speakerBrands = new Set();
   soundPhotos = [null,null,null,null]; stagePhotos = [null,null,null,null];
+  soundEquipItems = [];
   weatherSelected = [];
   announcerHas = null; bannerHas = null; trussHas = null; stairHas = null;
   const log = {
@@ -2737,6 +2871,13 @@ function fillForm(log) {
   renderEquipment(log.equipment||[]);
   renderPhotoSlots('sound', soundPhotos);
   renderPhotoSlots('stage', stagePhotos);
+  // 음향장비 세팅 복원
+  soundEquipItems = JSON.parse(JSON.stringify(log.soundEquipItems || []));
+  renderSoundEquipPicker();
+  renderSoundEquipChips();
+  // 요약 버튼 표시 (뷰모드)
+  const svBtn = document.querySelector('.sound-view-btn');
+  if (svBtn) svBtn.style.display = isViewMode ? 'inline-flex' : 'none';
   updateTitle();
   document.getElementById('mdPreview').style.display = 'none';
 }
@@ -3037,6 +3178,7 @@ log.stageInstallDay = stageInstallDay;
 // 사진 저장
 log.soundPhotos = [...soundPhotos];
 log.stagePhotos = [...stagePhotos];
+log.soundEquipItems = JSON.parse(JSON.stringify(soundEquipItems));
 
 // 전기
 log.elecType = elecType;
