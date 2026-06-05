@@ -145,6 +145,12 @@ transition: border-color 0.15s;
 .log-card-venue { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 14px; text-align: center; color: var(--text-muted); padding: 40px 20px; }
 .empty-icon { font-size: 52px; opacity: 0.3; }
+.log-month-group { display: contents; }
+.log-month-header { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 16px 0 6px; margin-top: 4px; }
+.log-month-header:first-child { padding-top: 4px; }
+.log-month-label { font-size: 14px; font-weight: 800; color: var(--gold); white-space: nowrap; }
+.log-month-count { font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 2px 8px; }
+.log-month-line { flex: 1; height: 1px; background: var(--border); }
 
 /* ─── MD STORAGE PAGE ─── */
 .md-storage-toolbar { padding: 14px 16px 10px; display: flex; gap: 10px; align-items: center; }
@@ -2369,24 +2375,47 @@ function renderList() {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎛️</div><div>저장된 행사일지가 없습니다<br>새 일지를 작성해보세요</div></div>`;
     return;
   }
-  el.innerHTML = [...logs].sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(l => {
-    const weatherArr = Array.isArray(l.weather) ? l.weather : (l.weather ? [l.weather] : []);
-    const weatherMap = {'맑음':'☀️','구름조금':'⛅','흐림':'☁️','비':'🌧️','폭우':'⛈️','눈':'🌨️','바람':'💨','안개':'🌫️'};
-    const weatherEmoji = weatherArr.map(w => weatherMap[w]||w).join('');
-    return `
-    <div class="log-card">
-      <div class="log-card-top" onclick="openLog('${l.id}')">
-        <span class="log-card-date">${fmtDate(l.date)}</span>
-        <span style="font-size:14px;">${weatherEmoji}</span>
-        <span class="log-card-type">${l.eventType||'기타'}</span>
-      </div>
-      <div class="log-card-name" onclick="openLog('${l.id}')">${l.eventName||'(행사명 없음)'}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-        <div class="log-card-venue" onclick="openLog('${l.id}')">${l.venue||''}</div>
-        ${isAdmin ? `<button onclick="deleteLogById('${l.id}')" style="background:var(--accent2-dim);color:var(--accent2);border:1px solid rgba(224,123,84,0.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">삭제</button>` : ''}
-      </div>
-    </div>
-  `}).join('');
+  const weatherMap = {'맑음':'☀️','구름조금':'⛅','흐림':'☁️','비':'🌧️','폭우':'⛈️','눈':'🌨️','바람':'💨','안개':'🌫️'};
+  const sorted = [...logs].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+  // 월별 그룹핑
+  const groups = {};
+  sorted.forEach(l => {
+    const key = (l.date||'').slice(0,7) || '날짜없음';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(l);
+  });
+
+  const monthKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+
+  el.innerHTML = monthKeys.map(key => {
+    const [y, m] = key.split('-');
+    const label = y && m ? `${y}년 ${parseInt(m)}월` : '날짜 없음';
+    const items = groups[key];
+
+    const cards = items.map(l => {
+      const weatherArr = Array.isArray(l.weather) ? l.weather : (l.weather ? [l.weather] : []);
+      const weatherEmoji = weatherArr.map(w => weatherMap[w]||w).join('');
+      return `<div class="log-card">
+        <div class="log-card-top" onclick="openLog('${l.id}')">
+          <span class="log-card-date">${fmtDate(l.date)}</span>
+          <span style="font-size:14px;">${weatherEmoji}</span>
+          <span class="log-card-type">${l.eventType||'기타'}</span>
+        </div>
+        <div class="log-card-name" onclick="openLog('${l.id}')">${l.eventName||'(행사명 없음)'}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+          <div class="log-card-venue" onclick="openLog('${l.id}')">${l.venue||''}</div>
+          ${isAdmin ? `<button onclick="deleteLogById('${l.id}')" style="background:var(--accent2-dim);color:var(--accent2);border:1px solid rgba(224,123,84,0.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">삭제</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="log-month-header">
+        <span class="log-month-label">${label}</span>
+        <span class="log-month-count">${items.length}건</span>
+        <span class="log-month-line"></span>
+      </div>${cards}`;
+  }).join('');
 }
 
 // ── MD 저장소 렌더 ──
