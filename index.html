@@ -71,26 +71,31 @@ flex-shrink: 0;
 
 /* ─── NAV TABS ─── */
 .nav-tabs {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
+display: flex;
+flex-direction: row;
+overflow-x: auto;
+overflow-y: hidden;
 background: var(--surface);
-border-bottom: 1px solid var(--border);
+border-bottom: 2px solid var(--border);
 flex-shrink: 0;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
 }
+.nav-tabs::-webkit-scrollbar { display: none; }
 .nav-tab {
-padding: 10px 4px;
+flex: 0 0 auto;
+padding: 12px 18px;
 text-align: center;
-font-size: 12px;
+font-size: 13px;
 font-weight: 700;
 color: var(--text-muted);
 cursor: pointer;
-border-bottom: 2px solid transparent;
+border-bottom: 2.5px solid transparent;
+margin-bottom: -2px;
 transition: all 0.15s;
 user-select: none;
 white-space: nowrap;
-border-top: 1px solid var(--border);
 }
-.nav-tab:nth-child(-n+3) { border-top: none; }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-dim); }
 .nav-tab:active { opacity: 0.7; }
 
@@ -4179,6 +4184,11 @@ let curTaskPriority = 'mid';
 function switchTab(tab) {
 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
 document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+// 활성 탭을 가로 스크롤 중앙으로
+setTimeout(() => {
+  const activeTab = document.getElementById('tab-' + tab);
+  if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}, 50);
 if (tab === 'list') {
 document.getElementById('tab-list').classList.add('active');
 const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
