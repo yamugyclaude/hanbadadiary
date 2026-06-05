@@ -976,6 +976,9 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .view-mode .sound-equip-chip-del { display: none !important; }
 .view-mode .sound-view-btn { display: inline-flex !important; }
 /* 음향장비 세팅 */
+.snd-mode-toggle { display:flex; gap:0; margin-bottom:14px; border:1.5px solid var(--border2); border-radius:10px; overflow:hidden; }
+.snd-mode-btn { flex:1; padding:9px; font-size:13px; font-weight:700; color:var(--text-muted); background:var(--surface2); border:none; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
+.snd-mode-btn.active { background:var(--accent-dim); color:var(--accent); }
 .sound-equip-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.12s; white-space:nowrap; }
 .sound-equip-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
 .sound-equip-btn.sel { background:var(--accent-dim); border-color:rgba(61,186,150,0.6); color:var(--accent); }
@@ -985,6 +988,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .sound-equip-chip-qty { font-size:10px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
 .sound-equip-chip-del { background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:0; line-height:1; }
 .sound-equip-chip-del:hover { color:var(--accent2); }
+/* 복수세팅 구역 카드 */
+.snd-zone-card { background:var(--surface2); border:1.5px solid var(--border2); border-radius:12px; overflow:hidden; }
+.snd-zone-head { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--surface3); border-bottom:1px solid var(--border); }
+.snd-zone-name { font-size:13px; font-weight:800; color:var(--gold); }
+.snd-zone-chips { padding:10px 14px; display:flex; flex-wrap:wrap; gap:6px; }
+/* 뷰모드 */
+.view-mode .snd-mode-toggle { pointer-events:none; }
+.view-mode #sndAddZoneBtn { display:none !important; }
+.view-mode #sndZoneForm { display:none !important; }
+.view-mode .snd-zone-del-btn { display:none !important; }
+.view-mode #soundEquipPicker { display:none !important; }
+.view-mode .sound-equip-chip-del { display:none !important; }
 .view-mode .photo-slot { cursor: default; }
 .view-mode .photo-slot.has-photo { cursor: zoom-in; }
 .view-mode .photo-slot .photo-del-btn { display: none !important; }
@@ -1665,10 +1680,31 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         </div>
       </div>
       <div class="section-content">
-        <!-- 선택된 장비 칩 -->
-        <div id="soundEquipChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
-        <!-- 장비관리 음향장비 목록 -->
-        <div id="soundEquipPicker" style="margin-bottom:14px;"></div>
+        <!-- 모드 토글 -->
+        <div class="snd-mode-toggle">
+          <button class="snd-mode-btn active" id="sndModeBtn_single" onclick="setSoundMode('single')">📦 단일세팅</button>
+          <button class="snd-mode-btn" id="sndModeBtn_multi" onclick="setSoundMode('multi')">📍 복수세팅</button>
+        </div>
+        <!-- 단일세팅 패널 -->
+        <div id="sndSinglePanel">
+          <div id="soundEquipChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+          <div id="soundEquipPicker" style="margin-bottom:14px;"></div>
+        </div>
+        <!-- 복수세팅 패널 -->
+        <div id="sndMultiPanel" style="display:none;">
+          <div id="sndZoneList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;"></div>
+          <button class="add-row-btn" id="sndAddZoneBtn" onclick="openSndZoneForm()">📍 구역 추가</button>
+          <!-- 구역 추가 폼 -->
+          <div id="sndZoneForm" style="display:none;background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:14px;margin-top:8px;">
+            <input id="sndZoneName" type="text" placeholder="구역명 (예: 수영 START, 바꿈터, 체조…)" style="width:100%;background:var(--surface);border:1.5px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:8px;">
+            <div id="sndZonePicker" style="margin-bottom:8px;"></div>
+            <div id="sndZoneDraft" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:16px;"></div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="confirmSndZone()" style="flex:1;background:var(--accent);border:none;color:#0a0c10;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✅ 구역 추가</button>
+              <button onclick="closeSndZoneForm()" style="background:var(--surface3);border:1.5px solid var(--border2);color:var(--text-muted);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
+            </div>
+          </div>
+        </div>
         <!-- 콘솔 브랜드 -->
         <div class="equip-select-block">
           <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
@@ -2434,7 +2470,21 @@ let _pendingMDLogId    = '';
 let isViewMode = false;
 
 // ── 음향장비 세팅 ──
-let soundEquipItems = []; // [{equipId, name, model, qty}]
+let soundSetupMode = 'single'; // 'single' | 'multi'
+let soundEquipItems = [];      // 단일세팅 [{equipId, name, model, qty}]
+let soundZones = [];           // 복수세팅 [{id, name, items:[]}]
+let sndZoneDraftItems = [];    // 구역 추가 중 임시
+let sndZoneEditIdx = null;
+
+function setSoundMode(mode) {
+  soundSetupMode = mode;
+  document.getElementById('sndModeBtn_single').classList.toggle('active', mode === 'single');
+  document.getElementById('sndModeBtn_multi').classList.toggle('active', mode === 'multi');
+  document.getElementById('sndSinglePanel').style.display = mode === 'single' ? '' : 'none';
+  document.getElementById('sndMultiPanel').style.display  = mode === 'multi'  ? '' : 'none';
+  if (mode === 'single') { renderSoundEquipPicker(); renderSoundEquipChips(); }
+  if (mode === 'multi')  { renderSndZoneList(); }
+}
 
 function renderSoundEquipPicker() {
   const el = document.getElementById('soundEquipPicker');
@@ -2490,6 +2540,117 @@ function removeSoundEquip(equipId) {
   renderSoundEquipChips();
 }
 
+// ── 복수세팅 구역 관리 ──
+function renderSndZoneList() {
+  const el = document.getElementById('sndZoneList');
+  if (!el) return;
+  if (!soundZones.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">구역을 추가하세요.</div>'; return; }
+  const COLORS = ['var(--accent)', 'var(--gold)', 'var(--accent2)', '#5b9cf6', '#9b72cf'];
+  el.innerHTML = soundZones.map(function(z, i) {
+    var col = COLORS[i % COLORS.length];
+    var chips = (z.items || []).map(function(item) {
+      return '<span class="sound-equip-chip" style="font-size:11px;padding:3px 8px 3px 10px;">' +
+        item.name + (item.qty ? '<span class="sound-equip-chip-qty">· ' + item.qty + '</span>' : '') +
+        '<button class="sound-equip-chip-del" onclick="removeSndZoneItem(' + i + ',\'' + item.equipId + '\')">✕</button></span>';
+    }).join('');
+    return '<div class="snd-zone-card">' +
+      '<div class="snd-zone-head" style="border-left:4px solid ' + col + ';">' +
+      '<span class="snd-zone-name">' + z.name + '</span>' +
+      '<div style="display:flex;gap:6px;">' +
+      '<button class="zone-card-edit-btn snd-zone-del-btn" style="font-size:12px;" onclick="editSndZone(' + i + ')">✏️</button>' +
+      '<button class="zone-card-del-btn snd-zone-del-btn" style="font-size:12px;" onclick="deleteSndZone(' + i + ')">🗑</button>' +
+      '</div></div>' +
+      '<div class="snd-zone-chips">' + (chips || '<span style="font-size:11px;color:var(--text-muted);">장비 없음</span>') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function removeSndZoneItem(zIdx, equipId) {
+  soundZones[zIdx].items = soundZones[zIdx].items.filter(function(x) { return x.equipId !== equipId; });
+  renderSndZoneList();
+}
+
+function openSndZoneForm() {
+  sndZoneEditIdx = null; sndZoneDraftItems = [];
+  document.getElementById('sndZoneName').value = '';
+  renderSndZoneDraft(); renderSndZonePicker();
+  document.getElementById('sndZoneForm').style.display = '';
+  document.getElementById('sndAddZoneBtn').style.display = 'none';
+  document.getElementById('sndZoneName').focus();
+}
+
+function closeSndZoneForm() {
+  sndZoneEditIdx = null; sndZoneDraftItems = [];
+  document.getElementById('sndZoneForm').style.display = 'none';
+  document.getElementById('sndAddZoneBtn').style.display = '';
+}
+
+function editSndZone(idx) {
+  sndZoneEditIdx = idx;
+  sndZoneDraftItems = JSON.parse(JSON.stringify(soundZones[idx].items || []));
+  document.getElementById('sndZoneName').value = soundZones[idx].name;
+  renderSndZoneDraft(); renderSndZonePicker();
+  document.getElementById('sndZoneForm').style.display = '';
+  document.getElementById('sndAddZoneBtn').style.display = 'none';
+}
+
+function deleteSndZone(idx) { soundZones.splice(idx, 1); renderSndZoneList(); }
+
+function confirmSndZone() {
+  var name = document.getElementById('sndZoneName').value.trim();
+  if (!name) { showToast('구역명을 입력하세요'); return; }
+  if (sndZoneEditIdx !== null) {
+    soundZones[sndZoneEditIdx].name = name;
+    soundZones[sndZoneEditIdx].items = [...sndZoneDraftItems];
+  } else {
+    soundZones.push({ id: 'sz_' + Date.now(), name: name, items: [...sndZoneDraftItems] });
+  }
+  closeSndZoneForm(); renderSndZoneList();
+}
+
+function renderSndZonePicker() {
+  var el = document.getElementById('sndZonePicker');
+  if (!el) return;
+  var items = (equipmentData['음향장비'] || []).filter(function(e) { return e.status !== 'retired'; });
+  if (!items.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">장비관리에 음향장비를 등록하세요.</div>'; return; }
+  el.innerHTML = '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:6px;">음향장비 선택</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+    items.map(function(eq) {
+      var sel = sndZoneDraftItems.some(function(x) { return x.equipId === eq.id; });
+      return '<button class="sound-equip-btn' + (sel ? ' sel' : '') + '" ' +
+        'data-eid="' + eq.id + '" data-ename="' + eq.name.replace(/"/g, '&quot;') + '" data-emodel="' + (eq.model || '').replace(/"/g, '&quot;') + '" ' +
+        'onclick="toggleSndZonePicker(this)">' +
+        eq.name + (eq.model ? ' <span style="font-size:10px;color:var(--text-muted);">' + eq.model + '</span>' : '') +
+        '</button>';
+    }).join('') + '</div>';
+}
+
+function toggleSndZonePicker(btn) {
+  var equipId = btn.dataset.eid, name = btn.dataset.ename, model = btn.dataset.emodel;
+  var idx = sndZoneDraftItems.findIndex(function(x) { return x.equipId === equipId; });
+  if (idx >= 0) { sndZoneDraftItems.splice(idx, 1); }
+  else {
+    var qty = prompt('수량 (예: 2조, 1EA — 빈칸 가능):') || '';
+    sndZoneDraftItems.push({ equipId: equipId, name: name, model: model, qty: qty.trim() });
+  }
+  renderSndZonePicker(); renderSndZoneDraft();
+}
+
+function renderSndZoneDraft() {
+  var el = document.getElementById('sndZoneDraft');
+  if (!el) return;
+  el.innerHTML = sndZoneDraftItems.map(function(item) {
+    return '<span class="sound-equip-chip" style="font-size:11px;">' +
+      item.name + (item.qty ? '<span class="sound-equip-chip-qty">· ' + item.qty + '</span>' : '') +
+      '<button class="sound-equip-chip-del" onclick="removeSndDraftItem(\'' + item.equipId + '\')">✕</button></span>';
+  }).join('') || '<span style="font-size:11px;color:var(--text-muted);">선택된 장비 없음</span>';
+}
+
+function removeSndDraftItem(equipId) {
+  sndZoneDraftItems = sndZoneDraftItems.filter(function(x) { return x.equipId !== equipId; });
+  renderSndZonePicker(); renderSndZoneDraft();
+}
+
 function openSoundSetupView() {
   const log = logs.find(function(l) { return l.id === currentId; });
   if (!log) return;
@@ -2505,9 +2666,11 @@ function openSoundSetupView() {
     if (speaker_) html += '<div style="font-size:13px;color:var(--text);">스피커: ' + speaker_ + '</div>';
     html += '</div>';
   }
-  if (items.length) {
+  var setupMode = log.soundSetupMode || 'single';
+  var zones = log.soundZones || [];
+  if (setupMode === 'single' && items.length) {
     html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📦 투입 장비</div>';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📦 투입 장비 (단일세팅)</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
     items.forEach(function(item) {
       html += '<span style="background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;">';
@@ -2516,6 +2679,21 @@ function openSoundSetupView() {
       html += '</span>';
     });
     html += '</div></div>';
+  }
+  if (setupMode === 'multi' && zones.length) {
+    var ZCOLS = ['var(--accent)', 'var(--gold)', 'var(--accent2)', '#5b9cf6'];
+    zones.forEach(function(z, zi) {
+      html += '<div style="background:var(--surface2);border:1px solid var(--border);border-left:4px solid ' + ZCOLS[zi % 4] + ';border-radius:10px;padding:12px 14px;margin-bottom:10px;">';
+      html += '<div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;">📍 ' + z.name + '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      (z.items || []).forEach(function(item) {
+        html += '<span style="background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700;">';
+        html += item.name;
+        if (item.qty) html += ' <span style="color:var(--accent);font-size:11px;">· ' + item.qty + '</span>';
+        html += '</span>';
+      });
+      html += '</div></div>';
+    });
   }
   if (photos.length) {
     html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">';
@@ -2749,7 +2927,7 @@ function newLog() {
   monitorChecks = {}; consoleSelected = ''; speakerSelected = '';
   consoleBrands = new Set(); speakerBrands = new Set();
   soundPhotos = [null,null,null,null]; stagePhotos = [null,null,null,null];
-  soundEquipItems = [];
+  soundEquipItems = []; soundZones = []; soundSetupMode = 'single';
   weatherSelected = [];
   announcerHas = null; bannerHas = null; trussHas = null; stairHas = null;
   const log = {
@@ -2873,8 +3051,10 @@ function fillForm(log) {
   renderPhotoSlots('stage', stagePhotos);
   // 음향장비 세팅 복원
   soundEquipItems = JSON.parse(JSON.stringify(log.soundEquipItems || []));
-  renderSoundEquipPicker();
-  renderSoundEquipChips();
+  soundZones      = JSON.parse(JSON.stringify(log.soundZones || []));
+  soundSetupMode  = log.soundSetupMode || 'single';
+  sndZoneDraftItems = []; sndZoneEditIdx = null;
+  setSoundMode(soundSetupMode);
   // 요약 버튼 표시 (뷰모드)
   const svBtn = document.querySelector('.sound-view-btn');
   if (svBtn) svBtn.style.display = isViewMode ? 'inline-flex' : 'none';
@@ -3179,6 +3359,8 @@ log.stageInstallDay = stageInstallDay;
 log.soundPhotos = [...soundPhotos];
 log.stagePhotos = [...stagePhotos];
 log.soundEquipItems = JSON.parse(JSON.stringify(soundEquipItems));
+log.soundSetupMode  = soundSetupMode;
+log.soundZones      = JSON.parse(JSON.stringify(soundZones));
 
 // 전기
 log.elecType = elecType;
