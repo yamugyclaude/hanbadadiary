@@ -972,6 +972,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .view-mode .equip-opt, .view-mode .toggle-opt { pointer-events: none; }
 .view-mode .add-row-btn { display: none !important; }
 .view-mode .rh-del-btn, .view-mode .eq-del-btn { display: none !important; }
+.view-mode .zone-card-actions { display: none !important; }
+.view-mode .zone-add-form { display: none !important; }
+.view-mode #zoneAddBtn { display: none !important; }
+/* 뷰모드에서 구역카드 그리드로 전환 */
+.view-mode .zone-card-list { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+@media(min-width:600px){ .view-mode .zone-card-list { grid-template-columns: repeat(3,1fr); } }
+@media(min-width:900px){ .view-mode .zone-card-list { grid-template-columns: repeat(4,1fr); } }
+.view-mode .zone-card { break-inside: avoid; }
+.view-mode .zone-card-head { font-size:13px; font-weight:800; }
+.view-mode .zone-card-items { flex-direction: column; gap: 3px; }
+.view-mode .zone-item-tag { background: none; border: none; padding: 0; font-size:12px; color:var(--text2); }
+.view-mode .zone-item-tag::before { content: '· '; color:var(--gold); }
 .view-mode .photo-slot { cursor: default; }
 .view-mode .photo-slot.has-photo { cursor: zoom-in; }
 .view-mode .photo-slot .photo-del-btn { display: none !important; }
@@ -998,6 +1010,35 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .gcal-event.is-today .gcal-date-wd { color: var(--accent); }
 .gcal-event.is-today .gcal-event-title { color: var(--accent); }
 .gcal-msg { padding: 14px 0; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+
+/* ─── 구역별 장비 세팅 ─── */
+.zone-card-list { display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+.zone-card { background:var(--surface2); border:1.5px solid var(--border2); border-radius:12px; overflow:hidden; }
+.zone-card-head { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--surface3); border-bottom:1px solid var(--border); }
+.zone-card-name { font-size:13px; font-weight:800; color:var(--gold); }
+.zone-card-actions { display:flex; gap:6px; }
+.zone-card-edit-btn { background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer; padding:2px 6px; border-radius:5px; }
+.zone-card-edit-btn:hover { color:var(--accent); background:var(--accent-dim); }
+.zone-card-del-btn { background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer; padding:2px 6px; border-radius:5px; }
+.zone-card-del-btn:hover { color:var(--accent2); background:var(--accent2-dim); }
+.zone-card-items { padding:10px 14px; display:flex; flex-wrap:wrap; gap:6px; }
+.zone-item-tag { background:var(--surface); border:1px solid var(--border2); color:var(--text2); border-radius:6px; font-size:12px; padding:4px 10px; }
+.zone-add-form { background:var(--surface2); border:1.5px solid var(--border2); border-radius:12px; padding:14px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
+.zone-name-input { background:var(--surface); border:1.5px solid var(--border2); color:var(--text); border-radius:8px; padding:8px 12px; font-size:13px; font-family:'Noto Sans KR',sans-serif; outline:none; }
+.zone-name-input:focus { border-color:var(--accent); }
+.zone-items-input { background:var(--surface); border:1.5px solid var(--border2); color:var(--text); border-radius:8px; padding:8px 12px; font-size:12px; font-family:'Noto Sans KR',sans-serif; outline:none; resize:vertical; line-height:1.7; }
+.zone-items-input:focus { border-color:var(--accent); }
+.zone-confirm-btn { flex:1; background:var(--accent); border:none; color:#0a0c10; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.zone-cancel-btn { background:var(--surface3); border:1.5px solid var(--border2); color:var(--text-muted); border-radius:8px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+/* 뷰모드 구역 카드 그리드 */
+.zone-view-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; padding:0; }
+@media(min-width:600px){.zone-view-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:900px){.zone-view-grid{grid-template-columns:repeat(4,1fr);}}
+.zone-view-card { background:var(--surface2); border:1.5px solid var(--border2); border-radius:12px; overflow:hidden; }
+.zone-view-head { padding:9px 12px; font-size:12px; font-weight:800; color:var(--bg); background:var(--gold); letter-spacing:0.3px; }
+.zone-view-items { padding:10px 12px; display:flex; flex-direction:column; gap:4px; }
+.zone-view-item { font-size:12px; color:var(--text2); line-height:1.5; display:flex; align-items:flex-start; gap:6px; }
+.zone-view-item::before { content:'·'; color:var(--gold); flex-shrink:0; margin-top:1px; }
 
 /* ─── 호버 미리보기 ─── */
 .hover-preview {
@@ -1693,6 +1734,27 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
       <div class="section-content">
         <div class="monitor-check-list" id="monitorCheckList"></div>
+      </div>
+    </div>
+
+    <!-- 구역별 장비 세팅 계획 -->
+    <div class="section-block" id="secZone">
+      <div class="section-header" onclick="toggleSection('secZone')">
+        <div class="section-header-left"><span class="section-icon">📍</span><span class="section-title">구역별 장비 세팅</span></div>
+        <span class="section-chevron">▼</span>
+      </div>
+      <div class="section-content">
+        <div id="zoneCardList" class="zone-card-list"></div>
+        <!-- 구역 추가 인라인 폼 -->
+        <div id="zoneAddForm" class="zone-add-form" style="display:none;">
+          <input id="zoneNameInput" class="zone-name-input" placeholder="구역명 (예: 수영 START, 바꿈터, 체조…)" maxlength="30">
+          <textarea id="zoneItemsInput" class="zone-items-input" placeholder="장비 목록 입력 (줄바꿈 또는 쉼표로 구분)&#10;예: d&b v8, v-sub 1조&#10;Allen&amp;Heath SQ7&#10;Sennheiser ewd965" rows="4"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="zone-confirm-btn" onclick="confirmZoneAdd()">✅ 추가</button>
+            <button class="zone-cancel-btn" onclick="cancelZoneAdd()">취소</button>
+          </div>
+        </div>
+        <button class="add-row-btn" id="zoneAddBtn" onclick="showZoneAddForm()">📍 구역 추가</button>
       </div>
     </div>
 
@@ -2434,6 +2496,78 @@ function closeLightbox() {
   document.getElementById('photoLightboxImg').src = '';
 }
 
+// ── 구역별 장비 세팅 ──
+let _zones = []; // 현재 편집 중인 구역 목록
+let _zoneEditIdx = null; // 편집 중인 구역 인덱스
+
+function _zoneId() { return 'z_' + Date.now() + '_' + Math.random().toString(36).slice(2,5); }
+
+function renderZoneCards() {
+  const list = document.getElementById('zoneCardList');
+  if (!list) return;
+  if (!_zones.length) { list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">구역을 추가하면 장비 세팅을 구역별로 정리할 수 있습니다.</div>'; return; }
+  const COLORS = ['var(--accent)','var(--gold)','var(--accent2)','#5b9cf6','#9b72cf','#4ecdc4'];
+  list.innerHTML = _zones.map((z, i) => {
+    const col = COLORS[i % COLORS.length];
+    const tags = z.items.map(it => `<span class="zone-item-tag">${it}</span>`).join('');
+    return `<div class="zone-card">
+      <div class="zone-card-head" style="border-left:4px solid ${col};">
+        <span class="zone-card-name">${z.name}</span>
+        <div class="zone-card-actions">
+          <button class="zone-card-edit-btn" onclick="editZone(${i})">✏️ 수정</button>
+          <button class="zone-card-del-btn" onclick="deleteZone(${i})">🗑</button>
+        </div>
+      </div>
+      <div class="zone-card-items">${tags || '<span style="font-size:11px;color:var(--text-muted)">장비 없음</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function showZoneAddForm() {
+  _zoneEditIdx = null;
+  document.getElementById('zoneNameInput').value = '';
+  document.getElementById('zoneItemsInput').value = '';
+  document.getElementById('zoneAddForm').style.display = 'flex';
+  document.getElementById('zoneAddBtn').style.display = 'none';
+  document.getElementById('zoneNameInput').focus();
+}
+
+function cancelZoneAdd() {
+  _zoneEditIdx = null;
+  document.getElementById('zoneAddForm').style.display = 'none';
+  document.getElementById('zoneAddBtn').style.display = '';
+}
+
+function confirmZoneAdd() {
+  const name = document.getElementById('zoneNameInput').value.trim();
+  const raw  = document.getElementById('zoneItemsInput').value;
+  if (!name) { showToast('구역명을 입력하세요'); return; }
+  // 줄바꿈과 쉼표 모두 구분자
+  const items = raw.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+  if (_zoneEditIdx !== null) {
+    _zones[_zoneEditIdx] = { ..._zones[_zoneEditIdx], name, items };
+  } else {
+    _zones.push({ id: _zoneId(), name, items });
+  }
+  cancelZoneAdd();
+  renderZoneCards();
+}
+
+function editZone(idx) {
+  _zoneEditIdx = idx;
+  const z = _zones[idx];
+  document.getElementById('zoneNameInput').value  = z.name;
+  document.getElementById('zoneItemsInput').value = z.items.join('\n');
+  document.getElementById('zoneAddForm').style.display = 'flex';
+  document.getElementById('zoneAddBtn').style.display = 'none';
+  document.getElementById('zoneNameInput').focus();
+}
+
+function deleteZone(idx) {
+  _zones.splice(idx, 1);
+  renderZoneCards();
+}
+
 // ── 리스트 렌더 ──
 function renderList() {
   const el = document.getElementById('logCards');
@@ -2623,7 +2757,7 @@ function newLog() {
     bannerHas: null, bannerW:'', bannerH:'',
     trussHas: null, trussW:'', trussH:'',
     stairHas: null, stairPos:[],
-    equipment:[],
+    equipment:[], zones:[],
     preIssues:'', duringIssues:'', resolution:'',
     clientFeedback:'', memo:'', createdAt: new Date().toISOString(),
     createdBy: currentUser ? currentUser.id : 'unknown',
@@ -2728,6 +2862,10 @@ function fillForm(log) {
   renderMonitorChecklist();
   renderRehearsals(log.rehearsals||[]);
   renderEquipment(log.equipment||[]);
+  // 구역별 장비 세팅 복원
+  _zones = JSON.parse(JSON.stringify(log.zones || []));
+  cancelZoneAdd();
+  renderZoneCards();
   renderPhotoSlots('sound', soundPhotos);
   renderPhotoSlots('stage', stagePhotos);
   updateTitle();
@@ -3055,6 +3193,9 @@ log.equipment = [];
 document.querySelectorAll('.eq-item-card').forEach(card => {
 log.equipment.push({ item:card.querySelector('.eq-name')?.value||'', qty:card.querySelector('.eq-qty')?.value||'', serial:card.querySelector('.eq-serial')?.value||'', note:card.querySelector('.eq-note')?.value||'' });
 });
+
+// 구역별 장비 세팅
+log.zones = JSON.parse(JSON.stringify(_zones));
 
 return log;
 }
