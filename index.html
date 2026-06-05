@@ -1018,6 +1018,24 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .setup-action-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
 .setup-pick-btn { background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:9px; font-size:12px; font-weight:700; padding:8px 14px; cursor:pointer; font-family:"Noto Sans KR",sans-serif; }
 .setup-direct-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text2); border-radius:9px; font-size:12px; font-weight:700; padding:8px 14px; cursor:pointer; font-family:"Noto Sans KR",sans-serif; }
+/* 인라인 카테고리 피커 */
+.inline-cat-block { margin-bottom:10px; }
+.inline-cat-head { display:flex; align-items:center; gap:8px; padding:7px 0 5px; cursor:pointer; user-select:none; }
+.inline-cat-head-label { font-size:12px; font-weight:800; color:var(--gold); flex:1; }
+.inline-cat-toggle { font-size:11px; color:var(--text-muted); }
+.inline-cat-items { display:flex; flex-wrap:wrap; gap:6px; padding-bottom:4px; }
+.inline-equip-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text2); border-radius:20px; padding:5px 13px; font-size:12px; font-weight:600; cursor:pointer; font-family:"Noto Sans KR",sans-serif; transition:all 0.12s; display:flex; align-items:center; gap:5px; }
+.inline-equip-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+.inline-equip-btn.selected { background:var(--accent-dim); border-color:rgba(61,186,150,0.6); color:var(--accent); }
+.inline-equip-btn .eq-qty-badge { font-size:10px; color:var(--text-muted); font-family:"JetBrains Mono",monospace; }
+/* 선택된 장비 목록 */
+.setup-selected-wrap { margin-bottom:12px; }
+.setup-selected-title { font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:6px; letter-spacing:0.5px; }
+/* 뷰모드 */
+.view-mode .setup-mode-toggle { pointer-events:none; }
+.view-mode .setup-direct-btn { display:none !important; }
+.view-mode .inline-equip-btn { pointer-events:none; cursor:default; }
+.view-mode .setup-chip-del { display:none !important; }
 /* 단일장소 카테고리 */
 .setup-cat-block { margin-bottom:12px; }
 .setup-cat-label { font-size:11px; font-weight:800; color:var(--gold); letter-spacing:0.5px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
@@ -1814,22 +1832,20 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           <button class="setup-mode-btn active" id="setupModeBtn_single" onclick="setSetupMode('single')">📦 단일장소</button>
           <button class="setup-mode-btn" id="setupModeBtn_zone" onclick="setSetupMode('zone')">📍 구역별</button>
         </div>
+        <!-- 선택된 장비 목록 (항상 표시) -->
+        <div id="setupSelectedList"></div>
+        <!-- 단일장소: 인라인 카테고리 피커 -->
         <div id="setupSinglePanel">
-          <div id="setupSingleList"></div>
-          <div class="setup-action-row">
-            <button class="setup-pick-btn" onclick="openEquipPicker(null)">🗂️ 장비관리에서 선택</button>
-            <button class="setup-direct-btn" onclick="openDirectInput(null)">✏️ 직접 입력</button>
-          </div>
+          <div id="setupInlineCats"></div>
+          <button class="setup-direct-btn" style="margin-top:8px;width:100%;" onclick="openDirectInput(null)">✏️ 목록에 없는 장비 직접 입력</button>
         </div>
+        <!-- 구역별 -->
         <div id="setupZonePanel" style="display:none;">
           <div id="zoneCardList" class="zone-card-list"></div>
           <div id="zoneAddForm" class="zone-add-form" style="display:none;">
             <input id="zoneNameInput" class="zone-name-input" placeholder="구역명 (예: 수영 START, 바꿈터…)" maxlength="30">
-            <div class="zone-form-btns">
-              <button class="setup-pick-btn" style="flex:1" onclick="openEquipPicker('__zone__')">🗂️ 장비관리에서 선택</button>
-              <button class="setup-direct-btn" onclick="openDirectInput('__zone__')">✏️ 직접</button>
-            </div>
-            <div id="zoneDraftItems" class="zone-draft-items"></div>
+            <div id="zoneInlineCats" style="margin-top:8px;"></div>
+            <div id="zoneDraftItems" class="zone-draft-items" style="margin-top:6px;"></div>
             <div style="display:flex;gap:8px;margin-top:8px;">
               <button class="zone-confirm-btn" onclick="confirmZoneAdd()">✅ 구역 추가</button>
               <button class="zone-cancel-btn" onclick="cancelZoneAdd()">취소</button>
@@ -2616,40 +2632,100 @@ function setSetupMode(mode) {
   document.getElementById('setupModeBtn_zone')?.classList.toggle('active', mode==='zone');
   document.getElementById('setupSinglePanel').style.display = mode==='single' ? '' : 'none';
   document.getElementById('setupZonePanel').style.display   = mode==='zone'   ? '' : 'none';
+  if (mode === 'single') { renderInlineCats('setupInlineCats', null); renderSelectedList(); }
+  if (mode === 'zone')   { renderZoneCards(); }
 }
 
 function _setupItemId() { return 'si_' + Date.now() + '_' + Math.random().toString(36).slice(2,5); }
 function _zoneId()      { return 'z_'  + Date.now() + '_' + Math.random().toString(36).slice(2,5); }
 
-function renderSingleSetup() {
-  const list = document.getElementById('setupSingleList');
-  if (!list) return;
-  if (!_setupItems.length) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0 10px;">아래 버튼으로 장비를 추가하세요.</div>';
-    return;
-  }
+// 선택된 장비 표시 (단일장소)
+function renderSelectedList() {
+  const wrap = document.getElementById('setupSelectedList');
+  if (!wrap) return;
+  if (!_setupItems.length) { wrap.innerHTML = ''; return; }
   const groups = {};
   _setupItems.forEach(item => {
     const cat = item.cat || '기타';
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(item);
   });
-  list.innerHTML = Object.entries(groups).map(([cat, items]) =>
-    '<div class="setup-cat-block">' +
-    '<div class="setup-cat-label">' + cat + '</div>' +
+  wrap.innerHTML = '<div class="setup-selected-wrap">' +
+    '<div class="setup-selected-title">✅ 선택된 장비</div>' +
     '<div class="setup-chips">' +
-    items.map(item =>
+    _setupItems.map(item =>
       '<span class="setup-chip"><span>' + _escEq(item.name) + '</span>' +
       (item.qty ? '<span class="setup-chip-qty">' + _escEq(item.qty) + '</span>' : '') +
       '<button class="setup-chip-del" onclick="removeSetupItem(\'' + item.id + '\')">✕</button></span>'
     ).join('') +
-    '</div></div>'
-  ).join('');
+    '</div></div>';
 }
+
+function renderSingleSetup() { renderSelectedList(); renderInlineCats('setupInlineCats', null); }
 
 function removeSetupItem(id) {
   _setupItems = _setupItems.filter(x => x.id !== id);
-  renderSingleSetup();
+  renderSelectedList();
+  renderInlineCats('setupInlineCats', null);
+}
+
+// 인라인 카테고리 장비 버튼
+let _collapsedCats = {};
+function renderInlineCats(containerId, draftTarget) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const isDraft = draftTarget !== null; // zone draft
+  // 사용 가능한 장비 (사용중만)
+  const cats = EQUIP_CATS.filter(cat => (equipmentData[cat]||[]).some(e => e.status !== 'retired'));
+  if (!cats.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:6px 0;">장비관리 탭에서 장비를 먼저 등록하세요.</div>';
+    return;
+  }
+  const catIcons = {'음향장비':'🔊','무대장비':'🎪','사무실장비':'🖥️','조명장비':'💡','특효장비':'✨','기타장비':'📦'};
+  el.innerHTML = cats.map(cat => {
+    const items = (equipmentData[cat]||[]).filter(e => e.status !== 'retired');
+    if (!items.length) return '';
+    const collapsed = _collapsedCats[cat];
+    return '<div class="inline-cat-block">' +
+      '<div class="inline-cat-head" onclick="toggleInlineCat(\'' + cat + '\',\'' + containerId + '\',\'' + (isDraft?'draft':'single') + '\')">' +
+      '<span class="inline-cat-head-label">' + (catIcons[cat]||'') + ' ' + cat + '</span>' +
+      '<span class="inline-cat-toggle">' + (collapsed ? '▶' : '▼') + '</span>' +
+      '</div>' +
+      (collapsed ? '' :
+        '<div class="inline-cat-items">' +
+        items.map(eq => {
+          const selList = isDraft ? _zoneDraftItems : _setupItems;
+          const isSel = selList.some(x => x.equipId === eq.id);
+          return '<button class="inline-equip-btn' + (isSel?' selected':'') + '" ' +
+            'onclick="toggleInlineEquip(\'' + eq.id + '\',\'' + _escEq(eq.name) + '\',\'' + _escEq(eq.model||'') + '\',\'' + cat + '\',\'' + containerId + '\',\'' + (isDraft?'draft':'single') + '\')">' +
+            _escEq(eq.name) +
+            (eq.model ? '<span class="eq-qty-badge">' + _escEq(eq.model) + '</span>' : '') +
+            '</button>';
+        }).join('') +
+        '</div>') +
+      '</div>';
+  }).join('');
+}
+
+function toggleInlineCat(cat, containerId, mode) {
+  _collapsedCats[cat] = !_collapsedCats[cat];
+  renderInlineCats(containerId, mode === 'draft' ? true : null);
+}
+
+function toggleInlineEquip(equipId, name, model, cat, containerId, mode) {
+  const isDraft = mode === 'draft';
+  const list = isDraft ? _zoneDraftItems : _setupItems;
+  const existIdx = list.findIndex(x => x.equipId === equipId);
+  if (existIdx >= 0) {
+    // 이미 선택됨 → 제거
+    list.splice(existIdx, 1);
+  } else {
+    // 새로 선택 → 수량 입력
+    const qty = prompt('수량을 입력하세요 (예: 2조, 1EA — 빈칸도 가능):') ?? '';
+    list.push({ id: _setupItemId(), equipId, name, model, qty: qty.trim(), cat });
+  }
+  if (isDraft) { renderZoneDraft(); renderInlineCats(containerId, true); }
+  else { renderSelectedList(); renderInlineCats(containerId, null); }
 }
 
 function renderZoneCards() {
@@ -2689,6 +2765,7 @@ function showZoneAddForm() {
   _zoneEditIdx = null; _zoneDraftItems = [];
   document.getElementById('zoneNameInput').value = '';
   renderZoneDraft();
+  renderInlineCats('zoneInlineCats', true);
   document.getElementById('zoneAddForm').style.display = 'flex';
   document.getElementById('zoneAddBtn').style.display = 'none';
   document.getElementById('zoneNameInput').focus();
@@ -3123,10 +3200,9 @@ function fillForm(log) {
   _setupMode = log.setupMode || 'single';
   _setupItems = JSON.parse(JSON.stringify(log.setupItems || []));
   _zones = JSON.parse(JSON.stringify(log.zones || []));
+  _collapsedCats = {};
   setSetupMode(_setupMode);
-  renderSingleSetup();
   cancelZoneAdd();
-  renderZoneCards();
   renderPhotoSlots('sound', soundPhotos);
   renderPhotoSlots('stage', stagePhotos);
   updateTitle();
