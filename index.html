@@ -778,6 +778,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .alba-sched-event { font-size:12px; color:var(--text-muted); }
 .alba-sched-pay { font-size:12px; color:var(--accent); font-weight:700; white-space:nowrap; }
 .alba-sched-del { background:none; border:none; color:var(--accent2); font-size:16px; cursor:pointer; padding:0 4px; flex-shrink:0; }
+.alba-sched-edit { background:none; border:none; color:var(--text-muted); font-size:15px; cursor:pointer; padding:0 4px; flex-shrink:0; }
 
 /* ─── 장비관리대장 ─── */
 .equip-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0; }
@@ -3449,13 +3450,33 @@ function renderAlbaWorkerGrid() {
   }).join('');
 }
 
+function _albaDateRange(s) {
+  // 구버전(date) / 신버전(startDate~endDate) 모두 지원
+  const start = s.startDate || s.date || '';
+  const end   = s.endDate   || s.date || '';
+  if (!start) return '';
+  if (start === end || !end) return start;
+  return `${start} ~ ${end}`;
+}
+function _albaTimeRange(s) {
+  const st = s.startTime || s.time || '';
+  const et = s.endTime || '';
+  if (!st) return '';
+  return et ? `${st} ~ ${et}` : st;
+}
+
 function renderAlbaSchedule() {
   const list = document.getElementById('albaSchedList');
   if (!list) return;
   const month = document.getElementById('albaSchedMonth')?.value || new Date().toISOString().slice(0,7);
+  // 시작일 또는 종료일이 해당 월에 포함되는 스케줄
   const items = albaData.schedules
-    .filter(s => s.date && s.date.startsWith(month))
-    .sort((a,b) => a.date.localeCompare(b.date));
+    .filter(s => {
+      const start = s.startDate || s.date || '';
+      const end   = s.endDate   || s.date || start;
+      return start.startsWith(month) || end.startsWith(month) || (start < month + '-32' && end >= month + '-01');
+    })
+    .sort((a,b) => (a.startDate||a.date||'').localeCompare(b.startDate||b.date||''));
   if (!items.length) {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">이 달 스케줄 없음</div>';
     return;
@@ -3463,15 +3484,23 @@ function renderAlbaSchedule() {
   list.innerHTML = items.map(s => {
     const w = albaData.workers.find(x => x.id === s.workerId);
     const name = w ? w.name : s.workerName || '?';
+    const dateRange = _albaDateRange(s);
+    const timeRange = _albaTimeRange(s);
     return `<div class="alba-sched-item">
-      <div class="alba-sched-date">${s.date}${s.time ? ' ' + s.time : ''}</div>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:110px;">
+        <div class="alba-sched-date">${dateRange}</div>
+        ${timeRange ? `<div style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">${timeRange}</div>` : ''}
+      </div>
       <div class="alba-sched-info">
         <div class="alba-sched-name">${_escEq(name)}</div>
         <div class="alba-sched-event">${_escEq(s.event || '')}</div>
         ${s.memo ? `<div style="font-size:11px;color:var(--text-muted)">${_escEq(s.memo)}</div>` : ''}
       </div>
       ${s.pay ? `<div class="alba-sched-pay">${_escEq(s.pay)}</div>` : ''}
-      <button class="alba-sched-del" onclick="deleteAlbaSchedule('${s.id}')">🗑</button>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <button class="alba-sched-edit" onclick="openAlbaSchedEdit('${s.id}')">✏️</button>
+        <button class="alba-sched-del" onclick="deleteAlbaSchedule('${s.id}')">🗑</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -3523,18 +3552,25 @@ function renderAlbaModal() {
               <button onclick="openAlbaSchedAddForWorker('${w.id}')" style="background:var(--accent-dim);border:1.5px solid rgba(61,186,150,0.4);color:var(--accent);border-radius:7px;font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">＋ 스케줄 추가</button>
             </div>
             ${schedules.length === 0 ? '<div style="padding:12px 14px;color:var(--text-muted);font-size:12px;">스케줄 없음</div>' :
-              schedules.map(s => `
-                <div class="equip-log-item">
+              schedules.map(s => {
+                const dr = _albaDateRange(s);
+                const tr = _albaTimeRange(s);
+                return `<div class="equip-log-item">
                   <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                      <span class="equip-log-date">${_escEq(s.date)}${s.time?' '+s.time:''}</span>
+                      <span class="equip-log-date">${_escEq(dr)}</span>
+                      ${tr?`<span style="font-size:11px;color:var(--text-muted)">${_escEq(tr)}</span>`:''}
                       ${s.pay?`<span style="color:var(--accent);font-size:11px;font-weight:700;">${_escEq(s.pay)}</span>`:''}
                     </div>
                     <div class="equip-log-desc">${_escEq(s.event||'')}</div>
                     ${s.memo?`<div style="font-size:11px;color:var(--text-muted)">${_escEq(s.memo)}</div>`:''}
                   </div>
-                  <button class="equip-log-del" onclick="deleteAlbaSchedule('${s.id}')">🗑</button>
-                </div>`).join('')}
+                  <div style="display:flex;gap:4px;">
+                    <button class="alba-sched-edit" onclick="openAlbaSchedEdit('${s.id}')">✏️</button>
+                    <button class="equip-log-del" onclick="deleteAlbaSchedule('${s.id}')">🗑</button>
+                  </div>
+                </div>`;
+              }).join('')}
           </div>
         </div>
         <div class="equip-modal-actions">
@@ -3567,17 +3603,21 @@ function renderAlbaModal() {
         <button class="equip-action-btn equip-action-cancel" onclick="closeAlbaModal()">취소</button>
       </div>
       <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeAlbaModal()">✕ 닫기</button></div>`;
-  } else if (albaModalMode === 'sched_add') {
+  } else if (albaModalMode === 'sched_add' || albaModalMode === 'sched_edit') {
+    const isSchedEdit = albaModalMode === 'sched_edit';
     const preWorker = albaModalWorkerId ? (albaData.workers.find(x=>x.id===albaModalWorkerId)||null) : null;
+    const editSched = isSchedEdit ? albaData.schedules.find(x=>x.id===albaSchedEditId) : null;
+    const editPreWorker = isSchedEdit && editSched ? (albaData.workers.find(x=>x.id===editSched.workerId)||preWorker) : preWorker;
+    const backFn = preWorker ? `openAlbaWorkerView('${preWorker.id||editSched?.workerId}')` : 'closeAlbaModal()';
     card.innerHTML = `
       <div class="equip-modal-header">
-        <span class="equip-modal-title">📅 스케줄 추가</span>
-        <button class="equip-modal-close" onclick="${preWorker?`openAlbaWorkerView('${preWorker.id}')`:'closeAlbaModal()'}">✕</button>
+        <span class="equip-modal-title">${isSchedEdit ? '✏️ 스케줄 수정' : '📅 스케줄 추가'}</span>
+        <button class="equip-modal-close" onclick="${backFn}">✕</button>
       </div>
-      <div class="equip-modal-body">${_albaSchedForm(null, preWorker)}</div>
+      <div class="equip-modal-body">${_albaSchedForm(editSched, editPreWorker)}</div>
       <div class="equip-modal-actions">
-        <button class="equip-action-btn equip-action-save" onclick="saveAlbaSchedAdd()">💾 저장</button>
-        <button class="equip-action-btn equip-action-cancel" onclick="${preWorker?`openAlbaWorkerView('${preWorker.id}')`:'closeAlbaModal()'}">취소</button>
+        <button class="equip-action-btn equip-action-save" onclick="${isSchedEdit ? 'saveAlbaSchedEdit()' : 'saveAlbaSchedAdd()'}">💾 ${isSchedEdit ? '수정 저장' : '저장'}</button>
+        <button class="equip-action-btn equip-action-cancel" onclick="${backFn}">취소</button>
       </div>
       <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeAlbaModal()">✕ 닫기</button></div>`;
   }
@@ -3594,20 +3634,47 @@ function _albaWorkerForm(w) {
 }
 
 function _albaSchedForm(sched, preWorker) {
+  const today = new Date().toISOString().slice(0,10);
   const workerOptions = albaData.workers.map(w =>
-    `<option value="${w.id}"${preWorker && preWorker.id===w.id?' selected':''}>${_escEq(w.name)}</option>`
+    `<option value="${w.id}"${preWorker && preWorker.id===w.id?' selected':''}>` +
+    `${_escEq(w.name)}</option>`
   ).join('');
+  // 구버전 호환: date 필드 있으면 startDate로 사용
+  const startVal = sched?.startDate || sched?.date || today;
+  const endVal   = sched?.endDate   || sched?.date || today;
   return `<div class="equip-section">
     <div class="equip-section-head">📅 스케줄 정보</div>
     <div class="equip-field-row"><span class="equip-field-label">알바 *</span>
       <select class="equip-field-input" id="sf_worker">${workerOptions}</select>
     </div>
-    <div class="equip-field-row"><span class="equip-field-label">날짜 *</span><input class="equip-field-input" id="sf_date" type="date" value="${sched?.date||new Date().toISOString().slice(0,10)}"></div>
-    <div class="equip-field-row"><span class="equip-field-label">시간</span><input class="equip-field-input" id="sf_time" type="time" value="${sched?.time||''}"></div>
-    <div class="equip-field-row"><span class="equip-field-label">행사명</span><input class="equip-field-input" id="sf_event" value="${_escEq(sched?.event||'')}" placeholder="행사명 또는 업무 내용"></div>
-    <div class="equip-field-row"><span class="equip-field-label">급여</span><input class="equip-field-input" id="sf_pay" value="${_escEq(sched?.pay||'')}" placeholder="예: 100,000원"></div>
-    <div class="equip-field-row"><span class="equip-field-label">메모</span><input class="equip-field-input" id="sf_memo" value="${_escEq(sched?.memo||'')}" placeholder="메모"></div>
+    <div class="equip-field-row"><span class="equip-field-label">시작일 *</span>
+      <input class="equip-field-input" id="sf_startDate" type="date" value="${startVal}" onchange="clampAlbaEndDate()">
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">종료일</span>
+      <input class="equip-field-input" id="sf_endDate" type="date" value="${endVal}">
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">시작시간</span>
+      <input class="equip-field-input" id="sf_startTime" type="time" value="${sched?.startTime||sched?.time||''}">
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">종료시간</span>
+      <input class="equip-field-input" id="sf_endTime" type="time" value="${sched?.endTime||''}">
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">행사명</span>
+      <input class="equip-field-input" id="sf_event" value="${_escEq(sched?.event||'')}" placeholder="행사명 또는 업무 내용">
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">급여</span>
+      <input class="equip-field-input" id="sf_pay" value="${_escEq(sched?.pay||'')}" placeholder="예: 100,000원">
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">메모</span>
+      <input class="equip-field-input" id="sf_memo" value="${_escEq(sched?.memo||'')}" placeholder="메모">
+    </div>
   </div>`;
+}
+
+function clampAlbaEndDate() {
+  const s = document.getElementById('sf_startDate')?.value;
+  const e = document.getElementById('sf_endDate');
+  if (s && e && e.value < s) e.value = s;
 }
 
 function startAlbaWorkerEdit() {
@@ -3670,19 +3737,27 @@ function openAlbaSchedAddForWorker(workerId) {
   renderAlbaModal();
 }
 
-function saveAlbaSchedAdd() {
-  const workerId = document.getElementById('sf_worker')?.value;
-  const date = document.getElementById('sf_date')?.value;
-  if (!workerId || !date) { showToast('알바와 날짜를 선택하세요'); return; }
+function _readAlbaSchedForm() {
+  const workerId  = document.getElementById('sf_worker')?.value;
+  const startDate = document.getElementById('sf_startDate')?.value;
+  const endDate   = document.getElementById('sf_endDate')?.value || startDate;
+  if (!workerId || !startDate) { showToast('알바와 시작일을 선택하세요'); return null; }
   const w = albaData.workers.find(x => x.id === workerId);
-  const sched = {
-    id: _makeAlbaId(), workerId, workerName: w?.name || '',
-    date, time: document.getElementById('sf_time')?.value || '',
+  return {
+    workerId, workerName: w?.name || '',
+    startDate, endDate: endDate < startDate ? startDate : endDate,
+    startTime: document.getElementById('sf_startTime')?.value || '',
+    endTime:   document.getElementById('sf_endTime')?.value   || '',
     event: document.getElementById('sf_event')?.value?.trim() || '',
-    pay: document.getElementById('sf_pay')?.value?.trim() || '',
-    memo: document.getElementById('sf_memo')?.value?.trim() || ''
+    pay:   document.getElementById('sf_pay')?.value?.trim()   || '',
+    memo:  document.getElementById('sf_memo')?.value?.trim()  || ''
   };
-  albaData.schedules.push(sched);
+}
+
+function saveAlbaSchedAdd() {
+  const data = _readAlbaSchedForm();
+  if (!data) return;
+  albaData.schedules.push({ id: _makeAlbaId(), ...data });
   saveAlbaLocal(); _syncAlbaCloud();
   if (albaModalWorkerId) {
     openAlbaWorkerView(albaModalWorkerId);
@@ -3690,6 +3765,30 @@ function saveAlbaSchedAdd() {
     closeAlbaModal(); renderAlbaSchedule();
   }
   showToast('✅ 스케줄 추가 완료');
+}
+
+function openAlbaSchedEdit(schedId) {
+  const pw = prompt('수정 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  albaSchedEditId = schedId;
+  albaModalMode = 'sched_edit';
+  renderAlbaModal();
+}
+
+function saveAlbaSchedEdit() {
+  const data = _readAlbaSchedForm();
+  if (!data) return;
+  const idx = albaData.schedules.findIndex(x => x.id === albaSchedEditId);
+  if (idx < 0) return;
+  albaData.schedules[idx] = { id: albaSchedEditId, ...data };
+  saveAlbaLocal(); _syncAlbaCloud();
+  albaSchedEditId = null;
+  if (albaModalWorkerId) {
+    openAlbaWorkerView(albaModalWorkerId);
+  } else {
+    closeAlbaModal(); renderAlbaSchedule();
+  }
+  showToast('✅ 스케줄 수정 완료');
 }
 
 function deleteAlbaSchedule(schedId) {
