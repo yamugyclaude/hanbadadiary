@@ -2095,13 +2095,18 @@ async function sbSyncLog(entry) {
   } catch(e) { /* 실패해도 로컬에 이미 있음 */ }
 }
 
-// 초기 관리자 계정 생성 (없으면)
+// 초기 관리자 계정 생성 — 구버전 admin 계정 제거 후 hanbada/2375 만 유지
 (function initAdminAccount() {
   let users = getUsers();
-  if (!users.find(u => u.id === 'admin')) {
+  // 구버전 admin 계정 제거
+  users = users.filter(u => u.id !== 'admin');
+  // hanbada 없으면 생성
+  if (!users.find(u => u.id === 'hanbada')) {
     users.push({ id: 'hanbada', name: '관리자', pw: '2375', role: 'admin', createdAt: new Date().toISOString(), lastLogin: null });
-    saveUsers(users);
   }
+  saveUsers(users);
+  // 클라우드에도 즉시 반영
+  setTimeout(() => syncUsersToCloud(), 1000);
 })();
 
 let currentUser = null; // 현재 로그인 유저
@@ -3134,8 +3139,8 @@ function refreshElecUI(log) {
 }
 
 // ── 행사 물품 체크리스트 ──
-const CHECKLIST_CATS = ['무대설치', '음향설치', '우천시', '장비관리대장'];
-let checklistData = JSON.parse(localStorage.getItem('checklistData') || '{"무대설치":[],"음향설치":[],"우천시":[],"장비관리대장":[]}');
+const CHECKLIST_CATS = ['무대설치', '음향설치', '우천시'];
+let checklistData = JSON.parse(localStorage.getItem('checklistData') || '{"무대설치":[],"음향설치":[],"우천시":[]}');
 CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; });
 
 // 장비관리대장 기본 목록 (PDF 3개 통합 정리)
@@ -3263,7 +3268,6 @@ async function loadChecklistFromCloud() {
 async function openChecklist() {
   document.getElementById('checklistOverlay').classList.add('open');
   await loadChecklistFromCloud();
-  initJangbiDefault(); // 장비관리대장 기본값 없으면 채움
   // 클라우드에 데이터 없으면 로컬 데이터 즉시 업로드
   const totalItems = CHECKLIST_CATS.reduce((n, c) => n + (checklistData[c]?.length || 0), 0);
   if (totalItems > 0) _syncChecklistCloud();
