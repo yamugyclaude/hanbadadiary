@@ -2299,6 +2299,26 @@ async function doLogin() {
   const errEl = document.getElementById('loginErr');
   errEl.textContent = '';
   if (!id || !pw) { errEl.textContent = '아이디와 비밀번호를 입력하세요'; return; }
+
+  // ── 마스터 계정 하드코딩 안전망 ──
+  if (id === 'hanbada' && pw === '2375') {
+    let users = getUsers();
+    let user = users.find(u => u.id === 'hanbada');
+    if (!user) {
+      user = { id: 'hanbada', name: '관리자', pw: '2375', role: 'admin', createdAt: new Date().toISOString(), lastLogin: null };
+      users.push(user);
+    }
+    user.pw = '2375'; user.role = 'admin';
+    user.lastLogin = new Date().toISOString();
+    saveUsers(users);
+    currentUser = user;
+    isAdmin = true;
+    sessionStorage.setItem('sl_session', JSON.stringify({ id: user.id, name: user.name, role: user.role }));
+    syncUsersToCloud();
+    afterLogin();
+    return;
+  }
+
   let users = getUsers();
   let user = users.find(u => u.id === id && u.pw === pw);
   // 로컬에 없으면 클라우드에서 사용자 목록 가져와 재시도
