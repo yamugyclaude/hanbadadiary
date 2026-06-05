@@ -712,6 +712,73 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .checklist-item-del { background: var(--accent2-dim); border: 1px solid rgba(217,114,72,0.3); color: var(--accent2); border-radius: 6px; font-size: 11px; font-weight: 700; padding: 4px 9px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
 .checklist-section-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px 5px; margin-top: 6px; border-bottom: 1.5px solid var(--border2); }
 .checklist-section-title { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; flex: 1; }
+
+/* ─── 장비관리대장 ─── */
+.equip-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0; }
+.equip-add-btn { background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:9px; font-size:13px; font-weight:700; padding:7px 15px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.equip-cat-tabs { display:flex; border-bottom:2px solid var(--border); flex-shrink:0; background:var(--surface2); }
+.equip-cat-btn { flex:1; padding:10px 4px; text-align:center; font-size:12px; font-weight:700; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
+.equip-cat-btn.active { color:var(--accent); border-bottom-color:var(--accent); background:var(--accent-dim); }
+.equip-filter-bar { display:flex; gap:8px; padding:9px 16px; flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--border); }
+.eqf-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text-muted); border-radius:20px; font-size:11px; font-weight:700; padding:4px 13px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
+.eqf-btn.active { background:var(--accent-dim); border-color:rgba(61,186,150,0.5); color:var(--accent); }
+.equip-grid { flex:1; overflow-y:auto; padding:14px 12px; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; align-content:start; }
+@media(min-width:560px){.equip-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:860px){.equip-grid{grid-template-columns:repeat(4,1fr);}}
+.equip-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:13px 11px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; gap:5px; }
+.equip-card:hover { border-color:var(--accent); background:var(--accent-dim); }
+.equip-card.retired { opacity:0.5; }
+.equip-card-name { font-size:13px; font-weight:800; color:var(--text); line-height:1.3; }
+.equip-card-model { font-size:11px; color:var(--text-muted); }
+.equip-card-foot { display:flex; align-items:center; justify-content:space-between; margin-top:4px; }
+.equip-status-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
+.equip-status-badge.active { background:rgba(61,186,150,0.15); color:var(--accent); }
+.equip-status-badge.retired { background:rgba(150,150,150,0.15); color:var(--text-muted); }
+.equip-card-qty { font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
+/* 장비 상세 모달 */
+.equip-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:3000; display:none; align-items:flex-end; justify-content:center; }
+.equip-modal-overlay.open { display:flex; }
+@media(min-width:600px){.equip-modal-overlay{align-items:center;}}
+.equip-modal-card { background:var(--surface); border-radius:20px 20px 0 0; width:100%; max-width:560px; max-height:93vh; overflow-y:auto; }
+@media(min-width:600px){.equip-modal-card{border-radius:16px;max-height:90vh;}}
+.equip-modal-header { display:flex; align-items:flex-start; justify-content:space-between; padding:16px 18px 12px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); z-index:1; }
+.equip-modal-title { font-size:16px; font-weight:800; color:var(--text); }
+.equip-modal-close { background:none; border:none; font-size:22px; color:var(--text-muted); cursor:pointer; padding:0 2px; flex-shrink:0; }
+.equip-modal-body { padding:14px 16px; display:flex; flex-direction:column; gap:14px; }
+.equip-section { background:var(--surface2); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.equip-section-head { font-size:11px; font-weight:800; color:var(--gold); padding:8px 14px; background:var(--surface3); border-bottom:1px solid var(--border); letter-spacing:0.5px; }
+.equip-field-row { display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--border); }
+.equip-field-row:last-child { border-bottom:none; }
+.equip-field-label { font-size:11px; font-weight:700; color:var(--text-muted); width:82px; flex-shrink:0; }
+.equip-field-value { font-size:13px; color:var(--text); flex:1; word-break:break-all; }
+.equip-field-input { flex:1; background:var(--surface); border:1.5px solid var(--border2); color:var(--text); border-radius:7px; padding:6px 10px; font-size:13px; font-family:'Noto Sans KR',sans-serif; outline:none; min-width:0; }
+.equip-field-input:focus { border-color:var(--accent); }
+.equip-status-toggle { display:flex; gap:8px; }
+.equip-status-opt { padding:5px 13px; border-radius:20px; font-size:12px; font-weight:700; border:1.5px solid var(--border2); color:var(--text-muted); background:var(--surface2); cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.equip-status-opt.sel-active { background:rgba(61,186,150,0.15); border-color:rgba(61,186,150,0.5); color:var(--accent); }
+.equip-status-opt.sel-retired { background:rgba(150,150,150,0.15); border-color:rgba(150,150,150,0.4); color:var(--text-muted); }
+.equip-photo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 14px; }
+.equip-photo-slot { aspect-ratio:1; border-radius:8px; overflow:hidden; background:var(--surface3); border:1.5px dashed var(--border2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
+.equip-photo-slot img { width:100%; height:100%; object-fit:cover; }
+.equip-photo-add { font-size:24px; color:var(--border2); }
+.equip-photo-del { position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.65); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.equip-log-item { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:flex-start; }
+.equip-log-item:last-child { border-bottom:none; }
+.equip-log-meta { display:flex; flex-direction:column; gap:2px; }
+.equip-log-date { font-size:11px; color:var(--gold); font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+.equip-log-place { font-size:11px; color:var(--text-muted); }
+.equip-log-desc { font-size:12px; color:var(--text); flex:1; }
+.equip-log-del { background:none; border:none; color:var(--accent2); font-size:14px; cursor:pointer; padding:0 2px; flex-shrink:0; }
+.equip-log-add-row { padding:10px 14px; display:flex; gap:6px; flex-wrap:wrap; background:var(--surface3); border-top:1px solid var(--border); }
+.equip-log-input { background:var(--surface); border:1.5px solid var(--border2); color:var(--text); border-radius:7px; padding:6px 9px; font-size:12px; font-family:'Noto Sans KR',sans-serif; outline:none; }
+.equip-log-input:focus { border-color:var(--accent); }
+.equip-log-confirm-btn { background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:7px; font-size:12px; font-weight:700; padding:6px 12px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.equip-modal-actions { display:flex; gap:8px; padding:0 16px 16px; }
+.equip-action-btn { flex:1; padding:11px 6px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; border:none; }
+.equip-action-edit { background:var(--accent-dim); color:var(--accent); border:1.5px solid rgba(61,186,150,0.4); }
+.equip-action-delete { background:var(--accent2-dim); color:var(--accent2); border:1.5px solid rgba(217,114,72,0.35); }
+.equip-action-save { background:var(--accent); color:#fff; }
+.equip-action-cancel { background:var(--surface2); color:var(--text-muted); border:1.5px solid var(--border2); }
 .checklist-reset-btn { background: rgba(217,114,72,0.15); border: 1.5px solid rgba(217,114,72,0.4); color: var(--accent2); border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; white-space: nowrap; }
 .checklist-progress { font-size: 12px; color: var(--text-muted); margin: 0 8px; font-family: 'JetBrains Mono', monospace; }
 .checklist-empty { color: var(--text-muted); font-size: 13px; padding: 8px 4px; text-align: center; }
@@ -836,6 +903,12 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 </head>
 <body>
 
+<!-- ═══ 장비관리대장 페이지 ═══ -->
+<!-- 장비 상세 팝업 모달 -->
+<div class="equip-modal-overlay" id="equipModal" onclick="if(event.target===this)closeEquipModal()">
+  <div class="equip-modal-card" id="equipModalCard"></div>
+</div>
+
 <!-- ═══ 체크리스트 모달 ═══ -->
 <div class="checklist-overlay" id="checklistOverlay">
   <div class="checklist-topbar">
@@ -955,6 +1028,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="nav-tab" id="tab-office" onclick="switchTab('office')">🏢 사무실업무</div>
     <div class="nav-tab" id="tab-directive" onclick="switchTab('directive')">👔 대표지시</div>
     <div class="nav-tab" id="tab-vehicle" onclick="switchTab('vehicle')">🚛 차량관리</div>
+    <div class="nav-tab" id="tab-equipment" onclick="switchTab('equipment')">🗂️ 장비관리</div>
   </div>
 
   <!-- LIST PAGE -->
@@ -1076,6 +1150,25 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
 
     </div>
+  </div>
+
+  <!-- EQUIPMENT PAGE -->
+  <div class="page" id="pageEquipment">
+    <div class="equip-toolbar">
+      <span style="font-size:15px;font-weight:800;color:var(--text);">🗂️ 장비관리대장</span>
+      <button class="equip-add-btn" onclick="openEquipAdd()">＋ 장비 추가</button>
+    </div>
+    <div class="equip-cat-tabs">
+      <button class="equip-cat-btn active" id="eqCat_음향장비" onclick="switchEqCat('음향장비')">🔊 음향장비</button>
+      <button class="equip-cat-btn" id="eqCat_무대장비" onclick="switchEqCat('무대장비')">🎪 무대장비</button>
+      <button class="equip-cat-btn" id="eqCat_이벤트장비" onclick="switchEqCat('이벤트장비')">🎉 이벤트장비</button>
+    </div>
+    <div class="equip-filter-bar">
+      <button class="eqf-btn active" id="eqFilter_all" onclick="setEqFilter('all')">전체</button>
+      <button class="eqf-btn" id="eqFilter_active" onclick="setEqFilter('active')">● 사용중</button>
+      <button class="eqf-btn" id="eqFilter_retired" onclick="setEqFilter('retired')">○ 미사용</button>
+    </div>
+    <div class="equip-grid" id="equipGrid"></div>
   </div>
 
   <!-- FORM PAGE -->
@@ -3004,6 +3097,459 @@ function deleteChecklistItem(cat, idx) {
   showToast('✓ 삭제 완료');
 }
 
+// ── 장비관리대장 ──
+const EQUIP_CATS = ['음향장비', '무대장비', '이벤트장비'];
+let equipmentData = JSON.parse(localStorage.getItem('equipmentData') || '{"음향장비":[],"무대장비":[],"이벤트장비":[]}');
+EQUIP_CATS.forEach(c => { if (!Array.isArray(equipmentData[c])) equipmentData[c] = []; });
+let eqCurrentCat = '음향장비';
+let eqCurrentFilter = 'all';
+let eqModalMode = 'view';
+let eqModalId = null;
+let eqEditDraft = {};
+let _eqFormStatus = 'active';
+let _eqEditPhotos = [];
+
+const EQUIP_DEFAULT = {
+  음향장비: [
+    {name:'메인스피커',model:'M-8000',qty:'2조'},{name:'모니터스피커',model:'Side fill',qty:'2조'},
+    {name:'우퍼',model:'',qty:'1EA'},{name:'4채널 앰프',model:'',qty:'3EA'},
+    {name:'V8앰프',model:'',qty:'1EA'},{name:'우퍼전용앰프',model:'',qty:'1EA'},
+    {name:'M8000전용앰프',model:'',qty:'1EA'},{name:'모니터앰프',model:'',qty:'1EA'},
+    {name:'EQ',model:'',qty:'1EA'},{name:'크로스오버',model:'',qty:'1EA'},
+    {name:'프로세서',model:'',qty:'1EA'},{name:'디지털프로세서',model:'',qty:'1EA'},
+    {name:'스피커 리프트',model:'',qty:'1조'},{name:'메인콘솔',model:'하우스콘솔',qty:'1EA'},
+    {name:'스테이지박스',model:'STAGE BOX',qty:'1EA'},{name:'미니믹서',model:'',qty:'1EA'},
+    {name:'무선마이크 수신기',model:'Shure QLXD',qty:'16ea'},{name:'무선마이크',model:'Shure QLXD',qty:'16EA'},
+    {name:'무선 바디팩',model:'밸트팩',qty:'8EA'},{name:'콘덴서마이크',model:'',qty:'3EA'},
+    {name:'드럼마이크세트',model:'',qty:'1EA'},{name:'유선마이크',model:'',qty:'1EA'},
+    {name:'핀마이크',model:'',qty:'1EA'},{name:'안테나 분배기',model:'',qty:'4EA'},
+    {name:'광대역 안테나',model:'',qty:'2EA'},{name:'이동용 앰프',model:'',qty:'1EA'},
+    {name:'4CH 멀티신호선 박스',model:'',qty:'2EA'},{name:'16ch 멀티신호롤',model:'',qty:'1EA'},
+    {name:'캐논잭',model:'다양한 길이',qty:'1식'},{name:'스피커케이블',model:'',qty:'1식'},
+    {name:'전기선박스',model:'',qty:'1EA'},{name:'DI BOX',model:'',qty:'5EA'},
+    {name:'미디인터페이스',model:'',qty:'1EA'}
+  ],
+  무대장비: [
+    {name:'상판 (갈)',model:'',qty:'1식'},{name:'상판 (검)',model:'',qty:'1식'},
+    {name:'X대 0.5m',model:'',qty:'1식'},{name:'X대 1.0m',model:'',qty:'1식'},
+    {name:'핀 1구',model:'',qty:'1식'},{name:'핀 2구',model:'',qty:'1식'},
+    {name:'핀 4구',model:'',qty:'1식'},{name:'아이밴 무대핀',model:'',qty:'1EA'},
+    {name:'다리 0.5m',model:'',qty:'1식'},{name:'다리 1.0m',model:'',qty:'1식'},
+    {name:'미니트러스 2m',model:'',qty:'1식'},{name:'미니트러스 1.5m',model:'',qty:'1식'},
+    {name:'미니트러스 1m',model:'',qty:'1식'},{name:'미니트러스 0.5m',model:'',qty:'1식'},
+    {name:'미니트러스 큐브',model:'',qty:'1EA'},{name:'플라잉프레임',model:'',qty:'1EA'},
+    {name:'3×3 천막',model:'',qty:'1EA'}
+  ],
+  이벤트장비: [
+    {name:'에어샷',model:'',qty:'1EA'},{name:'CO₂',model:'',qty:'1EA'},
+    {name:'현수막 이탈기',model:'',qty:'1EA'},{name:'노래방 기기',model:'',qty:'1EA'},
+    {name:'CD PLAYER',model:'',qty:'1EA'},{name:'벨트 차단봉',model:'',qty:'1식'},
+    {name:'황동 커팅봉',model:'',qty:'1식'},{name:'임팩라쳇 드라이버',model:'',qty:'1EA'},
+    {name:'연주용 의자',model:'',qty:'1EA'},{name:'휴대용 전기콤프레샤',model:'',qty:'1EA'},
+    {name:'옐로우자켓',model:'',qty:'1EA'}
+  ]
+};
+
+function _makeEquipId() { return 'eq_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+function initEquipmentDefault() {
+  let changed = false;
+  EQUIP_CATS.forEach(cat => {
+    if (!equipmentData[cat] || equipmentData[cat].length === 0) {
+      equipmentData[cat] = EQUIP_DEFAULT[cat].map(d => ({
+        id: _makeEquipId(), name: d.name, model: d.model, qty: d.qty,
+        supplier: '', serialNo: '', contact: '', tel: '',
+        status: 'active', photos: [], logs: []
+      }));
+      changed = true;
+    }
+  });
+  if (changed) { localStorage.setItem('equipmentData', JSON.stringify(equipmentData)); _syncEquipmentCloud(); }
+}
+
+function switchEqCat(cat) {
+  eqCurrentCat = cat;
+  EQUIP_CATS.forEach(c => { const b = document.getElementById('eqCat_' + c); if (b) b.classList.toggle('active', c === cat); });
+  renderEquipGrid();
+}
+
+function setEqFilter(f) {
+  eqCurrentFilter = f;
+  ['all','active','retired'].forEach(x => { const b = document.getElementById('eqFilter_' + x); if (b) b.classList.toggle('active', x === f); });
+  renderEquipGrid();
+}
+
+function _escEq(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderEquipGrid() {
+  const grid = document.getElementById('equipGrid');
+  if (!grid) return;
+  const items = (equipmentData[eqCurrentCat] || []).filter(item => {
+    if (eqCurrentFilter === 'active') return item.status === 'active';
+    if (eqCurrentFilter === 'retired') return item.status === 'retired';
+    return true;
+  });
+  if (!items.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">장비 없음 — ＋ 버튼으로 추가하세요</div>';
+    return;
+  }
+  grid.innerHTML = items.map(item => {
+    const hasPhoto = item.photos && item.photos.length > 0;
+    const logCount = (item.logs || []).length;
+    return `<div class="equip-card${item.status === 'retired' ? ' retired' : ''}" onclick="openEquipView('${item.id}')">
+      <div class="equip-card-name">${_escEq(item.name)}</div>
+      ${item.model ? `<div class="equip-card-model">${_escEq(item.model)}</div>` : ''}
+      <div class="equip-card-foot">
+        <span class="equip-status-badge ${item.status}">${item.status === 'active' ? '● 사용중' : '○ 미사용'}</span>
+        <span class="equip-card-qty">${_escEq(item.qty)}</span>
+      </div>
+      <div style="display:flex;gap:6px;font-size:10px;min-height:14px;">
+        ${hasPhoto ? '<span style="color:var(--gold)">📷</span>' : ''}
+        ${logCount ? `<span style="color:var(--text-muted)">🔧${logCount}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _findEquipItem(id) {
+  for (const cat of EQUIP_CATS) {
+    const item = (equipmentData[cat] || []).find(x => x.id === id);
+    if (item) return { item, cat };
+  }
+  return null;
+}
+
+function openEquipView(id) {
+  eqModalId = id; eqModalMode = 'view';
+  renderEquipModal();
+  document.getElementById('equipModal').classList.add('open');
+}
+
+function openEquipAdd() {
+  eqModalId = null; eqModalMode = 'add';
+  eqEditDraft = { id: _makeEquipId(), name:'', model:'', qty:'', supplier:'', serialNo:'', contact:'', tel:'', status:'active', photos:[], logs:[] };
+  _eqFormStatus = 'active'; _eqEditPhotos = [null,null,null,null];
+  renderEquipModal();
+  document.getElementById('equipModal').classList.add('open');
+}
+
+function closeEquipModal() {
+  document.getElementById('equipModal').classList.remove('open');
+  eqModalId = null; eqModalMode = 'view'; eqEditDraft = {};
+}
+
+function renderEquipModal() {
+  const card = document.getElementById('equipModalCard');
+  if (!card) return;
+  if (eqModalMode === 'view') {
+    const found = _findEquipItem(eqModalId);
+    if (!found) return;
+    const item = found.item;
+    const statusBadge = item.status === 'active'
+      ? '<span class="equip-status-badge active">● 사용중</span>'
+      : '<span class="equip-status-badge retired">○ 미사용</span>';
+    card.innerHTML = `
+      <div class="equip-modal-header">
+        <div><div class="equip-modal-title">${_escEq(item.name)}</div>${item.model?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${_escEq(item.model)}</div>`:''}</div>
+        <button class="equip-modal-close" onclick="closeEquipModal()">✕</button>
+      </div>
+      <div class="equip-modal-body">
+        <div class="equip-section">
+          <div class="equip-section-head">📋 기본 정보</div>
+          ${_eqFieldRow('장비명', item.name)}
+          ${_eqFieldRow('모델명', item.model)}
+          ${_eqFieldRow('수량', item.qty)}
+          ${_eqFieldRow('납품/제작업체', item.supplier)}
+          ${_eqFieldRow('시리얼번호', item.serialNo)}
+          ${_eqFieldRow('담당자', item.contact)}
+          ${_eqFieldRow('연락처', item.tel)}
+          <div class="equip-field-row"><span class="equip-field-label">상태</span>${statusBadge}</div>
+        </div>
+        <div class="equip-section">
+          <div class="equip-section-head">📷 사진</div>
+          <div class="equip-photo-grid">${_renderPhotosView(item.photos, false)}</div>
+        </div>
+        <div class="equip-section">
+          <div class="equip-section-head">🔧 관리내역</div>
+          ${_renderLogsSection(item)}
+        </div>
+      </div>
+      <div class="equip-modal-actions">
+        <button class="equip-action-btn equip-action-edit" onclick="startEquipEdit()">✏️ 수정</button>
+        <button class="equip-action-btn equip-action-delete" onclick="deleteEquipItem()">🗑️ 삭제</button>
+      </div>`;
+  } else {
+    const isEdit = eqModalMode === 'edit';
+    const item = isEdit ? eqEditDraft : eqEditDraft;
+    card.innerHTML = `
+      <div class="equip-modal-header">
+        <span class="equip-modal-title">${isEdit ? '✏️ 장비 수정' : '➕ 장비 추가'}</span>
+        <button class="equip-modal-close" onclick="${isEdit ? `openEquipView('${eqModalId}')` : 'closeEquipModal()'}">✕</button>
+      </div>
+      <div class="equip-modal-body">
+        <div class="equip-section">
+          <div class="equip-section-head">📋 기본 정보</div>
+          <div class="equip-field-row"><span class="equip-field-label">장비명 *</span><input class="equip-field-input" id="ef_name" value="${_escEq(item.name)}" placeholder="장비명 입력"></div>
+          <div class="equip-field-row"><span class="equip-field-label">모델명</span><input class="equip-field-input" id="ef_model" value="${_escEq(item.model)}" placeholder="모델명"></div>
+          <div class="equip-field-row"><span class="equip-field-label">수량</span><input class="equip-field-input" id="ef_qty" value="${_escEq(item.qty)}" placeholder="예: 2EA"></div>
+          <div class="equip-field-row"><span class="equip-field-label">납품/제작업체</span><input class="equip-field-input" id="ef_supplier" value="${_escEq(item.supplier)}" placeholder="업체명"></div>
+          <div class="equip-field-row"><span class="equip-field-label">시리얼번호</span><input class="equip-field-input" id="ef_serialNo" value="${_escEq(item.serialNo)}" placeholder="시리얼번호"></div>
+          <div class="equip-field-row"><span class="equip-field-label">담당자</span><input class="equip-field-input" id="ef_contact" value="${_escEq(item.contact)}" placeholder="담당자 이름"></div>
+          <div class="equip-field-row"><span class="equip-field-label">연락처</span><input class="equip-field-input" id="ef_tel" value="${_escEq(item.tel)}" placeholder="010-0000-0000"></div>
+          <div class="equip-field-row"><span class="equip-field-label">카테고리</span>
+            <select class="equip-field-input" id="ef_cat">
+              ${EQUIP_CATS.map(c=>`<option value="${c}"${(item.cat||eqCurrentCat)===c?' selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="equip-field-row"><span class="equip-field-label">상태</span>
+            <div class="equip-status-toggle">
+              <button type="button" id="ef_status_a" onclick="selectEqStatus('active')" class="equip-status-opt${_eqFormStatus==='active'?' sel-active':''}">● 사용중</button>
+              <button type="button" id="ef_status_r" onclick="selectEqStatus('retired')" class="equip-status-opt${_eqFormStatus==='retired'?' sel-retired':''}">○ 미사용</button>
+            </div>
+          </div>
+        </div>
+        <div class="equip-section">
+          <div class="equip-section-head">📷 사진 (최대 4장)</div>
+          <div class="equip-photo-grid" id="efPhotoGrid">${_renderPhotosEdit(item.photos)}</div>
+        </div>
+      </div>
+      <div class="equip-modal-actions">
+        <button class="equip-action-btn equip-action-save" onclick="${isEdit ? 'saveEquipEdit()' : 'saveEquipAdd()'}">💾 ${isEdit?'수정 저장':'추가'}</button>
+        <button class="equip-action-btn equip-action-cancel" onclick="${isEdit ? `openEquipView('${eqModalId}')` : 'closeEquipModal()'}">취소</button>
+      </div>`;
+  }
+}
+
+function _eqFieldRow(label, val) {
+  const v = val ? _escEq(val) : '<span style="color:var(--text-muted)">—</span>';
+  return `<div class="equip-field-row"><span class="equip-field-label">${label}</span><span class="equip-field-value">${v}</span></div>`;
+}
+
+function selectEqStatus(s) {
+  _eqFormStatus = s;
+  const a = document.getElementById('ef_status_a'), r = document.getElementById('ef_status_r');
+  if (a) { a.className = 'equip-status-opt' + (s==='active'?' sel-active':''); }
+  if (r) { r.className = 'equip-status-opt' + (s==='retired'?' sel-retired':''); }
+}
+
+function _renderPhotosView(photos, editable) {
+  const arr = photos ? [...photos] : [];
+  while (arr.length < 4) arr.push(null);
+  return arr.map((p,i) => p
+    ? `<div class="equip-photo-slot" onclick="_eqLightbox('${p}')"><img src="${p}" alt="사진${i+1}"></div>`
+    : `<div class="equip-photo-slot" style="cursor:default"><span style="font-size:18px;color:var(--border2)">—</span></div>`
+  ).join('');
+}
+
+function _renderPhotosEdit(photos) {
+  _eqEditPhotos = photos ? [...photos] : [];
+  while (_eqEditPhotos.length < 4) _eqEditPhotos.push(null);
+  return _eqEditPhotos.map((p,i) => p
+    ? `<div class="equip-photo-slot"><img src="${p}" alt="사진${i+1}" onclick="_eqLightbox('${p}')"><button class="equip-photo-del" onclick="event.stopPropagation();removeEquipPhoto(${i})">✕</button></div>`
+    : `<div class="equip-photo-slot" onclick="document.getElementById('efPImg${i}').click()"><span class="equip-photo-add">＋</span><input type="file" id="efPImg${i}" accept="image/*" style="display:none" onchange="handleEquipPhoto(event,${i})"></div>`
+  ).join('');
+}
+
+function handleEquipPhoto(event, idx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 800; let w = img.width, h = img.height;
+      if (w > MAX) { h = h*MAX/w; w = MAX; }
+      if (h > MAX) { w = w*MAX/h; h = MAX; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      _eqEditPhotos[idx] = canvas.toDataURL('image/jpeg', 0.7);
+      const grid = document.getElementById('efPhotoGrid');
+      if (grid) grid.innerHTML = _renderPhotosEdit(_eqEditPhotos);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeEquipPhoto(idx) {
+  _eqEditPhotos[idx] = null;
+  const grid = document.getElementById('efPhotoGrid');
+  if (grid) grid.innerHTML = _renderPhotosEdit(_eqEditPhotos);
+}
+
+function _eqLightbox(src) {
+  const lb = document.createElement('div');
+  lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+  lb.innerHTML = `<img src="${src}" style="max-width:95vw;max-height:92vh;border-radius:8px;"><button onclick="this.parentElement.remove()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;border-radius:50%;width:38px;height:38px;cursor:pointer;">✕</button>`;
+  lb.onclick = e => { if (e.target === lb) lb.remove(); };
+  document.body.appendChild(lb);
+}
+
+function _renderLogsSection(item) {
+  const logs = item.logs || [];
+  let html = '';
+  if (logs.length === 0) {
+    html += '<div style="padding:12px 14px;color:var(--text-muted);font-size:12px;">관리 내역 없음</div>';
+  } else {
+    html += logs.map((log, i) => `
+      <div class="equip-log-item">
+        <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span class="equip-log-date">${_escEq(log.date)}</span>
+            <span class="equip-log-place">${_escEq(log.place)}</span>
+          </div>
+          <div class="equip-log-desc">${_escEq(log.desc)}</div>
+        </div>
+        <button class="equip-log-del" onclick="deleteEquipLog(${i})" title="삭제">🗑</button>
+      </div>`).join('');
+  }
+  html += `<div class="equip-log-add-row">
+    <input class="equip-log-input" id="elDate" type="date" value="${new Date().toISOString().slice(0,10)}" style="width:130px;">
+    <input class="equip-log-input" id="elDesc" placeholder="수리 내용" style="flex:1;min-width:80px;">
+    <input class="equip-log-input" id="elPlace" placeholder="업체명" style="width:90px;">
+    <button class="equip-log-confirm-btn" onclick="addEquipLog()">추가</button>
+  </div>`;
+  return html;
+}
+
+function addEquipLog() {
+  const date = document.getElementById('elDate')?.value;
+  const desc = document.getElementById('elDesc')?.value?.trim();
+  const place = document.getElementById('elPlace')?.value?.trim();
+  if (!desc) { showToast('수리 내용을 입력하세요'); return; }
+  const found = _findEquipItem(eqModalId);
+  if (!found) return;
+  if (!Array.isArray(found.item.logs)) found.item.logs = [];
+  found.item.logs.unshift({ date: date || new Date().toISOString().slice(0,10), desc, place: place || '' });
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  renderEquipModal();
+  renderEquipGrid();
+  showToast('✅ 관리내역 추가');
+}
+
+function deleteEquipLog(logIdx) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  const found = _findEquipItem(eqModalId);
+  if (!found) return;
+  found.item.logs.splice(logIdx, 1);
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  renderEquipModal();
+  showToast('✓ 삭제 완료');
+}
+
+function startEquipEdit() {
+  const pw = prompt('수정 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  const found = _findEquipItem(eqModalId);
+  if (!found) return;
+  eqEditDraft = JSON.parse(JSON.stringify(found.item));
+  eqEditDraft.cat = found.cat;
+  _eqFormStatus = eqEditDraft.status;
+  _eqEditPhotos = eqEditDraft.photos ? [...eqEditDraft.photos] : [];
+  while (_eqEditPhotos.length < 4) _eqEditPhotos.push(null);
+  eqModalMode = 'edit';
+  renderEquipModal();
+}
+
+function _readEquipForm() {
+  return {
+    name: document.getElementById('ef_name')?.value?.trim() || '',
+    model: document.getElementById('ef_model')?.value?.trim() || '',
+    qty: document.getElementById('ef_qty')?.value?.trim() || '',
+    supplier: document.getElementById('ef_supplier')?.value?.trim() || '',
+    serialNo: document.getElementById('ef_serialNo')?.value?.trim() || '',
+    contact: document.getElementById('ef_contact')?.value?.trim() || '',
+    tel: document.getElementById('ef_tel')?.value?.trim() || '',
+    cat: document.getElementById('ef_cat')?.value || eqCurrentCat,
+    status: _eqFormStatus,
+    photos: _eqEditPhotos.filter(p => p !== null)
+  };
+}
+
+function saveEquipEdit() {
+  const form = _readEquipForm();
+  if (!form.name) { showToast('장비명을 입력하세요'); return; }
+  const found = _findEquipItem(eqModalId);
+  if (!found) return;
+  const logs = found.item.logs || [];
+  const newCat = form.cat;
+  equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
+  if (!equipmentData[newCat]) equipmentData[newCat] = [];
+  equipmentData[newCat].push({ id: eqModalId, ...form, logs });
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  eqCurrentCat = newCat;
+  switchEqCat(newCat);
+  closeEquipModal();
+  showToast('✅ 수정 저장 완료');
+}
+
+function saveEquipAdd() {
+  const form = _readEquipForm();
+  if (!form.name) { showToast('장비명을 입력하세요'); return; }
+  const cat = form.cat;
+  if (!equipmentData[cat]) equipmentData[cat] = [];
+  equipmentData[cat].push({ id: eqEditDraft.id, ...form, logs: [] });
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  eqCurrentCat = cat;
+  switchEqCat(cat);
+  closeEquipModal();
+  showToast('✅ 장비 추가 완료');
+}
+
+function deleteEquipItem() {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  const found = _findEquipItem(eqModalId);
+  if (!found) return;
+  equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  closeEquipModal();
+  renderEquipGrid();
+  showToast('✓ 장비 삭제 완료');
+}
+
+async function _syncEquipmentCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.equipment`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: equipmentData })
+    });
+    if (!res.ok) throw new Error('PATCH 실패');
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'equipment', v15: equipmentData })
+      });
+    }
+  } catch(e) { console.error('장비 클라우드 저장 실패:', e); }
+}
+
+async function loadEquipmentFromCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.equipment&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return false;
+    const rows = await res.json();
+    if (!rows.length || !rows[0].v15) return false;
+    const d = rows[0].v15;
+    EQUIP_CATS.forEach(c => { if (!Array.isArray(d[c])) d[c] = []; });
+    equipmentData = d;
+    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    return true;
+  } catch(e) { console.error('장비 클라우드 불러오기 실패:', e); return false; }
+}
+
 // ── 차량관리 ──
 let vehicleData = JSON.parse(localStorage.getItem('vehicleData') || '{"v15":{"number":"","model":"","current_km":"","fuel":"","maintenance":[],"inspect_last":"","inspect_next":"","ins_start":"","ins_end":"","memo":""},"v35":{"number":"","model":"","current_km":"","fuel":"","maintenance":[],"inspect_last":"","inspect_next":"","ins_start":"","ins_end":"","memo":""}}');
 // 기존 데이터에 새 필드 없으면 기본값 추가
@@ -3589,6 +4135,10 @@ renderTasks('directive');
 document.getElementById('tab-vehicle').classList.add('active');
 const p = document.getElementById('pageVehicle'); p.style.display='flex'; p.classList.add('active');
 renderVehiclePage();
+} else if (tab === 'equipment') {
+document.getElementById('tab-equipment').classList.add('active');
+const p = document.getElementById('pageEquipment'); p.style.display='flex'; p.classList.add('active');
+renderEquipGrid();
 }
 }
 
@@ -3890,6 +4440,12 @@ function initRealtime() {
             if (d.checked) { checklistChecked = d.checked; localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked)); }
             if (document.getElementById('checklistOverlay')?.classList.contains('open')) renderChecklistBody();
           }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'equipment' && record.v15) {
+            EQUIP_CATS.forEach(c => { if (!Array.isArray(record.v15[c])) record.v15[c] = []; });
+            equipmentData = record.v15;
+            localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+            if (document.getElementById('pageEquipment')?.classList.contains('active')) renderEquipGrid();
+          }
         }
       } catch(err) { console.error('Realtime 오류:', err); }
     };
@@ -4057,6 +4613,7 @@ document.getElementById('pageWarehouse').style.display = 'none';
 document.getElementById('pageOffice').style.display = 'none';
 document.getElementById('pageDirective').style.display = 'none';
 document.getElementById('pageVehicle').style.display = 'none';
+document.getElementById('pageEquipment').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
 // app은 기본 숨김 (세션 없으면 로그인 화면만 표시)
 if (!sessionStorage.getItem('sl_session')) {
@@ -4116,6 +4673,10 @@ async function autoLoadAll() {
 
     // 5. 체크리스트 동기화
     await loadChecklistFromCloud();
+
+    // 6. 장비관리대장 동기화
+    await loadEquipmentFromCloud();
+    initEquipmentDefault();
 
   } catch(e) { console.error('자동 불러오기 실패:', e); }
 }
