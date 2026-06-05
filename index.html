@@ -721,6 +721,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 /* ─── CHECKLIST MODAL ─── */
 .checklist-overlay { display: none; position: fixed; inset: 0; z-index: 10000; background: var(--bg); flex-direction: column; }
 .checklist-overlay.open { display: flex; }
+/* 모바일: inner는 flex 1 전체 채움 */
+.checklist-inner { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .checklist-topbar { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; background: var(--surface); border-bottom: none; flex-shrink: 0; padding-top: calc(14px + env(safe-area-inset-top,0px)); }
 .checklist-topbar-title { font-size: 15px; font-weight: 800; color: var(--text); flex: 1; }
 .checklist-close-btn { background: var(--surface2); border: 1.5px solid var(--border2); color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 0; flex-shrink: 0; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
@@ -965,6 +967,146 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .gcal-event.is-today .gcal-date-wd { color: var(--accent); }
 .gcal-event.is-today .gcal-event-title { color: var(--accent); }
 .gcal-msg { padding: 14px 0; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+
+/* ═══════════════════════════════════════
+   PC 최적화 (768px 이상)
+═══════════════════════════════════════ */
+@media (min-width: 768px) {
+
+  /* ── 전체 레이아웃 ── */
+  html, body { overflow: auto; }
+  #app {
+    max-width: 1280px;
+    margin: 0 auto;
+    height: 100dvh;
+  }
+  .page { overflow-y: auto; }
+
+  /* ── 헤더 ── */
+  header { padding: 15px 32px; }
+  .logo { font-size: 20px; }
+
+  /* ── 탭 ── */
+  .nav-tab { padding: 13px 22px; font-size: 13px; }
+  .nav-fade-right, .nav-fade-left { display: none; }
+
+  /* ── 행사일지 목록 ── */
+  .list-toolbar { padding: 18px 32px 12px; }
+  .log-cards { padding: 0 32px 32px; display: grid; grid-template-columns: repeat(2, 1fr); align-content: start; }
+  .log-card:hover { border-color: var(--accent); }
+
+  /* ── 행사일지 폼 ── */
+  .form-top-bar { padding: 14px 32px; }
+  .form-section { padding: 0 32px; }
+  .bottom-actions { padding: 14px 32px; }
+  .field-row.two { grid-template-columns: 1fr 1fr; }
+
+  /* ── 업무 카드 ── */
+  .task-toolbar { padding: 14px 24px; }
+  .task-cards { padding: 14px 24px; display: grid; grid-template-columns: repeat(2, 1fr); align-content: start; gap: 12px; }
+  .task-card { margin-bottom: 0; }
+  .task-card:hover { border-color: var(--accent); }
+
+  /* ── 차량관리 ── */
+  .vehicle-section { padding: 0 32px; }
+
+  /* ── 장비관리 그리드 ── */
+  .equip-toolbar, .equip-search-bar, .equip-filter-bar { padding-left: 24px; padding-right: 24px; }
+  .equip-grid { padding: 18px 24px; grid-template-columns: repeat(4, 1fr) !important; gap: 14px; }
+  .equip-cat-tabs { padding: 0 8px; }
+
+  /* ── 알바관리 ── */
+  .alba-toolbar { padding: 14px 24px; }
+  .alba-grid { padding: 18px 24px; grid-template-columns: repeat(4, 1fr) !important; gap: 14px; }
+  .alba-sched-toolbar { padding: 12px 24px; }
+  .alba-sched-item { padding: 12px 24px; }
+
+  /* ── 체크리스트 — 배경 오버레이 + 중앙 카드 ── */
+  .checklist-overlay {
+    background: rgba(0,0,0,0.7) !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .checklist-overlay.open { display: flex; }
+  .checklist-inner {
+    width: 680px;
+    max-width: 95vw;
+    height: 82vh;
+    background: var(--surface);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .checklist-topbar { padding-top: 16px !important; }
+  .checklist-body { overflow-y: auto; }
+
+  /* ── 모달 공통 — 하단 슬라이드 → 중앙 팝업 ── */
+  .modal-overlay { align-items: center; }
+  .modal-sheet {
+    border-radius: 16px !important;
+    transform: scale(0.96) !important;
+    max-width: 520px;
+    padding-bottom: 20px !important;
+  }
+  .modal-overlay.show .modal-sheet { transform: scale(1) !important; }
+
+  .task-modal-overlay { align-items: center; }
+  .task-modal-sheet {
+    border-radius: 16px !important;
+    transform: scale(0.96) !important;
+    max-width: 560px;
+    max-height: 85vh;
+  }
+  .task-modal-overlay.show .task-modal-sheet { transform: scale(1) !important; }
+
+  .user-mgmt-overlay { align-items: center; }
+  .user-mgmt-sheet {
+    border-radius: 16px !important;
+    transform: scale(0.96) !important;
+    max-width: 580px;
+    padding-bottom: 20px !important;
+  }
+  .user-mgmt-overlay.show .user-mgmt-sheet { transform: scale(1) !important; }
+
+  .equip-modal-overlay { align-items: center; }
+  .equip-modal-card {
+    border-radius: 16px !important;
+    max-width: 640px;
+    max-height: 85vh;
+  }
+
+  .theme-modal-sheet { border-radius: 16px !important; transform: scale(0.96) !important; max-width: 420px; }
+  .theme-modal-overlay.show .theme-modal-sheet { transform: scale(1) !important; }
+
+  /* ── 하단 닫기 버튼 — PC에서 불필요 ── */
+  .modal-close-bar { display: none; }
+
+  /* ── 로그인 화면 ── */
+  #loginScreen { justify-content: center; }
+  .login-card { max-width: 420px; width: 100%; }
+
+  /* ── 드롭다운 위치 ── */
+  .directive-dropdown { left: auto; right: auto; width: 200px; border-radius: 0 0 12px 12px; }
+
+  /* ── hover 효과 (마우스) ── */
+  .equip-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+  .alba-worker-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+  .log-card:hover { transform: translateY(-1px); }
+  .nav-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+  .checklist-open-btn:hover { border-color: var(--gold); background: var(--gold-dim); }
+  .modal-btn:hover { opacity: 0.85; }
+}
+
+/* PC 대형 화면 (1200px+) */
+@media (min-width: 1200px) {
+  .log-cards { grid-template-columns: repeat(3, 1fr); }
+  .task-cards { grid-template-columns: repeat(3, 1fr); }
+  .equip-grid { grid-template-columns: repeat(5, 1fr) !important; }
+  .alba-grid { grid-template-columns: repeat(5, 1fr) !important; }
+}
 </style>
 
 </head>
@@ -977,7 +1119,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 </div>
 
 <!-- ═══ 체크리스트 모달 ═══ -->
-<div class="checklist-overlay" id="checklistOverlay">
+<div class="checklist-overlay" id="checklistOverlay" onclick="if(event.target===this)closeChecklist()">
+  <div class="checklist-inner">
   <div class="checklist-topbar">
     <div class="checklist-topbar-title">📋 행사 나가기 전 챙겨야 할 물품</div>
     <button class="checklist-close-btn" onclick="closeChecklist()">✕</button>
@@ -992,6 +1135,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <div class="modal-close-bar">
     <button class="modal-close-bar-btn" onclick="closeChecklist()">✕ 닫기</button>
   </div>
+  </div><!-- /checklist-inner -->
 </div>
 
 <!-- ═══ 로그인 화면 ═══ -->
