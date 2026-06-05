@@ -2215,7 +2215,8 @@ async function loadUsersFromCloud() {
     if (!res.ok) return;
     const rows = await res.json();
     if (!rows.length || !Array.isArray(rows[0].v15)) return;
-    const cloudUsers = rows[0].v15;
+    // admin 계정 제거, hanbada는 로컬이 항상 우선
+    const cloudUsers = rows[0].v15.filter(u => u.id !== 'admin' && u.id !== 'hanbada');
     const localUsers = getUsers();
     let changed = false;
     cloudUsers.forEach(cu => {
@@ -2271,18 +2272,22 @@ async function sbSyncLog(entry) {
   } catch(e) { /* 실패해도 로컬에 이미 있음 */ }
 }
 
-// 초기 관리자 계정 생성 — 구버전 admin 계정 제거 후 hanbada/2375 만 유지
+// 초기 관리자 계정 강제 설정 — 항상 hanbada/2375 만 유지
 (function initAdminAccount() {
   let users = getUsers();
-  // 구버전 admin 계정 제거
+  // 구버전 admin 계정 완전 제거
   users = users.filter(u => u.id !== 'admin');
-  // hanbada 없으면 생성
-  if (!users.find(u => u.id === 'hanbada')) {
+  // hanbada 계정 강제 설정 (비밀번호 항상 2375로 보정)
+  const idx = users.findIndex(u => u.id === 'hanbada');
+  if (idx >= 0) {
+    users[idx].pw   = '2375';
+    users[idx].role = 'admin';
+  } else {
     users.push({ id: 'hanbada', name: '관리자', pw: '2375', role: 'admin', createdAt: new Date().toISOString(), lastLogin: null });
   }
   saveUsers(users);
-  // 클라우드에도 즉시 반영
-  setTimeout(() => syncUsersToCloud(), 1000);
+  // 클라우드에도 즉시 강제 반영
+  syncUsersToCloud();
 })();
 
 let currentUser = null; // 현재 로그인 유저
