@@ -1001,6 +1001,37 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .gcal-event.is-today .gcal-event-title { color: var(--accent); }
 .gcal-msg { padding: 14px 0; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
 
+/* ─── 호버 미리보기 ─── */
+.hover-preview {
+  position: fixed;
+  z-index: 8000;
+  width: 270px;
+  background: var(--surface);
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+  pointer-events: none;
+  opacity: 0;
+  display: none;
+  transition: opacity 0.12s ease;
+  backdrop-filter: blur(4px);
+}
+.hover-preview.hp-visible { opacity: 1; display: block; }
+.hp-title { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+.hp-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.hp-rows { display: flex; flex-direction: column; gap: 5px; }
+.hp-row { display: flex; gap: 8px; font-size: 12px; }
+.hp-label { color: var(--text-muted); width: 52px; flex-shrink: 0; }
+.hp-val { color: var(--text); flex: 1; word-break: break-all; }
+.hp-divider { height: 1px; background: var(--border); margin: 10px 0; }
+.hp-section { font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.5px; margin-bottom: 6px; }
+.hp-tag { display: inline-block; background: var(--accent-dim); border: 1px solid rgba(61,186,150,0.3); color: var(--accent); border-radius: 6px; font-size: 10px; font-weight: 700; padding: 2px 7px; margin-right: 4px; }
+.hp-tag.warn { background: var(--accent2-dim); border-color: rgba(217,114,72,0.3); color: var(--accent2); }
+.hp-tag.gold { background: var(--gold-dim); border-color: rgba(201,168,76,0.3); color: var(--gold); }
+/* 모바일에서 호버 미리보기 숨김 */
+@media (max-width: 767px) { .hover-preview { display: none !important; } }
+
 /* ═══════════════════════════════════════
    PC 최적화 (768px 이상)
 ═══════════════════════════════════════ */
@@ -1144,6 +1175,9 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
 </head>
 <body>
+
+<!-- ═══ 호버 미리보기 ═══ -->
+<div id="hoverPreview" class="hover-preview"></div>
 
 <!-- ═══ 장비관리대장 페이지 ═══ -->
 <!-- 장비 상세 팝업 모달 -->
@@ -2430,7 +2464,7 @@ function renderList() {
     const cards = items.map(l => {
       const weatherArr = Array.isArray(l.weather) ? l.weather : (l.weather ? [l.weather] : []);
       const weatherEmoji = weatherArr.map(w => weatherMap[w]||w).join('');
-      return `<div class="log-card">
+      return `<div class="log-card" onmouseenter="showLogPreview(event,'${l.id}')" onmouseleave="hideHoverPreview()">
         <div class="log-card-top" onclick="openLog('${l.id}')">
           <span class="log-card-date">${fmtDate(l.date)}</span>
           <span style="font-size:14px;">${weatherEmoji}</span>
@@ -3473,7 +3507,7 @@ function renderAlbaWorkerGrid() {
   }
   grid.innerHTML = albaData.workers.map(w => {
     const schedCount = albaData.schedules.filter(s => s.workerId === w.id).length;
-    return `<div class="alba-worker-card" onclick="openAlbaWorkerView('${w.id}')">
+    return `<div class="alba-worker-card" onclick="openAlbaWorkerView('${w.id}')" onmouseenter="showAlbaWorkerPreview(event,'${w.id}')" onmouseleave="hideHoverPreview()">
       <div class="alba-worker-name">${_escEq(w.name)}</div>
       ${w.role ? `<div class="alba-worker-role">${_escEq(w.role)}</div>` : ''}
       <div class="alba-worker-tel">${_escEq(w.tel)}</div>
@@ -4059,7 +4093,7 @@ function renderEquipGrid() {
     const hasPhoto = item.photos && item.photos.length > 0;
     const logCount = (item.logs || []).length;
     const catLabel = q && item._cat ? `<span style="font-size:10px;color:var(--text-muted)">${item._cat}</span>` : '';
-    return `<div class="equip-card${item.status === 'retired' ? ' retired' : ''}" onclick="openEquipView('${item.id}')">
+    return `<div class="equip-card${item.status === 'retired' ? ' retired' : ''}" onclick="openEquipView('${item.id}')" onmouseenter="showEquipPreview(event,'${item.id}')" onmouseleave="hideHoverPreview()">
       <div class="equip-card-name">${_escEq(item.name)}</div>
       ${item.model ? `<div class="equip-card-model">${_escEq(item.model)}</div>` : ''}
       ${item.tag ? `<div style="margin-top:1px;"><span class="equip-tag-badge">${_escEq(item.tag)}</span></div>` : ''}
@@ -4427,6 +4461,141 @@ async function loadEquipmentFromCloud() {
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     return true;
   } catch(e) { console.error('장비 클라우드 불러오기 실패:', e); return false; }
+}
+
+// ── 호버 미리보기 ──
+let _hpTimer = null;
+
+function showHoverPreview(e, html) {
+  const p = document.getElementById('hoverPreview');
+  if (!p) return;
+  clearTimeout(_hpTimer);
+  p.innerHTML = html;
+  p.style.display = 'block';
+  _positionHoverPreview(e);
+  requestAnimationFrame(() => p.classList.add('hp-visible'));
+}
+
+function hideHoverPreview() {
+  clearTimeout(_hpTimer);
+  _hpTimer = setTimeout(() => {
+    const p = document.getElementById('hoverPreview');
+    if (p) { p.classList.remove('hp-visible'); setTimeout(() => { if (!p.classList.contains('hp-visible')) p.style.display = 'none'; }, 120); }
+  }, 80);
+}
+
+function _positionHoverPreview(e) {
+  const p = document.getElementById('hoverPreview');
+  if (!p) return;
+  const pw = 270, ph = p.scrollHeight || 220;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let x = e.clientX + 18, y = e.clientY - 10;
+  if (x + pw > vw - 12) x = e.clientX - pw - 18;
+  if (y + ph > vh - 12) y = vh - ph - 12;
+  if (y < 10) y = 10;
+  if (x < 10) x = 10;
+  p.style.left = x + 'px';
+  p.style.top  = y + 'px';
+}
+
+function _hpRow(label, val) {
+  if (!val) return '';
+  return `<div class="hp-row"><span class="hp-label">${label}</span><span class="hp-val">${_escEq ? _escEq(String(val)) : String(val)}</span></div>`;
+}
+
+// ── 행사일지 카드 미리보기 ──
+function showLogPreview(e, id) {
+  const l = logs.find(x => x.id === id);
+  if (!l) return;
+  const wMap = {'맑음':'☀️','구름조금':'⛅','흐림':'☁️','비':'🌧️','폭우':'⛈️','눈':'🌨️','바람':'💨','안개':'🌫️'};
+  const wArr = Array.isArray(l.weather) ? l.weather : (l.weather ? [l.weather] : []);
+  const wEmoji = wArr.map(w => wMap[w]||w).join('');
+  const hasPhoto = (l.soundPhotos?.filter(Boolean).length || 0) + (l.stagePhotos?.filter(Boolean).length || 0);
+  showHoverPreview(e, `
+    <div class="hp-title">${_escEq(l.eventName||'(행사명 없음)')}</div>
+    ${wEmoji ? `<div style="font-size:18px;margin-bottom:8px;">${wEmoji}</div>` : ''}
+    <div class="hp-rows">
+      ${_hpRow('날짜', fmtDate(l.date))}
+      ${_hpRow('장소', l.venue)}
+      ${_hpRow('구분', l.eventType)}
+      ${_hpRow('콘솔', l.f_consoleModel || l.console)}
+      ${_hpRow('스피커', l.f_speakerModel || l.speaker)}
+      ${_hpRow('마이크', l.micSetup || l.mic)}
+    </div>
+    ${l.issue ? `<div class="hp-divider"></div><div style="font-size:11px;color:var(--accent2);">⚠️ ${_escEq(l.issue.slice(0,80))}${l.issue.length>80?'…':''}</div>` : ''}
+    ${l.memo ? `<div style="${l.issue?'':'margin-top:8px;'}font-size:11px;color:var(--text-muted);">💬 ${_escEq(l.memo.slice(0,80))}${l.memo.length>80?'…':''}</div>` : ''}
+    ${hasPhoto ? `<div class="hp-divider"></div><div style="font-size:11px;color:var(--gold);">📷 사진 ${hasPhoto}장</div>` : ''}
+  `);
+}
+
+// ── 업무 카드 미리보기 ──
+function showTaskPreview(e, taskId, type) {
+  const tasks = type==='warehouse' ? warehouseTasks : type==='office' ? officeTasks : directiveTasks;
+  const t = tasks.find(x => x.id === taskId);
+  if (!t) return;
+  const sMap = {todo:'🔴 예정', progress:'🟡 진행중', done:'✅ 완료'};
+  const pMap = {high:'🔥 높음', mid:'📌 보통', low:'💤 낮음'};
+  showHoverPreview(e, `
+    <div class="hp-title">${_escEq(t.title||'(제목 없음)')}</div>
+    <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;">
+      <span class="hp-tag">${sMap[t.status]||t.status}</span>
+      <span class="hp-tag gold">${pMap[t.priority]||t.priority}</span>
+      ${t.due ? `<span class="hp-tag warn">📅 ${t.due}</span>` : ''}
+    </div>
+    ${t.body ? `<div style="font-size:12px;color:var(--text2);line-height:1.6;">${_escEq(t.body.slice(0,120))}${t.body.length>120?'…':''}</div>` : ''}
+    <div class="hp-divider"></div>
+    <div style="font-size:10px;color:var(--text-muted);">등록 ${new Date(t.createdAt).toLocaleDateString('ko-KR')}</div>
+  `);
+}
+
+// ── 장비 카드 미리보기 ──
+function showEquipPreview(e, id) {
+  const found = _findEquipItem(id);
+  if (!found) return;
+  const item = found.item;
+  const latestLog = (item.logs||[])[0];
+  const photoCount = (item.photos||[]).length;
+  showHoverPreview(e, `
+    <div class="hp-title">${_escEq(item.name)}</div>
+    <div class="hp-sub">${item.model ? _escEq(item.model) + ' · ' : ''}${found.cat}</div>
+    <div class="hp-rows">
+      ${_hpRow('수량', item.qty)}
+      ${_hpRow('상태', item.status==='active' ? '● 사용중' : '○ 미사용')}
+      ${_hpRow('납품처', item.supplier)}
+      ${_hpRow('시리얼', item.serialNo)}
+      ${_hpRow('담당자', item.contact ? item.contact + (item.tel ? ' · ' + item.tel : '') : '')}
+      ${item.tag ? `<div class="hp-row"><span class="hp-label">구분</span><span class="hp-val"><span class="hp-tag gold">${_escEq(item.tag)}</span></span></div>` : ''}
+    </div>
+    ${photoCount ? `<div class="hp-divider"></div><div style="font-size:11px;color:var(--gold);">📷 사진 ${photoCount}장</div>` : ''}
+    ${latestLog ? `<div class="hp-divider"></div><div class="hp-section">최근 관리내역</div><div style="font-size:11px;color:var(--text2);">🔧 ${_escEq(latestLog.date)} ${_escEq(latestLog.desc)}</div>${latestLog.place?`<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">📍 ${_escEq(latestLog.place)}</div>`:''}` : ''}
+  `);
+}
+
+// ── 알바 카드 미리보기 ──
+function showAlbaWorkerPreview(e, id) {
+  const w = albaData.workers.find(x => x.id === id);
+  if (!w) return;
+  const scheds = albaData.schedules.filter(s => s.workerId === id)
+    .sort((a,b) => (b.startDate||b.date||'').localeCompare(a.startDate||a.date||''));
+  const recent = scheds.slice(0, 3);
+  showHoverPreview(e, `
+    <div class="hp-title">👤 ${_escEq(w.name)}</div>
+    ${w.role ? `<div style="margin-bottom:8px;"><span class="hp-tag gold">${_escEq(w.role)}</span></div>` : ''}
+    <div class="hp-rows">
+      ${_hpRow('연락처', w.tel)}
+      ${_hpRow('총 스케줄', scheds.length + '건')}
+      ${w.memo ? _hpRow('메모', w.memo) : ''}
+    </div>
+    ${recent.length ? `
+      <div class="hp-divider"></div>
+      <div class="hp-section">최근 스케줄</div>
+      ${recent.map(s => `<div style="font-size:11px;color:var(--text2);margin-bottom:4px;display:flex;gap:6px;">
+        <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;white-space:nowrap;">${(s.startDate||s.date||'').slice(5).replace('-','/')}</span>
+        <span>${_escEq(s.event||'')}</span>
+        ${s.pay?`<span style="color:var(--accent);font-weight:700;margin-left:auto;">${_escEq(s.pay)}</span>`:''}
+      </div>`).join('')}
+    ` : '<div class="hp-divider"></div><div style="font-size:11px;color:var(--text-muted);">등록된 스케줄 없음</div>'}
+  `);
 }
 
 // ── 차량관리 ──
@@ -5080,7 +5249,7 @@ const priLabel = {high:'🔥 높음', mid:'📌 보통', low:'💤 낮음'};
 const priClass = {high:'task-priority-high', mid:'task-priority-mid', low:'task-priority-low'};
 const statusLabel = {todo:'예정', progress:'진행중', done:'완료'};
 const badgeClass  = {todo:'badge-todo', progress:'badge-progress', done:'badge-done'};
-el.innerHTML = sorted.map(t => `<div class="task-card status-${t.status}"> <div class="task-card-top"> <span class="task-status-badge ${badgeClass[t.status]}">${statusLabel[t.status]}</span> <span class="task-title">${t.title||'(제목 없음)'}</span> </div> <div class="task-meta"> <span class="${priClass[t.priority]}">${priLabel[t.priority]}</span> ${t.due ?`<span>📅 ${t.due}</span>`: ''} <span>${new Date(t.createdAt).toLocaleDateString('ko-KR')}</span> </div> ${t.body ?`<div class="task-body">${t.body}</div>`: ''} <div class="task-actions"> ${t.status !== 'progress' && t.status !== 'done' ?`<button class="task-act-btn" onclick="quickStatus('${t.id}','progress','${type}')">진행중으로</button>`: ''} ${t.status !== 'done' ?`<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done','${type}')">완료</button>`: ''} <button class="task-act-btn" onclick="openTaskModal('${type}','${t.id}')">수정</button> ${isAdmin ?`<button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>`: ''} </div> </div>`).join('');
+el.innerHTML = sorted.map(t => `<div class="task-card status-${t.status}" onmouseenter="showTaskPreview(event,'${t.id}','${type}')" onmouseleave="hideHoverPreview()"> <div class="task-card-top"> <span class="task-status-badge ${badgeClass[t.status]}">${statusLabel[t.status]}</span> <span class="task-title">${t.title||'(제목 없음)'}</span> </div> <div class="task-meta"> <span class="${priClass[t.priority]}">${priLabel[t.priority]}</span> ${t.due ?`<span>📅 ${t.due}</span>`: ''} <span>${new Date(t.createdAt).toLocaleDateString('ko-KR')}</span> </div> ${t.body ?`<div class="task-body">${t.body}</div>`: ''} <div class="task-actions"> ${t.status !== 'progress' && t.status !== 'done' ?`<button class="task-act-btn" onclick="quickStatus('${t.id}','progress','${type}')">진행중으로</button>`: ''} ${t.status !== 'done' ?`<button class="task-act-btn primary" onclick="quickStatus('${t.id}','done','${type}')">완료</button>`: ''} <button class="task-act-btn" onclick="openTaskModal('${type}','${t.id}')">수정</button> ${isAdmin ?`<button class="task-act-btn danger" onclick="deleteTask('${t.id}','${type}')">삭제</button>`: ''} </div> </div>`).join('');
 }
 
 function quickStatus(id, status, type) {
