@@ -741,6 +741,36 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .checklist-section-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px 5px; margin-top: 6px; border-bottom: 1.5px solid var(--border2); }
 .checklist-section-title { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; flex: 1; }
 
+/* ─── 대표지시 드롭다운 ─── */
+.directive-dropdown { display:none; position:absolute; top:100%; left:0; right:0; background:var(--surface); border:1.5px solid var(--border2); border-top:none; box-shadow:0 8px 24px rgba(0,0,0,0.35); z-index:200; }
+.directive-dropdown.open { display:block; }
+.directive-dropdown-item { padding:13px 20px; font-size:13px; font-weight:700; color:var(--text); cursor:pointer; transition:background 0.12s; font-family:'Noto Sans KR',sans-serif; }
+.directive-dropdown-item:hover { background:var(--accent-dim); color:var(--accent); }
+
+/* ─── 알바관리 ─── */
+.alba-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0; }
+.alba-add-btn { background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:9px; font-size:13px; font-weight:700; padding:7px 15px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.alba-subtabs { display:flex; border-bottom:2px solid var(--border); flex-shrink:0; background:var(--surface2); }
+.alba-subtab { flex:1; padding:11px 4px; text-align:center; font-size:13px; font-weight:700; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
+.alba-subtab.active { color:var(--accent); border-bottom-color:var(--accent); background:var(--accent-dim); }
+.alba-panel { flex:1; overflow-y:auto; }
+.alba-grid { padding:14px 12px; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; align-content:start; }
+@media(min-width:560px){.alba-grid{grid-template-columns:repeat(3,1fr);}}
+.alba-worker-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:14px 12px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; gap:6px; }
+.alba-worker-card:hover { border-color:var(--accent); background:var(--accent-dim); }
+.alba-worker-name { font-size:14px; font-weight:800; color:var(--text); }
+.alba-worker-role { font-size:11px; color:var(--gold); font-weight:700; }
+.alba-worker-tel { font-size:12px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
+.alba-worker-count { font-size:10px; color:var(--text-muted); }
+.alba-sched-toolbar { display:flex; align-items:center; gap:10px; padding:10px 16px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0; }
+.alba-sched-item { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; }
+.alba-sched-date { font-size:12px; font-weight:700; color:var(--gold); font-family:'JetBrains Mono',monospace; white-space:nowrap; min-width:90px; }
+.alba-sched-info { flex:1; }
+.alba-sched-name { font-size:13px; font-weight:700; color:var(--text); }
+.alba-sched-event { font-size:12px; color:var(--text-muted); }
+.alba-sched-pay { font-size:12px; color:var(--accent); font-weight:700; white-space:nowrap; }
+.alba-sched-del { background:none; border:none; color:var(--accent2); font-size:16px; cursor:pointer; padding:0 4px; flex-shrink:0; }
+
 /* ─── 장비관리대장 ─── */
 .equip-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--surface2); border-bottom:1px solid var(--border); flex-shrink:0; }
 .equip-add-btn { background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:9px; font-size:13px; font-weight:700; padding:7px 15px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
@@ -1070,12 +1100,17 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <div class="nav-tab" id="tab-calendar" onclick="switchTab('calendar')">📅 일정</div>
       <div class="nav-tab" id="tab-warehouse" onclick="switchTab('warehouse')">🏭 창고업무</div>
       <div class="nav-tab" id="tab-office" onclick="switchTab('office')">🏢 사무실업무</div>
-      <div class="nav-tab" id="tab-directive" onclick="switchTab('directive')">👔 대표지시</div>
+      <div class="nav-tab" id="tab-directive" onclick="toggleDirectiveMenu(event)">👔 대표지시 ▾</div>
       <div class="nav-tab" id="tab-vehicle" onclick="switchTab('vehicle')">🚛 차량관리</div>
       <div class="nav-tab" id="tab-equipment" onclick="switchTab('equipment')">🗂️ 장비관리</div>
     </div>
     <div class="nav-fade-right" id="navFadeRight">›</div>
     <div class="nav-fade-left" id="navFadeLeft">‹</div>
+    <!-- 대표지시 드롭다운 -->
+    <div class="directive-dropdown" id="directiveDropdown">
+      <div class="directive-dropdown-item" onclick="closeDirectiveMenu();switchTab('directive')">👔 대표지시</div>
+      <div class="directive-dropdown-item" onclick="closeDirectiveMenu();switchTab('alba')">👷 알바관리</div>
+    </div>
   </div>
 
   <!-- LIST PAGE -->
@@ -1199,6 +1234,35 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     </div>
   </div>
 
+  <!-- ALBA PAGE -->
+  <div class="page" id="pageAlba">
+    <div class="alba-toolbar">
+      <span style="font-size:15px;font-weight:800;color:var(--text);">👷 알바관리</span>
+      <button class="alba-add-btn" onclick="openAlbaWorkerAdd()">＋ 알바 등록</button>
+    </div>
+    <div class="alba-subtabs">
+      <button class="alba-subtab active" id="albaSub_workers" onclick="switchAlbaTab('workers')">👤 알바 명단</button>
+      <button class="alba-subtab" id="albaSub_schedule" onclick="switchAlbaTab('schedule')">📅 스케줄</button>
+    </div>
+    <!-- 알바 명단 -->
+    <div id="albaWorkerPanel" class="alba-panel">
+      <div class="alba-grid" id="albaWorkerGrid"></div>
+    </div>
+    <!-- 스케줄 -->
+    <div id="albaSchedulePanel" class="alba-panel" style="display:none;">
+      <div class="alba-sched-toolbar">
+        <input type="month" id="albaSchedMonth" onchange="renderAlbaSchedule()" style="background:var(--surface2);border:1.5px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;outline:none;">
+        <button class="alba-add-btn" onclick="openAlbaSchedAdd()">＋ 스케줄 추가</button>
+      </div>
+      <div id="albaSchedList"></div>
+    </div>
+  </div>
+
+  <!-- 알바 상세/수정 팝업 -->
+  <div class="equip-modal-overlay" id="albaModal" onclick="if(event.target===this)closeAlbaModal()">
+    <div class="equip-modal-card" id="albaModalCard"></div>
+  </div>
+
   <!-- EQUIPMENT PAGE -->
   <div class="page" id="pageEquipment">
     <div class="equip-toolbar">
@@ -1208,7 +1272,10 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="equip-cat-tabs">
       <button class="equip-cat-btn active" id="eqCat_음향장비" onclick="switchEqCat('음향장비')">🔊 음향장비</button>
       <button class="equip-cat-btn" id="eqCat_무대장비" onclick="switchEqCat('무대장비')">🎪 무대장비</button>
-      <button class="equip-cat-btn" id="eqCat_이벤트장비" onclick="switchEqCat('이벤트장비')">🎉 이벤트장비</button>
+      <button class="equip-cat-btn" id="eqCat_사무실장비" onclick="switchEqCat('사무실장비')">🖥️ 사무실장비</button>
+      <button class="equip-cat-btn" id="eqCat_조명장비" onclick="switchEqCat('조명장비')">💡 조명장비</button>
+      <button class="equip-cat-btn" id="eqCat_특효장비" onclick="switchEqCat('특효장비')">✨ 특효장비</button>
+      <button class="equip-cat-btn" id="eqCat_기타장비" onclick="switchEqCat('기타장비')">📦 기타장비</button>
     </div>
     <div class="equip-search-bar">
       <span class="equip-search-icon">🔍</span>
@@ -1756,8 +1823,8 @@ const MONITOR_ITEMS = [
 // ════════════════════════════════════════
 // ── 인증 & 사용자 시스템 ──
 // ════════════════════════════════════════
-const ADMIN_USER = { id: 'admin', name: '관리자', role: 'admin' };
-const REGISTER_CODE = '6293'; // 신규 가입 시 필요한 관리자 승인 코드
+const ADMIN_USER = { id: 'hanbada', name: '관리자', role: 'admin' };
+const REGISTER_CODE = '2375'; // 신규 가입 시 필요한 관리자 승인 코드
 
 // 사용자 저장소: localStorage 'sl_users'
 // [{id, name, pw, role:'admin'|'user', createdAt, lastLogin}]
@@ -1853,7 +1920,7 @@ async function sbSyncLog(entry) {
 (function initAdminAccount() {
   let users = getUsers();
   if (!users.find(u => u.id === 'admin')) {
-    users.push({ id: 'admin', name: '관리자', pw: '6293', role: 'admin', createdAt: new Date().toISOString(), lastLogin: null });
+    users.push({ id: 'hanbada', name: '관리자', pw: '2375', role: 'admin', createdAt: new Date().toISOString(), lastLogin: null });
     saveUsers(users);
   }
 })();
@@ -3145,7 +3212,7 @@ function editChecklistItem(cat, idx) {
 
 function deleteChecklistItem(cat, idx) {
   const pw = prompt('삭제 암호를 입력하세요:');
-  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   // 해당 항목 체크 상태도 제거
   delete checklistChecked[cat + '_' + idx];
   saveChecklistChecked();
@@ -3155,9 +3222,352 @@ function deleteChecklistItem(cat, idx) {
   showToast('✓ 삭제 완료');
 }
 
+// ── 대표지시 드롭다운 ──
+function toggleDirectiveMenu(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('directiveDropdown');
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+}
+function closeDirectiveMenu() {
+  document.getElementById('directiveDropdown')?.classList.remove('open');
+}
+document.addEventListener('click', () => closeDirectiveMenu());
+
+// ── 알바관리 ──
+let albaData = JSON.parse(localStorage.getItem('albaData') || '{"workers":[],"schedules":[]}');
+if (!Array.isArray(albaData.workers)) albaData.workers = [];
+if (!Array.isArray(albaData.schedules)) albaData.schedules = [];
+let albaCurrentTab = 'workers';
+let albaModalMode = 'view'; // view | edit | add | sched_add | sched_edit
+let albaModalWorkerId = null;
+let albaSchedEditId = null;
+
+function saveAlbaLocal() { localStorage.setItem('albaData', JSON.stringify(albaData)); }
+function _makeAlbaId() { return 'alb_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
+
+function switchAlbaTab(tab) {
+  albaCurrentTab = tab;
+  ['workers','schedule'].forEach(t => {
+    document.getElementById('albaSub_' + t)?.classList.toggle('active', t === tab);
+  });
+  document.getElementById('albaWorkerPanel').style.display = tab === 'workers' ? '' : 'none';
+  document.getElementById('albaSchedulePanel').style.display = tab === 'schedule' ? '' : 'none';
+  if (tab === 'schedule') renderAlbaSchedule();
+  else renderAlbaWorkerGrid();
+}
+
+function renderAlbaWorkerGrid() {
+  const grid = document.getElementById('albaWorkerGrid');
+  if (!grid) return;
+  if (!albaData.workers.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">등록된 알바 없음 — ＋ 버튼으로 등록하세요</div>';
+    return;
+  }
+  grid.innerHTML = albaData.workers.map(w => {
+    const schedCount = albaData.schedules.filter(s => s.workerId === w.id).length;
+    return `<div class="alba-worker-card" onclick="openAlbaWorkerView('${w.id}')">
+      <div class="alba-worker-name">${_escEq(w.name)}</div>
+      ${w.role ? `<div class="alba-worker-role">${_escEq(w.role)}</div>` : ''}
+      <div class="alba-worker-tel">${_escEq(w.tel)}</div>
+      <div class="alba-worker-count">📅 스케줄 ${schedCount}건</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAlbaSchedule() {
+  const list = document.getElementById('albaSchedList');
+  if (!list) return;
+  const month = document.getElementById('albaSchedMonth')?.value || new Date().toISOString().slice(0,7);
+  const items = albaData.schedules
+    .filter(s => s.date && s.date.startsWith(month))
+    .sort((a,b) => a.date.localeCompare(b.date));
+  if (!items.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">이 달 스케줄 없음</div>';
+    return;
+  }
+  list.innerHTML = items.map(s => {
+    const w = albaData.workers.find(x => x.id === s.workerId);
+    const name = w ? w.name : s.workerName || '?';
+    return `<div class="alba-sched-item">
+      <div class="alba-sched-date">${s.date}${s.time ? ' ' + s.time : ''}</div>
+      <div class="alba-sched-info">
+        <div class="alba-sched-name">${_escEq(name)}</div>
+        <div class="alba-sched-event">${_escEq(s.event || '')}</div>
+        ${s.memo ? `<div style="font-size:11px;color:var(--text-muted)">${_escEq(s.memo)}</div>` : ''}
+      </div>
+      ${s.pay ? `<div class="alba-sched-pay">${_escEq(s.pay)}</div>` : ''}
+      <button class="alba-sched-del" onclick="deleteAlbaSchedule('${s.id}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function openAlbaWorkerView(id) {
+  albaModalWorkerId = id;
+  albaModalMode = 'view';
+  renderAlbaModal();
+  document.getElementById('albaModal').classList.add('open');
+}
+
+function openAlbaWorkerAdd() {
+  albaModalWorkerId = null;
+  albaModalMode = 'add';
+  renderAlbaModal();
+  document.getElementById('albaModal').classList.add('open');
+}
+
+function closeAlbaModal() {
+  document.getElementById('albaModal').classList.remove('open');
+  albaModalWorkerId = null;
+  albaModalMode = 'view';
+}
+
+function renderAlbaModal() {
+  const card = document.getElementById('albaModalCard');
+  if (!card) return;
+  if (albaModalMode === 'view' || albaModalMode === 'edit') {
+    const w = albaData.workers.find(x => x.id === albaModalWorkerId);
+    if (!w) return;
+    const schedules = albaData.schedules.filter(s => s.workerId === w.id).sort((a,b) => b.date.localeCompare(a.date));
+    if (albaModalMode === 'view') {
+      card.innerHTML = `
+        <div class="equip-modal-header">
+          <div><div class="equip-modal-title">👤 ${_escEq(w.name)}</div>${w.role?`<div style="font-size:11px;color:var(--gold);margin-top:2px;">${_escEq(w.role)}</div>`:''}</div>
+          <button class="equip-modal-close" onclick="closeAlbaModal()">✕</button>
+        </div>
+        <div class="equip-modal-body">
+          <div class="equip-section">
+            <div class="equip-section-head">📋 기본 정보</div>
+            ${_eqFieldRow('이름', w.name)}
+            ${_eqFieldRow('연락처', w.tel)}
+            ${_eqFieldRow('역할/직종', w.role)}
+            ${_eqFieldRow('메모', w.memo)}
+          </div>
+          <div class="equip-section">
+            <div class="equip-section-head" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>📅 스케줄 이력 (${schedules.length}건)</span>
+              <button onclick="openAlbaSchedAddForWorker('${w.id}')" style="background:var(--accent-dim);border:1.5px solid rgba(61,186,150,0.4);color:var(--accent);border-radius:7px;font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">＋ 스케줄 추가</button>
+            </div>
+            ${schedules.length === 0 ? '<div style="padding:12px 14px;color:var(--text-muted);font-size:12px;">스케줄 없음</div>' :
+              schedules.map(s => `
+                <div class="equip-log-item">
+                  <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                      <span class="equip-log-date">${_escEq(s.date)}${s.time?' '+s.time:''}</span>
+                      ${s.pay?`<span style="color:var(--accent);font-size:11px;font-weight:700;">${_escEq(s.pay)}</span>`:''}
+                    </div>
+                    <div class="equip-log-desc">${_escEq(s.event||'')}</div>
+                    ${s.memo?`<div style="font-size:11px;color:var(--text-muted)">${_escEq(s.memo)}</div>`:''}
+                  </div>
+                  <button class="equip-log-del" onclick="deleteAlbaSchedule('${s.id}')">🗑</button>
+                </div>`).join('')}
+          </div>
+        </div>
+        <div class="equip-modal-actions">
+          <button class="equip-action-btn equip-action-edit" onclick="startAlbaWorkerEdit()">✏️ 수정</button>
+          <button class="equip-action-btn equip-action-delete" onclick="deleteAlbaWorker()">🗑️ 삭제</button>
+        </div>
+        <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeAlbaModal()">✕ 닫기</button></div>`;
+    } else {
+      card.innerHTML = `
+        <div class="equip-modal-header">
+          <span class="equip-modal-title">✏️ 알바 수정</span>
+          <button class="equip-modal-close" onclick="openAlbaWorkerView('${w.id}')">✕</button>
+        </div>
+        <div class="equip-modal-body">${_albaWorkerForm(w)}</div>
+        <div class="equip-modal-actions">
+          <button class="equip-action-btn equip-action-save" onclick="saveAlbaWorkerEdit()">💾 저장</button>
+          <button class="equip-action-btn equip-action-cancel" onclick="openAlbaWorkerView('${w.id}')">취소</button>
+        </div>
+        <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="openAlbaWorkerView('${w.id}')">✕ 닫기</button></div>`;
+    }
+  } else if (albaModalMode === 'add') {
+    card.innerHTML = `
+      <div class="equip-modal-header">
+        <span class="equip-modal-title">➕ 알바 등록</span>
+        <button class="equip-modal-close" onclick="closeAlbaModal()">✕</button>
+      </div>
+      <div class="equip-modal-body">${_albaWorkerForm({name:'',tel:'',role:'',memo:''})}</div>
+      <div class="equip-modal-actions">
+        <button class="equip-action-btn equip-action-save" onclick="saveAlbaWorkerAdd()">💾 등록</button>
+        <button class="equip-action-btn equip-action-cancel" onclick="closeAlbaModal()">취소</button>
+      </div>
+      <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeAlbaModal()">✕ 닫기</button></div>`;
+  } else if (albaModalMode === 'sched_add') {
+    const preWorker = albaModalWorkerId ? (albaData.workers.find(x=>x.id===albaModalWorkerId)||null) : null;
+    card.innerHTML = `
+      <div class="equip-modal-header">
+        <span class="equip-modal-title">📅 스케줄 추가</span>
+        <button class="equip-modal-close" onclick="${preWorker?`openAlbaWorkerView('${preWorker.id}')`:'closeAlbaModal()'}">✕</button>
+      </div>
+      <div class="equip-modal-body">${_albaSchedForm(null, preWorker)}</div>
+      <div class="equip-modal-actions">
+        <button class="equip-action-btn equip-action-save" onclick="saveAlbaSchedAdd()">💾 저장</button>
+        <button class="equip-action-btn equip-action-cancel" onclick="${preWorker?`openAlbaWorkerView('${preWorker.id}')`:'closeAlbaModal()'}">취소</button>
+      </div>
+      <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeAlbaModal()">✕ 닫기</button></div>`;
+  }
+}
+
+function _albaWorkerForm(w) {
+  return `<div class="equip-section">
+    <div class="equip-section-head">📋 기본 정보</div>
+    <div class="equip-field-row"><span class="equip-field-label">이름 *</span><input class="equip-field-input" id="af_name" value="${_escEq(w.name||'')}" placeholder="이름 입력"></div>
+    <div class="equip-field-row"><span class="equip-field-label">연락처</span><input class="equip-field-input" id="af_tel" value="${_escEq(w.tel||'')}" placeholder="010-0000-0000"></div>
+    <div class="equip-field-row"><span class="equip-field-label">역할/직종</span><input class="equip-field-input" id="af_role" value="${_escEq(w.role||'')}" placeholder="예: 음향보조, 무대설치"></div>
+    <div class="equip-field-row"><span class="equip-field-label">메모</span><input class="equip-field-input" id="af_memo" value="${_escEq(w.memo||'')}" placeholder="특이사항"></div>
+  </div>`;
+}
+
+function _albaSchedForm(sched, preWorker) {
+  const workerOptions = albaData.workers.map(w =>
+    `<option value="${w.id}"${preWorker && preWorker.id===w.id?' selected':''}>${_escEq(w.name)}</option>`
+  ).join('');
+  return `<div class="equip-section">
+    <div class="equip-section-head">📅 스케줄 정보</div>
+    <div class="equip-field-row"><span class="equip-field-label">알바 *</span>
+      <select class="equip-field-input" id="sf_worker">${workerOptions}</select>
+    </div>
+    <div class="equip-field-row"><span class="equip-field-label">날짜 *</span><input class="equip-field-input" id="sf_date" type="date" value="${sched?.date||new Date().toISOString().slice(0,10)}"></div>
+    <div class="equip-field-row"><span class="equip-field-label">시간</span><input class="equip-field-input" id="sf_time" type="time" value="${sched?.time||''}"></div>
+    <div class="equip-field-row"><span class="equip-field-label">행사명</span><input class="equip-field-input" id="sf_event" value="${_escEq(sched?.event||'')}" placeholder="행사명 또는 업무 내용"></div>
+    <div class="equip-field-row"><span class="equip-field-label">급여</span><input class="equip-field-input" id="sf_pay" value="${_escEq(sched?.pay||'')}" placeholder="예: 100,000원"></div>
+    <div class="equip-field-row"><span class="equip-field-label">메모</span><input class="equip-field-input" id="sf_memo" value="${_escEq(sched?.memo||'')}" placeholder="메모"></div>
+  </div>`;
+}
+
+function startAlbaWorkerEdit() {
+  const pw = prompt('수정 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  albaModalMode = 'edit';
+  renderAlbaModal();
+}
+
+function saveAlbaWorkerEdit() {
+  const name = document.getElementById('af_name')?.value?.trim();
+  if (!name) { showToast('이름을 입력하세요'); return; }
+  const w = albaData.workers.find(x => x.id === albaModalWorkerId);
+  if (!w) return;
+  w.name = name;
+  w.tel = document.getElementById('af_tel')?.value?.trim() || '';
+  w.role = document.getElementById('af_role')?.value?.trim() || '';
+  w.memo = document.getElementById('af_memo')?.value?.trim() || '';
+  saveAlbaLocal(); _syncAlbaCloud();
+  albaModalMode = 'view';
+  renderAlbaModal(); renderAlbaWorkerGrid();
+  showToast('✅ 수정 완료');
+}
+
+function saveAlbaWorkerAdd() {
+  const name = document.getElementById('af_name')?.value?.trim();
+  if (!name) { showToast('이름을 입력하세요'); return; }
+  const w = {
+    id: _makeAlbaId(), name,
+    tel: document.getElementById('af_tel')?.value?.trim() || '',
+    role: document.getElementById('af_role')?.value?.trim() || '',
+    memo: document.getElementById('af_memo')?.value?.trim() || ''
+  };
+  albaData.workers.push(w);
+  saveAlbaLocal(); _syncAlbaCloud();
+  closeAlbaModal(); renderAlbaWorkerGrid();
+  showToast('✅ 알바 등록 완료');
+}
+
+function deleteAlbaWorker() {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  albaData.workers = albaData.workers.filter(x => x.id !== albaModalWorkerId);
+  albaData.schedules = albaData.schedules.filter(x => x.workerId !== albaModalWorkerId);
+  saveAlbaLocal(); _syncAlbaCloud();
+  closeAlbaModal(); renderAlbaWorkerGrid();
+  showToast('✓ 삭제 완료');
+}
+
+function openAlbaSchedAdd() {
+  albaModalWorkerId = null;
+  albaModalMode = 'sched_add';
+  renderAlbaModal();
+  document.getElementById('albaModal').classList.add('open');
+}
+
+function openAlbaSchedAddForWorker(workerId) {
+  albaModalWorkerId = workerId;
+  albaModalMode = 'sched_add';
+  renderAlbaModal();
+}
+
+function saveAlbaSchedAdd() {
+  const workerId = document.getElementById('sf_worker')?.value;
+  const date = document.getElementById('sf_date')?.value;
+  if (!workerId || !date) { showToast('알바와 날짜를 선택하세요'); return; }
+  const w = albaData.workers.find(x => x.id === workerId);
+  const sched = {
+    id: _makeAlbaId(), workerId, workerName: w?.name || '',
+    date, time: document.getElementById('sf_time')?.value || '',
+    event: document.getElementById('sf_event')?.value?.trim() || '',
+    pay: document.getElementById('sf_pay')?.value?.trim() || '',
+    memo: document.getElementById('sf_memo')?.value?.trim() || ''
+  };
+  albaData.schedules.push(sched);
+  saveAlbaLocal(); _syncAlbaCloud();
+  if (albaModalWorkerId) {
+    openAlbaWorkerView(albaModalWorkerId);
+  } else {
+    closeAlbaModal(); renderAlbaSchedule();
+  }
+  showToast('✅ 스케줄 추가 완료');
+}
+
+function deleteAlbaSchedule(schedId) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  albaData.schedules = albaData.schedules.filter(x => x.id !== schedId);
+  saveAlbaLocal(); _syncAlbaCloud();
+  if (albaModalWorkerId && document.getElementById('albaModal')?.classList.contains('open')) {
+    renderAlbaModal();
+  }
+  renderAlbaSchedule(); renderAlbaWorkerGrid();
+  showToast('✓ 삭제 완료');
+}
+
+async function _syncAlbaCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.alba`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: albaData })
+    });
+    if (!res.ok) throw new Error();
+    const r = await res.json();
+    if (Array.isArray(r) && r.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'alba', v15: albaData })
+      });
+    }
+  } catch(e) { console.error('알바 클라우드 저장 실패:', e); }
+}
+
+async function loadAlbaFromCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.alba&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows.length || !rows[0].v15) return;
+    const d = rows[0].v15;
+    if (Array.isArray(d.workers)) albaData.workers = d.workers;
+    if (Array.isArray(d.schedules)) albaData.schedules = d.schedules;
+    saveAlbaLocal();
+  } catch(e) { console.error('알바 클라우드 불러오기 실패:', e); }
+}
+
 // ── 장비관리대장 ──
-const EQUIP_CATS = ['음향장비', '무대장비', '이벤트장비'];
-let equipmentData = JSON.parse(localStorage.getItem('equipmentData') || '{"음향장비":[],"무대장비":[],"이벤트장비":[]}');
+const EQUIP_CATS = ['음향장비', '무대장비', '사무실장비', '조명장비', '특효장비', '기타장비'];
+let equipmentData = JSON.parse(localStorage.getItem('equipmentData') || '{"음향장비":[],"무대장비":[],"사무실장비":[],"조명장비":[],"특효장비":[],"기타장비":[]}');
 EQUIP_CATS.forEach(c => { if (!Array.isArray(equipmentData[c])) equipmentData[c] = []; });
 let eqCurrentCat = '음향장비';
 let eqCurrentFilter = 'all';
@@ -3199,11 +3609,15 @@ const EQUIP_DEFAULT = {
     {name:'미니트러스 큐브',model:'',qty:'1EA'},{name:'플라잉프레임',model:'',qty:'1EA'},
     {name:'3×3 천막',model:'',qty:'1EA'}
   ],
-  이벤트장비: [
+  사무실장비: [],
+  조명장비: [],
+  특효장비: [
     {name:'에어샷',model:'',qty:'1EA'},{name:'CO₂',model:'',qty:'1EA'},
-    {name:'현수막 이탈기',model:'',qty:'1EA'},{name:'노래방 기기',model:'',qty:'1EA'},
-    {name:'CD PLAYER',model:'',qty:'1EA'},{name:'벨트 차단봉',model:'',qty:'1식'},
-    {name:'황동 커팅봉',model:'',qty:'1식'},{name:'임팩라쳇 드라이버',model:'',qty:'1EA'},
+    {name:'현수막 이탈기',model:'',qty:'1EA'},{name:'벨트 차단봉',model:'',qty:'1식'},
+    {name:'황동 커팅봉',model:'',qty:'1식'},{name:'임팩라쳇 드라이버',model:'',qty:'1EA'}
+  ],
+  기타장비: [
+    {name:'노래방 기기',model:'',qty:'1EA'},{name:'CD PLAYER',model:'',qty:'1EA'},
     {name:'연주용 의자',model:'',qty:'1EA'},{name:'휴대용 전기콤프레샤',model:'',qty:'1EA'},
     {name:'옐로우자켓',model:'',qty:'1EA'}
   ]
@@ -3530,7 +3944,7 @@ function addEquipLog() {
 
 function deleteEquipLog(logIdx) {
   const pw = prompt('삭제 암호를 입력하세요:');
-  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   found.item.logs.splice(logIdx, 1);
@@ -3542,7 +3956,7 @@ function deleteEquipLog(logIdx) {
 
 function startEquipEdit() {
   const pw = prompt('수정 암호를 입력하세요:');
-  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   eqEditDraft = JSON.parse(JSON.stringify(found.item));
@@ -3613,7 +4027,7 @@ function saveEquipAdd() {
 
 function deleteEquipItem() {
   const pw = prompt('삭제 암호를 입력하세요:');
-  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
@@ -3831,7 +4245,7 @@ function updateMaintenance(type, idx, field, val) {
 
 function deleteMaintenance(type, idx) {
   const pw = prompt('삭제 암호를 입력하세요:');
-  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const item = vehicleData[type].maintenance[idx]?.item || '';
   vehicleData[type].maintenance.splice(idx,1);
   renderMaintenanceList(type);
@@ -4013,7 +4427,7 @@ function clearVhDateFilter() {
 
 function deleteMaintFromHistory(type, idx) {
   const pw = prompt('삭제 암호를 입력하세요:');
-  if (pw !== '6293') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   vehicleData[type].maintenance.splice(idx, 1);
   saveVehicleData();
   renderMaintenanceList(type);
@@ -4253,10 +4667,6 @@ renderTasks('warehouse');
 document.getElementById('tab-office').classList.add('active');
 const p = document.getElementById('pageOffice'); p.style.display='flex'; p.classList.add('active');
 renderTasks('office');
-} else if (tab === 'directive') {
-document.getElementById('tab-directive').classList.add('active');
-const p = document.getElementById('pageDirective'); p.style.display='flex'; p.classList.add('active');
-renderTasks('directive');
 } else if (tab === 'vehicle') {
 document.getElementById('tab-vehicle').classList.add('active');
 const p = document.getElementById('pageVehicle'); p.style.display='flex'; p.classList.add('active');
@@ -4265,6 +4675,16 @@ renderVehiclePage();
 document.getElementById('tab-equipment').classList.add('active');
 const p = document.getElementById('pageEquipment'); p.style.display='flex'; p.classList.add('active');
 renderEquipGrid();
+} else if (tab === 'alba') {
+document.getElementById('tab-directive').classList.add('active');
+const p = document.getElementById('pageAlba'); p.style.display='flex'; p.classList.add('active');
+const m = document.getElementById('albaSchedMonth');
+if (m && !m.value) m.value = new Date().toISOString().slice(0,7);
+renderAlbaWorkerGrid(); renderAlbaSchedule();
+} else if (tab === 'directive') {
+document.getElementById('tab-directive').classList.add('active');
+const p = document.getElementById('pageDirective'); p.style.display='flex'; p.classList.add('active');
+renderTasks('directive');
 }
 }
 
@@ -4747,6 +5167,7 @@ document.getElementById('pageOffice').style.display = 'none';
 document.getElementById('pageDirective').style.display = 'none';
 document.getElementById('pageVehicle').style.display = 'none';
 document.getElementById('pageEquipment').style.display = 'none';
+document.getElementById('pageAlba').style.display = 'none';
 document.getElementById('pageForm').style.display = 'none';
 // app은 기본 숨김 (세션 없으면 로그인 화면만 표시)
 if (!sessionStorage.getItem('sl_session')) {
@@ -4810,6 +5231,9 @@ async function autoLoadAll() {
     // 6. 장비관리대장 동기화
     await loadEquipmentFromCloud();
     initEquipmentDefault();
+
+    // 7. 알바관리 동기화
+    await loadAlbaFromCloud();
 
   } catch(e) { console.error('자동 불러오기 실패:', e); }
 }
