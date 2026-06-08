@@ -818,6 +818,12 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .equip-filter-bar { display:flex; gap:8px; padding:9px 16px; flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--border); }
 .eqf-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text-muted); border-radius:20px; font-size:11px; font-weight:700; padding:4px 13px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; }
 .eqf-btn.active { background:var(--accent-dim); border-color:rgba(61,186,150,0.5); color:var(--accent); }
+.equip-subcat-bar { display:flex; gap:6px; padding:8px 14px; flex-shrink:0; background:var(--surface2); border-bottom:1px solid var(--border); overflow-x:auto; flex-wrap:nowrap; }
+.equip-subcat-bar::-webkit-scrollbar { display:none; }
+.equip-subcat-btn { background:var(--surface); border:1.5px solid var(--border2); color:var(--text-muted); border-radius:16px; font-size:11px; font-weight:700; padding:4px 12px; cursor:pointer; white-space:nowrap; font-family:'Noto Sans KR',sans-serif; transition:all 0.15s; flex-shrink:0; }
+.equip-subcat-btn.active { background:var(--accent-dim); border-color:rgba(61,186,150,0.5); color:var(--accent); }
+.equip-subcat-manage { margin-left:auto; color:var(--text-muted); border-style:dashed; }
+.equip-subcat-header { grid-column:1/-1; font-size:12px; font-weight:800; color:var(--accent); padding:8px 4px 4px; border-bottom:1px solid var(--border); margin-bottom:2px; }
 .equip-grid { flex:1; overflow-y:auto; padding:14px 12px; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; align-content:start; }
 @media(min-width:560px){.equip-grid{grid-template-columns:repeat(3,1fr);}}
 @media(min-width:860px){.equip-grid{grid-template-columns:repeat(4,1fr);}}
@@ -1521,6 +1527,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <input class="equip-search-input" id="equipSearchInput" type="text" placeholder="장비명 / 구분 / 모델 검색…" oninput="onEqSearch(this.value)">
       <button class="equip-search-clear" id="equipSearchClear" onclick="clearEqSearch()" style="display:none">✕</button>
     </div>
+    <div class="equip-subcat-bar" id="eqSubcatBar" style="display:none"></div>
     <div class="equip-filter-bar">
       <button class="eqf-btn active" id="eqFilter_all" onclick="setEqFilter('all')">전체</button>
       <button class="eqf-btn" id="eqFilter_active" onclick="setEqFilter('active')">● 사용중</button>
@@ -1907,6 +1914,22 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <button class="btn btn-primary" onclick="saveAndSync()">✓ 저장</button>
 </div>
 
+  </div>
+</div>
+
+<!-- 소분류 관리 모달 -->
+<div class="equip-modal-overlay" id="subcatManagerModal" onclick="if(event.target===this)closeSubcatManager()">
+  <div class="equip-modal-card" style="max-width:400px;">
+    <div class="equip-modal-header">
+      <span class="equip-modal-title">⚙️ 음향장비 소분류 관리</span>
+      <button class="equip-modal-close" onclick="closeSubcatManager()">✕</button>
+    </div>
+    <div id="subcatManagerBody" style="padding:16px;overflow-y:auto;max-height:65vh;"></div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
+      <input id="subcatNewInput" class="equip-field-input" placeholder="새 소분류 이름" style="flex:1;padding:7px 11px;border-radius:8px;">
+      <button class="equip-action-btn equip-action-save" style="padding:7px 16px;" onclick="addSoundSubcat()">추가</button>
+    </div>
+    <div class="modal-close-bar"><button class="modal-close-bar-btn" onclick="closeSubcatManager()">✕ 닫기</button></div>
   </div>
 </div>
 
@@ -4297,6 +4320,9 @@ let equipmentData = JSON.parse(localStorage.getItem('equipmentData') || '{"음�
 EQUIP_CATS.forEach(c => { if (!Array.isArray(equipmentData[c])) equipmentData[c] = []; });
 let eqCurrentCat = '음향장비';
 let eqCurrentFilter = 'all';
+const SOUND_SUBCAT_DEFAULT = ['스피커류', '앰프류', '프로세서/이퀄라이저', '콘솔/믹서', '마이크류', '케이블/기타'];
+let soundSubcats = JSON.parse(localStorage.getItem('soundSubcats') || 'null') || [...SOUND_SUBCAT_DEFAULT];
+let eqCurrentSubcat = '전체';
 let eqSearchQuery = '';
 let eqModalMode = 'view';
 let eqModalId = null;
@@ -4306,23 +4332,39 @@ let _eqEditPhotos = [];
 
 const EQUIP_DEFAULT = {
   음향장비: [
-    {name:'메인스피커',model:'M-8000',qty:'2조'},{name:'모니터스피커',model:'Side fill',qty:'2조'},
-    {name:'우퍼',model:'',qty:'1EA'},{name:'4채널 앰프',model:'',qty:'3EA'},
-    {name:'V8앰프',model:'',qty:'1EA'},{name:'우퍼전용앰프',model:'',qty:'1EA'},
-    {name:'M8000전용앰프',model:'',qty:'1EA'},{name:'모니터앰프',model:'',qty:'1EA'},
-    {name:'EQ',model:'',qty:'1EA'},{name:'크로스오버',model:'',qty:'1EA'},
-    {name:'프로세서',model:'',qty:'1EA'},{name:'디지털프로세서',model:'',qty:'1EA'},
-    {name:'스피커 리프트',model:'',qty:'1조'},{name:'메인콘솔',model:'하우스콘솔',qty:'1EA'},
-    {name:'스테이지박스',model:'STAGE BOX',qty:'1EA'},{name:'미니믹서',model:'',qty:'1EA'},
-    {name:'무선마이크 수신기',model:'Shure QLXD',qty:'16ea'},{name:'무선마이크',model:'Shure QLXD',qty:'16EA'},
-    {name:'무선 바디팩',model:'밸트팩',qty:'8EA'},{name:'콘덴서마이크',model:'',qty:'3EA'},
-    {name:'드럼마이크세트',model:'',qty:'1EA'},{name:'유선마이크',model:'',qty:'1EA'},
-    {name:'핀마이크',model:'',qty:'1EA'},{name:'안테나 분배기',model:'',qty:'4EA'},
-    {name:'광대역 안테나',model:'',qty:'2EA'},{name:'이동용 앰프',model:'',qty:'1EA'},
-    {name:'4CH 멀티신호선 박스',model:'',qty:'2EA'},{name:'16ch 멀티신호롤',model:'',qty:'1EA'},
-    {name:'캐논잭',model:'다양한 길이',qty:'1식'},{name:'스피커케이블',model:'',qty:'1식'},
-    {name:'전기선박스',model:'',qty:'1EA'},{name:'DI BOX',model:'',qty:'5EA'},
-    {name:'미디인터페이스',model:'',qty:'1EA'}
+    {name:'메인스피커',model:'M-8000',qty:'2조',subcat:'스피커류'},
+    {name:'모니터스피커',model:'Side fill',qty:'2조',subcat:'스피커류'},
+    {name:'우퍼',model:'',qty:'1EA',subcat:'스피커류'},
+    {name:'스피커 리프트',model:'',qty:'1조',subcat:'스피커류'},
+    {name:'이동용 앰프',model:'',qty:'1EA',subcat:'스피커류'},
+    {name:'4채널 앰프',model:'',qty:'3EA',subcat:'앰프류'},
+    {name:'V8앰프',model:'',qty:'1EA',subcat:'앰프류'},
+    {name:'우퍼전용앰프',model:'',qty:'1EA',subcat:'앰프류'},
+    {name:'M8000전용앰프',model:'',qty:'1EA',subcat:'앰프류'},
+    {name:'모니터앰프',model:'',qty:'1EA',subcat:'앰프류'},
+    {name:'EQ',model:'',qty:'1EA',subcat:'프로세서/이퀄라이저'},
+    {name:'크로스오버',model:'',qty:'1EA',subcat:'프로세서/이퀄라이저'},
+    {name:'프로세서',model:'',qty:'1EA',subcat:'프로세서/이퀄라이저'},
+    {name:'디지털프로세서',model:'',qty:'1EA',subcat:'프로세서/이퀄라이저'},
+    {name:'메인콘솔',model:'하우스콘솔',qty:'1EA',subcat:'콘솔/믹서'},
+    {name:'스테이지박스',model:'STAGE BOX',qty:'1EA',subcat:'콘솔/믹서'},
+    {name:'미니믹서',model:'',qty:'1EA',subcat:'콘솔/믹서'},
+    {name:'무선마이크 수신기',model:'Shure QLXD',qty:'16ea',subcat:'마이크류'},
+    {name:'무선마이크',model:'Shure QLXD',qty:'16EA',subcat:'마이크류'},
+    {name:'무선 바디팩',model:'밸트팩',qty:'8EA',subcat:'마이크류'},
+    {name:'콘덴서마이크',model:'',qty:'3EA',subcat:'마이크류'},
+    {name:'드럼마이크세트',model:'',qty:'1EA',subcat:'마이크류'},
+    {name:'유선마이크',model:'',qty:'1EA',subcat:'마이크류'},
+    {name:'핀마이크',model:'',qty:'1EA',subcat:'마이크류'},
+    {name:'안테나 분배기',model:'',qty:'4EA',subcat:'마이크류'},
+    {name:'광대역 안테나',model:'',qty:'2EA',subcat:'마이크류'},
+    {name:'4CH 멀티신호선 박스',model:'',qty:'2EA',subcat:'케이블/기타'},
+    {name:'16ch 멀티신호롤',model:'',qty:'1EA',subcat:'케이블/기타'},
+    {name:'캐논잭',model:'다양한 길이',qty:'1식',subcat:'케이블/기타'},
+    {name:'스피커케이블',model:'',qty:'1식',subcat:'케이블/기타'},
+    {name:'전기선박스',model:'',qty:'1EA',subcat:'케이블/기타'},
+    {name:'DI BOX',model:'',qty:'5EA',subcat:'케이블/기타'},
+    {name:'미디인터페이스',model:'',qty:'1EA',subcat:'케이블/기타'}
   ],
   무대장비: [
     {name:'상판 (갈)',model:'',qty:'1식'},{name:'상판 (검)',model:'',qty:'1식'},
@@ -4358,10 +4400,24 @@ function initEquipmentDefault() {
       equipmentData[cat] = EQUIP_DEFAULT[cat].map(d => ({
         id: _makeEquipId(), name: d.name, model: d.model, qty: d.qty,
         supplier: '', serialNo: '', contact: '', tel: '',
-        status: 'active', photos: [], logs: []
+        subcat: d.subcat || '', status: 'active', photos: [], logs: []
       }));
       changed = true;
     }
+  });
+  // 기존 음향장비 항목에 subcat 없는 경우 이름 기반으로 자동 배정
+  const subcatMap = {
+    '스피커류': ['메인스피커','모니터스피커','우퍼','스피커 리프트','이동용 앰프'],
+    '앰프류': ['4채널 앰프','V8앰프','우퍼전용앰프','M8000전용앰프','모니터앰프'],
+    '프로세서/이퀄라이저': ['EQ','크로스오버','프로세서','디지털프로세서'],
+    '콘솔/믹서': ['메인콘솔','스테이지박스','미니믹서'],
+    '마이크류': ['무선마이크 수신기','무선마이크','무선 바디팩','콘덴서마이크','드럼마이크세트','유선마이크','핀마이크','안테나 분배기','광대역 안테나'],
+    '케이블/기타': ['4CH 멀티신호선 박스','16ch 멀티신호롤','캐논잭','스피커케이블','전기선박스','DI BOX','미디인터페이스']
+  };
+  const nameToSubcat = {};
+  Object.entries(subcatMap).forEach(([sc, names]) => names.forEach(n => nameToSubcat[n] = sc));
+  (equipmentData['음향장비'] || []).forEach(item => {
+    if (!item.subcat && nameToSubcat[item.name]) { item.subcat = nameToSubcat[item.name]; changed = true; }
   });
   if (changed) { localStorage.setItem('equipmentData', JSON.stringify(equipmentData)); _syncEquipmentCloud(); }
 }
@@ -4385,8 +4441,106 @@ function clearEqSearch() {
 
 function switchEqCat(cat) {
   eqCurrentCat = cat;
+  eqCurrentSubcat = '전체';
   EQUIP_CATS.forEach(c => { const b = document.getElementById('eqCat_' + c); if (b) b.classList.toggle('active', c === cat); });
+  const subcatBar = document.getElementById('eqSubcatBar');
+  if (subcatBar) {
+    if (cat === '음향장비') { subcatBar.style.display = ''; renderEqSubcatBar(); }
+    else subcatBar.style.display = 'none';
+  }
   renderEquipGrid();
+}
+
+function renderEqSubcatBar() {
+  const bar = document.getElementById('eqSubcatBar');
+  if (!bar) return;
+  const all = ['전체', ...soundSubcats];
+  bar.innerHTML = all.map(s =>
+    `<button class="equip-subcat-btn${eqCurrentSubcat === s ? ' active' : ''}" onclick="switchEqSubcat('${_escEq(s)}')">${_escEq(s)}</button>`
+  ).join('') + `<button class="equip-subcat-btn equip-subcat-manage" onclick="openSubcatManager()">⚙️ 소분류 관리</button>`;
+}
+
+function switchEqSubcat(name) {
+  eqCurrentSubcat = name;
+  renderEqSubcatBar();
+  renderEquipGrid();
+}
+
+function openSubcatManager() {
+  renderSubcatManagerBody();
+  document.getElementById('subcatManagerModal').classList.add('open');
+}
+
+function closeSubcatManager() {
+  document.getElementById('subcatManagerModal').classList.remove('open');
+}
+
+function renderSubcatManagerBody() {
+  const body = document.getElementById('subcatManagerBody');
+  if (!body) return;
+  if (!soundSubcats.length) {
+    body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">소분류 없음</div>';
+    return;
+  }
+  body.innerHTML = soundSubcats.map((s, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span id="subcatLabel_${i}" style="flex:1;font-size:13px;font-weight:700;color:var(--text);">${_escEq(s)}</span>
+      <input id="subcatEdit_${i}" class="equip-field-input" value="${_escEq(s)}" style="flex:1;padding:5px 9px;border-radius:7px;display:none;">
+      <button onclick="startRenameSubcat(${i})" id="subcatRenameBtn_${i}" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 8px;">✏️ 수정</button>
+      <button onclick="confirmRenameSubcat(${i})" id="subcatSaveBtn_${i}" style="background:var(--accent-dim);border:1.5px solid rgba(61,186,150,0.4);color:var(--accent);font-size:12px;border-radius:7px;cursor:pointer;padding:4px 10px;display:none;">저장</button>
+      <button onclick="deleteSoundSubcat(${i})" style="background:none;border:none;color:#e74c3c;font-size:12px;cursor:pointer;padding:4px 8px;">🗑️</button>
+    </div>`).join('');
+}
+
+function startRenameSubcat(i) {
+  document.getElementById('subcatLabel_' + i).style.display = 'none';
+  document.getElementById('subcatEdit_' + i).style.display = '';
+  document.getElementById('subcatRenameBtn_' + i).style.display = 'none';
+  document.getElementById('subcatSaveBtn_' + i).style.display = '';
+}
+
+function confirmRenameSubcat(i) {
+  const val = document.getElementById('subcatEdit_' + i)?.value?.trim();
+  if (!val) { showToast('소분류 이름을 입력하세요'); return; }
+  const oldName = soundSubcats[i];
+  soundSubcats[i] = val;
+  // 기존 장비들의 subcat도 함께 변경
+  (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === oldName) item.subcat = val; });
+  localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  renderSubcatManagerBody();
+  renderEqSubcatBar();
+  showToast('✅ 소분류 수정 완료');
+}
+
+function addSoundSubcat() {
+  const input = document.getElementById('subcatNewInput');
+  const val = input?.value?.trim();
+  if (!val) { showToast('소분류 이름을 입력하세요'); return; }
+  if (soundSubcats.includes(val)) { showToast('이미 존재하는 소분류입니다'); return; }
+  soundSubcats.push(val);
+  localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  if (input) input.value = '';
+  renderSubcatManagerBody();
+  renderEqSubcatBar();
+  showToast('✅ 소분류 추가 완료');
+}
+
+function deleteSoundSubcat(i) {
+  const name = soundSubcats[i];
+  const count = (equipmentData['음향장비'] || []).filter(item => item.subcat === name).length;
+  const msg = count > 0 ? `'${name}' 소분류에 장비 ${count}개가 있습니다. 삭제하면 해당 장비들의 소분류가 비워집니다. 계속하시겠습니까?` : `'${name}' 소분류를 삭제하시겠습니까?`;
+  if (!confirm(msg)) return;
+  soundSubcats.splice(i, 1);
+  (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === name) item.subcat = ''; });
+  localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  _syncEquipmentCloud();
+  renderSubcatManagerBody();
+  renderEqSubcatBar();
+  if (eqCurrentSubcat === name) { eqCurrentSubcat = '전체'; renderEquipGrid(); }
+  showToast('✓ 소분류 삭제 완료');
 }
 
 function setEqFilter(f) {
@@ -4397,25 +4551,51 @@ function setEqFilter(f) {
 
 function _escEq(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+function _renderEquipCard(item, showCat) {
+  const hasPhoto = item.photos && item.photos.length > 0;
+  const logCount = (item.logs || []).length;
+  const catLabel = showCat && item._cat ? `<span style="font-size:10px;color:var(--text-muted)">${item._cat}</span>` : '';
+  return `<div class="equip-card${item.status === 'retired' ? ' retired' : ''}" onclick="openEquipView('${item.id}')" onmouseenter="showEquipPreview(event,'${item.id}')" onmouseleave="hideHoverPreview()">
+    <div class="equip-card-name">${_escEq(item.name)}</div>
+    ${item.model ? `<div class="equip-card-model">${_escEq(item.model)}</div>` : ''}
+    ${item.tag ? `<div style="margin-top:1px;"><span class="equip-tag-badge">${_escEq(item.tag)}</span></div>` : ''}
+    <div class="equip-card-foot">
+      <span class="equip-status-badge ${item.status}">${item.status === 'active' ? '● 사용중' : '○ 미사용'}</span>
+      <span class="equip-card-qty">${_escEq(item.qty)}</span>
+    </div>
+    <div style="display:flex;gap:6px;font-size:10px;min-height:14px;align-items:center;">
+      ${catLabel}
+      ${hasPhoto ? '<span style="color:var(--gold)">📷</span>' : ''}
+      ${logCount ? `<span style="color:var(--text-muted)">🔧${logCount}</span>` : ''}
+    </div>
+  </div>`;
+}
+
 function renderEquipGrid() {
   const grid = document.getElementById('equipGrid');
   if (!grid) return;
   const q = eqSearchQuery;
   let items = [];
+  let groupBySubcat = false;
 
   if (q) {
-    // 검색 시 전체 카테고리 통합 검색
     EQUIP_CATS.forEach(cat => {
       (equipmentData[cat] || []).forEach(item => {
-        const match = [item.name, item.model, item.tag, item.supplier].some(v => (v||'').toLowerCase().includes(q));
+        const match = [item.name, item.model, item.tag, item.supplier, item.subcat].some(v => (v||'').toLowerCase().includes(q));
         if (match) items.push({ ...item, _cat: cat });
       });
     });
   } else {
     items = (equipmentData[eqCurrentCat] || []).map(item => ({ ...item, _cat: eqCurrentCat }));
+    if (eqCurrentCat === '음향장비') {
+      if (eqCurrentSubcat !== '전체') {
+        items = items.filter(item => item.subcat === eqCurrentSubcat);
+      } else {
+        groupBySubcat = true;
+      }
+    }
   }
 
-  // 사용중/미사용 필터 (검색 중에도 적용)
   if (eqCurrentFilter !== 'all') {
     items = items.filter(item => item.status === eqCurrentFilter);
   }
@@ -4425,25 +4605,28 @@ function renderEquipGrid() {
     return;
   }
 
-  grid.innerHTML = items.map(item => {
-    const hasPhoto = item.photos && item.photos.length > 0;
-    const logCount = (item.logs || []).length;
-    const catLabel = q && item._cat ? `<span style="font-size:10px;color:var(--text-muted)">${item._cat}</span>` : '';
-    return `<div class="equip-card${item.status === 'retired' ? ' retired' : ''}" onclick="openEquipView('${item.id}')" onmouseenter="showEquipPreview(event,'${item.id}')" onmouseleave="hideHoverPreview()">
-      <div class="equip-card-name">${_escEq(item.name)}</div>
-      ${item.model ? `<div class="equip-card-model">${_escEq(item.model)}</div>` : ''}
-      ${item.tag ? `<div style="margin-top:1px;"><span class="equip-tag-badge">${_escEq(item.tag)}</span></div>` : ''}
-      <div class="equip-card-foot">
-        <span class="equip-status-badge ${item.status}">${item.status === 'active' ? '● 사용중' : '○ 미사용'}</span>
-        <span class="equip-card-qty">${_escEq(item.qty)}</span>
-      </div>
-      <div style="display:flex;gap:6px;font-size:10px;min-height:14px;align-items:center;">
-        ${catLabel}
-        ${hasPhoto ? '<span style="color:var(--gold)">📷</span>' : ''}
-        ${logCount ? `<span style="color:var(--text-muted)">🔧${logCount}</span>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  if (groupBySubcat) {
+    const groups = {};
+    soundSubcats.forEach(s => { groups[s] = []; });
+    const ungrouped = [];
+    items.forEach(item => {
+      if (item.subcat && groups[item.subcat]) groups[item.subcat].push(item);
+      else ungrouped.push(item);
+    });
+    let html = '';
+    soundSubcats.forEach(s => {
+      if (!groups[s].length) return;
+      html += `<div class="equip-subcat-header">${_escEq(s)} <span style="font-size:11px;color:var(--text-muted)">(${groups[s].length})</span></div>`;
+      html += groups[s].map(item => _renderEquipCard(item, false)).join('');
+    });
+    if (ungrouped.length) {
+      html += `<div class="equip-subcat-header">미분류 <span style="font-size:11px;color:var(--text-muted)">(${ungrouped.length})</span></div>`;
+      html += ungrouped.map(item => _renderEquipCard(item, false)).join('');
+    }
+    grid.innerHTML = html;
+  } else {
+    grid.innerHTML = items.map(item => _renderEquipCard(item, !!q)).join('');
+  }
 }
 
 function _findEquipItem(id) {
@@ -4492,6 +4675,7 @@ function renderEquipModal() {
         <div class="equip-section">
           <div class="equip-section-head">📋 기본 정보</div>
           ${_eqFieldRow('장비명', item.name)}
+          ${item.subcat ? _eqFieldRow('소분류', item.subcat) : ''}
           ${_eqFieldRow('구분', item.tag)}
           ${_eqFieldRow('모델명', item.model)}
           ${_eqFieldRow('수량', item.qty)}
@@ -4528,6 +4712,12 @@ function renderEquipModal() {
           <div class="equip-section-head">📋 기본 정보</div>
           <div class="equip-field-row"><span class="equip-field-label">장비명 *</span><input class="equip-field-input" id="ef_name" value="${_escEq(item.name)}" placeholder="장비명 입력"></div>
           <div class="equip-field-row"><span class="equip-field-label">구분</span><input class="equip-field-input" id="ef_tag" value="${_escEq(item.tag)}" placeholder="예: 마이크, 스피커, 콘솔…" list="eqTagList"><datalist id="eqTagList">${_getTagSuggestions()}</datalist></div>
+          <div class="equip-field-row" id="ef_subcat_row" style="${(item.cat||eqCurrentCat)==='음향장비'?'':'display:none'}"><span class="equip-field-label">소분류</span>
+            <select class="equip-field-input" id="ef_subcat">
+              <option value="">— 선택 안 함 —</option>
+              ${soundSubcats.map(s=>`<option value="${_escEq(s)}"${(item.subcat||'')=== s?' selected':''}>${_escEq(s)}</option>`).join('')}
+            </select>
+          </div>
           <div class="equip-field-row"><span class="equip-field-label">모델명</span><input class="equip-field-input" id="ef_model" value="${_escEq(item.model)}" placeholder="모델명"></div>
           <div class="equip-field-row"><span class="equip-field-label">수량</span><input class="equip-field-input" id="ef_qty" value="${_escEq(item.qty)}" placeholder="예: 2EA"></div>
           <div class="equip-field-row"><span class="equip-field-label">납품/제작업체</span><input class="equip-field-input" id="ef_supplier" value="${_escEq(item.supplier)}" placeholder="업체명"></div>
@@ -4535,7 +4725,7 @@ function renderEquipModal() {
           <div class="equip-field-row"><span class="equip-field-label">담당자</span><input class="equip-field-input" id="ef_contact" value="${_escEq(item.contact)}" placeholder="담당자 이름"></div>
           <div class="equip-field-row"><span class="equip-field-label">연락처</span><input class="equip-field-input" id="ef_tel" value="${_escEq(item.tel)}" placeholder="010-0000-0000"></div>
           <div class="equip-field-row"><span class="equip-field-label">카테고리</span>
-            <select class="equip-field-input" id="ef_cat">
+            <select class="equip-field-input" id="ef_cat" onchange="onEqCatChange(this.value)">
               ${EQUIP_CATS.map(c=>`<option value="${c}"${(item.cat||eqCurrentCat)===c?' selected':''}>${c}</option>`).join('')}
             </select>
           </div>
@@ -4695,19 +4885,26 @@ function startEquipEdit() {
 }
 
 function _readEquipForm() {
+  const cat = document.getElementById('ef_cat')?.value || eqCurrentCat;
   return {
     name: document.getElementById('ef_name')?.value?.trim() || '',
     tag: document.getElementById('ef_tag')?.value?.trim() || '',
+    subcat: cat === '음향장비' ? (document.getElementById('ef_subcat')?.value || '') : '',
     model: document.getElementById('ef_model')?.value?.trim() || '',
     qty: document.getElementById('ef_qty')?.value?.trim() || '',
     supplier: document.getElementById('ef_supplier')?.value?.trim() || '',
     serialNo: document.getElementById('ef_serialNo')?.value?.trim() || '',
     contact: document.getElementById('ef_contact')?.value?.trim() || '',
     tel: document.getElementById('ef_tel')?.value?.trim() || '',
-    cat: document.getElementById('ef_cat')?.value || eqCurrentCat,
+    cat,
     status: _eqFormStatus,
     photos: _eqEditPhotos.filter(p => p !== null)
   };
+}
+
+function onEqCatChange(val) {
+  const row = document.getElementById('ef_subcat_row');
+  if (row) row.style.display = val === '음향장비' ? '' : 'none';
 }
 
 // 이미 입력된 구분값들을 자동완성 제안으로 수집
@@ -6092,6 +6289,8 @@ async function autoLoadAll() {
     // 6. 장비관리대장 동기화
     await loadEquipmentFromCloud();
     initEquipmentDefault();
+    renderEqSubcatBar();
+    document.getElementById('eqSubcatBar').style.display = '';
 
     // 7. 알바관리 동기화
     await loadAlbaFromCloud();
