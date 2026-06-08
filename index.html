@@ -4740,6 +4740,7 @@ function renderEquipModal() {
           <div class="equip-section-head">📷 사진 (최대 4장)</div>
           <div class="equip-photo-grid" id="efPhotoGrid">${_renderPhotosEdit(item.photos)}</div>
         </div>
+        ${isEdit ? `<div class="equip-section"><div class="equip-section-head">🔧 관리내역</div>${_renderLogsSection(item)}</div>` : ''}
       </div>
       <div class="equip-modal-actions">
         <button class="equip-action-btn equip-action-save" onclick="${isEdit ? 'saveEquipEdit()' : 'saveEquipAdd()'}">💾 ${isEdit?'수정 저장':'추가'}</button>
