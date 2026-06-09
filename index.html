@@ -7142,36 +7142,39 @@ function buildStageModel(p) {
 /* 비계틀 모델 */
 function buildScaffoldModel(p) {
   const bwRaw = p.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
-  const bw = bwRaw.slice(0, 20); // 최대 20베이
+  const bw = bwRaw.slice(0, 20);
   const bays = bw.length;
   const tiers = Math.min(+p.tiers||2, 8);
   const rowCount = Math.min(+p.rows||2, 6);
   const rd = +p.row_depth||1.83;
   const th = +p.tier_h||1.83;
   const useX = p.xbrace !== false;
-  const pipeR = 0.028;
+  const pipeR = 0.032;  // 파이프 반경 (약 48mm 파이프 표현)
 
-  // 기둥 X 좌표 누적 계산 (중심 기준)
+  // 기둥 X 좌표 누적 (기둥 중심 간 거리 기준)
   const totalW = bw.reduce((a,b)=>a+b, 0);
-  const colX = []; // col 0 ~ bays 의 X 좌표
-  let cx = 0;
-  colX.push(cx);
+  const colX = [];
+  let cx = 0; colX.push(cx);
   for (let i = 0; i < bays; i++) { cx += bw[i]; colX.push(cx); }
   const ox = -totalW / 2;
   const totalD = (rowCount - 1) * rd;
   const totalH = tiers * th;
   const oz = -totalD / 2;
 
-  const matPipe = new THREE.MeshLambertMaterial({ color: 0x8899bb });
-  const matX183 = new THREE.MeshLambertMaterial({ color: 0x3dba96 });
-  const matX150 = new THREE.MeshLambertMaterial({ color: 0xd97248 });
-  const matX140 = new THREE.MeshLambertMaterial({ color: 0xc9a84c });
+  // 재질
+  const matPost  = new THREE.MeshLambertMaterial({ color: 0xa0aabb }); // 기둥 (밝은 은색)
+  const matHBar  = new THREE.MeshLambertMaterial({ color: 0x8090a8 }); // H프레임 가로재 (상단·중단)
+  const matDBar  = new THREE.MeshLambertMaterial({ color: 0x6a7e9a }); // 깊이 방향 연결재
+  const matX183  = new THREE.MeshLambertMaterial({ color: 0x3dba96 }); // X대 1.83m 베이
+  const matX150  = new THREE.MeshLambertMaterial({ color: 0xd97248 }); // X대 1.50m 베이
+  const matX140  = new THREE.MeshLambertMaterial({ color: 0xc9a84c }); // X대 1.40m 베이
 
-  function addCylinder(ax, ay, az, bx, by, bz, mat) {
+  function addCylinder(ax, ay, az, bx, by, bz, mat, r) {
+    const pr = r || pipeR;
     const dx = bx-ax, dy = by-ay, dz = bz-az;
     const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
     if (len < 0.001) return;
-    const geo = new THREE.CylinderGeometry(pipeR, pipeR, len, 6, 1);
+    const geo = new THREE.CylinderGeometry(pr, pr, len, 8, 1);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set((ax+bx)/2, (ay+by)/2, (az+bz)/2);
     mesh.quaternion.setFromUnitVectors(
@@ -7181,52 +7184,101 @@ function buildScaffoldModel(p) {
     _stageScene.add(mesh);
   }
 
-  // 기둥 (수직)
+  function addNode(x, y, z, mat) {
+    // 기둥 연결부 구체 (조인트)
+    const geo = new THREE.SphereGeometry(pipeR * 1.4, 8, 6);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    _stageScene.add(mesh);
+  }
+
+  // ① 수직 기둥 — 각 (col, row) 교차점에서 바닥~꼭대기
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col <= bays; col++) {
       const x = ox + colX[col], z = oz + row * rd;
-      addCylinder(x, 0, z, x, totalH, z, matPipe);
+      addCylinder(x, 0, z, x, totalH, z, matPost);
     }
   }
 
-  // 수평재 (가로 연결, 각 단)
+  // ② H프레임 가로재 — 각 ROW 위치, 각 단의 상단·중단에 가로바 추가
+  //    H프레임 = 수직기둥 2개 + 상단바 + 중단바 → 이것이 H자
   for (let tier = 0; tier <= tiers; tier++) {
-    const y = tier * th;
+    const yTop = tier * th;  // 상단바 (각 단 경계)
     for (let row = 0; row < rowCount; row++) {
       const z = oz + row * rd;
       for (let col = 0; col < bays; col++) {
         const x0 = ox + colX[col], x1 = ox + colX[col+1];
-        addCylinder(x0, y, z, x1, y, z, matPipe);
+        // 상단 횡재
+        addCylinder(x0, yTop, z, x1, yTop, z, matHBar);
+        // 조인트 노드
+        addNode(x0, yTop, z, matHBar);
+        addNode(x1, yTop, z, matHBar);
       }
     }
-    // 깊이 방향 연결재
-    for (let col = 0; col <= bays; col++) {
-      const x = ox + colX[col];
-      for (let row = 0; row < rowCount - 1; row++) {
-        const z = oz + row * rd;
-        addCylinder(x, y, z, x, y, z + rd, matPipe);
+  }
+  // 중단 횡재 — 각 단의 중간 높이 (약 1/2 지점)
+  for (let tier = 0; tier < tiers; tier++) {
+    const yMid = tier * th + th * 0.5;
+    for (let row = 0; row < rowCount; row++) {
+      const z = oz + row * rd;
+      for (let col = 0; col < bays; col++) {
+        const x0 = ox + colX[col], x1 = ox + colX[col+1];
+        addCylinder(x0, yMid, z, x1, yMid, z, matHBar);
+        addNode(x0, yMid, z, matHBar);
+        addNode(x1, yMid, z, matHBar);
       }
     }
   }
 
-  // X대 (가새) - 베이 폭에 따라 색상 구분
-  if (useX) {
-    for (let tier = 0; tier < tiers; tier++) {
-      const y0 = tier * th, y1 = (tier+1) * th;
-      for (let row = 0; row < rowCount; row++) {
-        const z = oz + row * rd;
-        for (let col = 0; col < bays; col++) {
-          const x0 = ox + colX[col], x1 = ox + colX[col+1];
-          const w = bw[col];
-          const matXc = w===1.83 ? matX183 : w===1.50 ? matX150 : matX140;
-          addCylinder(x0, y0, z, x1, y1, z, matXc);
-          addCylinder(x1, y0, z, x0, y1, z, matXc);
+  // ③ 깊이 방향 연결재 — 각 단 경계에서 앞 H프레임↔뒤 H프레임 연결 (수평)
+  for (let tier = 0; tier <= tiers; tier++) {
+    const y = tier * th;
+    for (let col = 0; col <= bays; col++) {
+      const x = ox + colX[col];
+      for (let row = 0; row < rowCount - 1; row++) {
+        const z0 = oz + row * rd, z1 = oz + (row+1) * rd;
+        addCylinder(x, y, z0, x, y, z1, matDBar);
+      }
+    }
+  }
+
+  // ④ X대 (가새) — 사진 기준: 측면(YZ 평면)에서 앞 H프레임↔뒤 H프레임 연결
+  //    각 기둥 열(col)에서 양쪽으로 X자 형성 = "중복 연결"
+  //    베이 폭에 따라 색상 구분 (해당 col의 왼쪽 bay 기준)
+  if (useX && rowCount >= 2) {
+    for (let col = 0; col <= bays; col++) {
+      const x = ox + colX[col];
+      // 이 col의 베이 폭 색상 (col=0은 bay0, col=bays는 bay bays-1)
+      const bayIdx = Math.min(col, bays - 1);
+      const w = bw[bayIdx];
+      const matXc = w===1.83 ? matX183 : w===1.50 ? matX150 : matX140;
+      for (let tier = 0; tier < tiers; tier++) {
+        const y0 = tier * th, y1 = (tier+1) * th;
+        for (let gap = 0; gap < rowCount - 1; gap++) {
+          const z0 = oz + gap * rd, z1 = oz + (gap+1) * rd;
+          // X자: 아래 앞 → 위 뒤 / 위 앞 → 아래 뒤
+          addCylinder(x, y0, z0, x, y1, z1, matXc, pipeR * 0.85);
+          addCylinder(x, y1, z0, x, y0, z1, matXc, pipeR * 0.85);
         }
       }
     }
   }
+  // rowCount=1 일 때 예비: X대를 앞면에 표시
+  if (useX && rowCount < 2) {
+    for (let tier = 0; tier < tiers; tier++) {
+      const y0 = tier * th, y1 = (tier+1) * th;
+      for (let col = 0; col < bays; col++) {
+        const x0 = ox + colX[col], x1 = ox + colX[col+1];
+        const z = oz;
+        const w = bw[col];
+        const matXc = w===1.83 ? matX183 : w===1.50 ? matX150 : matX140;
+        addCylinder(x0, y0, z, x1, y1, z, matXc, pipeR * 0.85);
+        addCylinder(x1, y0, z, x0, y1, z, matXc, pipeR * 0.85);
+      }
+    }
+  }
 
-  _stageZoom = Math.max(totalW, totalH, totalD) * 1.4 + 3;
+  _stageZoom = Math.max(totalW, totalH, totalD) * 1.5 + 3;
   renderStage3D();
 }
 
