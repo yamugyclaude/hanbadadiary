@@ -7422,24 +7422,48 @@ function buildScaffoldModel(p) {
     }
   }
 
-  // ② H프레임 가로재 — 베이별로 해당 단 수만큼만 추가
+  // ② H프레임 — 사진 기준 실제 구조 재현
+  //   각 단(tier)마다:
+  //   [상단바] - [상중바(35%)] - [중앙 세로 스트럿] - [하중바(65%)] - [하단바(다음 단 상단)]
+  //   중앙 스트럿: 베이 폭 중간 x, 상중바~하중바 연결
+  //   발 핀: 기둥 하단 돌출 스터브
   for (let bay = 0; bay < bays; bay++) {
     const x0 = ox + colX[bay], x1 = ox + colX[bay+1];
+    const xMid = (x0 + x1) / 2; // 베이 폭 중간 (중앙 스트럿 위치)
     const bayTiers = bt[bay];
     for (let row = 0; row < rowCount; row++) {
       const z = oz + row * rd;
-      // 상단 횡재 (단 경계마다)
-      for (let tier = 0; tier <= bayTiers; tier++) {
-        const yTop = tier * th;
+      for (let tier = 0; tier < bayTiers; tier++) {
+        const yBot = tier * th;      // 이 단 하단 (= 이전 단 상단)
+        const yTop = (tier+1) * th;  // 이 단 상단 (= 다음 단 하단)
+        const yUMid = yBot + th * 0.62; // 상중바 (하단에서 62%)
+        const yLMid = yBot + th * 0.38; // 하중바 (하단에서 38%)
+
+        // 상단바 (단 경계)
         addCylinder(x0, yTop, z, x1, yTop, z, matHBar);
         addNode(x0, yTop, z, matHBar);
         addNode(x1, yTop, z, matHBar);
+        // 상중바
+        addCylinder(x0, yUMid, z, x1, yUMid, z, matHBar, pipeR*0.85);
+        // 하중바
+        addCylinder(x0, yLMid, z, x1, yLMid, z, matHBar, pipeR*0.85);
+        // 중앙 세로 스트럿 (상중바 ↔ 하중바)
+        addCylinder(xMid, yLMid, z, xMid, yUMid, z, matHBar, pipeR*0.85);
+        addNode(xMid, yUMid, z, matHBar);
+        addNode(xMid, yLMid, z, matHBar);
       }
-      // 중단 횡재
-      for (let tier = 0; tier < bayTiers; tier++) {
-        const yMid = tier * th + th * 0.5;
-        addCylinder(x0, yMid, z, x1, yMid, z, matHBar);
-      }
+      // 최하단 바닥바 (0단)
+      addCylinder(x0, 0, z, x1, 0, z, matHBar);
+      addNode(x0, 0, z, matHBar); addNode(x1, 0, z, matHBar);
+    }
+  }
+  // 발 핀 — 각 기둥 하단에 짧은 돌출 스터브
+  for (let col = 0; col <= bays; col++) {
+    const x = ox + colX[col];
+    for (let row = 0; row < rowCount; row++) {
+      const z = oz + row * rd;
+      // 좌우 수평 스터브 (발 핀)
+      addCylinder(x - 0.12, -0.08, z, x + 0.12, -0.08, z, matPost, pipeR * 0.7);
     }
   }
 
