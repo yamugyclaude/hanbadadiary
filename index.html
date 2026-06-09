@@ -867,11 +867,22 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .equip-status-opt { padding:5px 13px; border-radius:20px; font-size:12px; font-weight:700; border:1.5px solid var(--border2); color:var(--text-muted); background:var(--surface2); cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
 .equip-status-opt.sel-active { background:rgba(61,186,150,0.15); border-color:rgba(61,186,150,0.5); color:var(--accent); }
 .equip-status-opt.sel-retired { background:rgba(150,150,150,0.15); border-color:rgba(150,150,150,0.4); color:var(--text-muted); }
-.equip-photo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px 14px; }
-.equip-photo-slot { aspect-ratio:1; border-radius:8px; overflow:hidden; background:var(--surface3); border:1.5px dashed var(--border2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
+.equip-photo-grid { padding:12px 14px; }
+.equip-photo-slot { width:100%; aspect-ratio:4/3; border-radius:10px; overflow:hidden; background:var(--surface3); border:1.5px dashed var(--border2); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
 .equip-photo-slot img { width:100%; height:100%; object-fit:cover; }
-.equip-photo-add { font-size:24px; color:var(--border2); }
-.equip-photo-del { position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.65); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.equip-photo-add { font-size:28px; color:var(--border2); }
+.equip-photo-del { position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.65); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+/* 기본정보+사진 가로 레이아웃 */
+.equip-info-photo-row { display:flex; gap:14px; align-items:flex-start; }
+.equip-info-col { flex:3; min-width:0; }
+.equip-photo-col { flex:1; min-width:90px; max-width:160px; }
+.equip-photo-col-inner { border-radius:10px; overflow:hidden; background:var(--surface3); border:1.5px dashed var(--border2); aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
+.equip-photo-col-inner img { width:100%; height:100%; object-fit:cover; }
+/* 카드 썸네일 */
+.equip-card-thumb { width:100%; aspect-ratio:4/3; border-radius:8px; overflow:hidden; background:var(--surface2); border:1px solid var(--border); margin-bottom:6px; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; }
+.equip-card-thumb img { width:100%; height:100%; object-fit:cover; }
+.equip-card-thumb-add { font-size:20px; color:var(--border2); }
+.equip-card-thumb-btn { position:absolute; inset:0; background:transparent; border:none; cursor:pointer; width:100%; height:100%; }
 .equip-log-item { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:flex-start; }
 .equip-log-item:last-child { border-bottom:none; }
 .equip-log-meta { display:flex; flex-direction:column; gap:2px; }
@@ -4338,6 +4349,23 @@ async function loadAlbaFromCloud() {
 
 // ── 장비관리대장 ──
 const EQUIP_CATS = ['음향장비', '무대장비', '사무실장비', '조명장비', '특효장비', '기타장비'];
+// 확정된 장비명 → 사진 URL 매핑 (음향장비)
+const EQUIP_PHOTO_MAP = {
+  '메인스피커':       'images/equipment/EW_EX4595.png',
+  '우퍼':            'images/equipment/EW_AD4595.png',
+  '이동용 앰프':     'images/equipment/EW_MPAC.png',
+  '4채널 앰프':      'images/equipment/EW_PAS1200.png',
+  '모니터스피커':    'images/equipment/DB_M4.png',
+  '메인콘솔':        'images/equipment/AH_SQ7.png',
+  '스테이지박스':    'images/equipment/DL16.png',
+  '무선마이크 수신기':'images/equipment/Sennheiser_EWD.png',
+  '무선 바디팩':     'images/equipment/Sennheiser_SK.png',
+  '콘덴서마이크':    'images/equipment/CM-200.png',
+  '유선마이크':      'images/equipment/Sennheiser_e835S.png',
+  '안테나 분배기':   'images/equipment/Sennheiser_EWD_Splitter.png',
+  '광대역 안테나':   'images/equipment/Sennheiser_EWD_Antenna.png',
+  'DI BOX':         'images/equipment/BBS_AR133_DiBox.png',
+};
 let equipmentData = JSON.parse(localStorage.getItem('equipmentData') || '{"음향장비":[],"무대장비":[],"사무실장비":[],"조명장비":[],"특효장비":[],"기타장비":[]}');
 EQUIP_CATS.forEach(c => { if (!Array.isArray(equipmentData[c])) equipmentData[c] = []; });
 let eqCurrentCat = '음향장비';
@@ -4422,10 +4450,21 @@ function initEquipmentDefault() {
       equipmentData[cat] = EQUIP_DEFAULT[cat].map(d => ({
         id: _makeEquipId(), name: d.name, model: d.model, qty: d.qty,
         supplier: '', serialNo: '', contact: '', tel: '',
-        subcat: d.subcat || '', status: 'active', photos: [], logs: []
+        subcat: d.subcat || '', status: 'active',
+        photos: EQUIP_PHOTO_MAP[d.name] ? [EQUIP_PHOTO_MAP[d.name]] : [],
+        logs: []
       }));
       changed = true;
     }
+  });
+  // 사진 없는 항목에 매핑된 사진 자동 배정
+  EQUIP_CATS.forEach(cat => {
+    (equipmentData[cat] || []).forEach(item => {
+      if ((!item.photos || item.photos.length === 0) && EQUIP_PHOTO_MAP[item.name]) {
+        item.photos = [EQUIP_PHOTO_MAP[item.name]];
+        changed = true;
+      }
+    });
   });
   // 기존 음향장비 항목에 subcat 없는 경우 이름 기반으로 자동 배정
   const subcatMap = {
@@ -4574,10 +4613,14 @@ function setEqFilter(f) {
 function _escEq(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function _renderEquipCard(item, showCat) {
-  const hasPhoto = item.photos && item.photos.length > 0;
+  const photo = item.photos && item.photos.length > 0 ? item.photos[0] : null;
   const logCount = (item.logs || []).length;
   const catLabel = showCat && item._cat ? `<span style="font-size:10px;color:var(--text-muted)">${item._cat}</span>` : '';
+  const thumbHtml = photo
+    ? `<div class="equip-card-thumb"><img src="${photo}" alt="${_escEq(item.name)}" loading="lazy"></div>`
+    : `<div class="equip-card-thumb"><span class="equip-card-thumb-add">📷</span><button class="equip-card-thumb-btn" onclick="event.stopPropagation();quickAddPhoto('${item.id}')" title="사진 추가"></button></div>`;
   return `<div class="equip-card${item.status === 'retired' ? ' retired' : ''}" onclick="openEquipView('${item.id}')" onmouseenter="showEquipPreview(event,'${item.id}')" onmouseleave="hideHoverPreview()">
+    ${thumbHtml}
     <div class="equip-card-name">${_escEq(item.name)}</div>
     ${item.model ? `<div class="equip-card-model">${_escEq(item.model)}</div>` : ''}
     ${item.tag ? `<div style="margin-top:1px;"><span class="equip-tag-badge">${_escEq(item.tag)}</span></div>` : ''}
@@ -4587,10 +4630,39 @@ function _renderEquipCard(item, showCat) {
     </div>
     <div style="display:flex;gap:6px;font-size:10px;min-height:14px;align-items:center;">
       ${catLabel}
-      ${hasPhoto ? '<span style="color:var(--gold)">📷</span>' : ''}
       ${logCount ? `<span style="color:var(--text-muted)">🔧${logCount}</span>` : ''}
     </div>
   </div>`;
+}
+
+function quickAddPhoto(id) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 800; let w = img.width, h = img.height;
+        if (w > MAX) { h = h*MAX/w; w = MAX; }
+        if (h > MAX) { w = w*MAX/h; h = MAX; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const found = _findEquipItem(id);
+        if (!found) return;
+        found.item.photos = [canvas.toDataURL('image/jpeg', 0.7)];
+        localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+        _syncEquipmentCloud();
+        renderEquipGrid();
+        showToast('✅ 사진 저장 완료');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
 }
 
 function renderEquipGrid() {
@@ -4668,7 +4740,7 @@ function openEquipView(id) {
 function openEquipAdd() {
   eqModalId = null; eqModalMode = 'add';
   eqEditDraft = { id: _makeEquipId(), name:'', model:'', qty:'', supplier:'', serialNo:'', contact:'', tel:'', status:'active', photos:[], logs:[] };
-  _eqFormStatus = 'active'; _eqEditPhotos = [null,null,null,null];
+  _eqFormStatus = 'active'; _eqEditPhotos = [null];
   renderEquipModal();
   document.getElementById('equipModal').classList.add('open');
 }
@@ -4694,22 +4766,25 @@ function renderEquipModal() {
         <button class="equip-modal-close" onclick="closeEquipModal()">✕</button>
       </div>
       <div class="equip-modal-body">
-        <div class="equip-section">
-          <div class="equip-section-head">📋 기본 정보</div>
-          ${_eqFieldRow('장비명', item.name)}
-          ${item.subcat ? _eqFieldRow('소분류', item.subcat) : ''}
-          ${_eqFieldRow('구분', item.tag)}
-          ${_eqFieldRow('모델명', item.model)}
-          ${_eqFieldRow('수량', item.qty)}
-          ${_eqFieldRow('납품/제작업체', item.supplier)}
-          ${_eqFieldRow('시리얼번호', item.serialNo)}
-          ${_eqFieldRow('담당자', item.contact)}
-          ${_eqFieldRow('연락처', item.tel)}
-          <div class="equip-field-row"><span class="equip-field-label">상태</span>${statusBadge}</div>
-        </div>
-        <div class="equip-section">
-          <div class="equip-section-head">📷 사진</div>
-          <div class="equip-photo-grid">${_renderPhotosView(item.photos, false)}</div>
+        <div class="equip-info-photo-row">
+          <div class="equip-info-col">
+            <div class="equip-section">
+              <div class="equip-section-head">📋 기본 정보</div>
+              ${_eqFieldRow('장비명', item.name)}
+              ${item.subcat ? _eqFieldRow('소분류', item.subcat) : ''}
+              ${_eqFieldRow('구분', item.tag)}
+              ${_eqFieldRow('모델명', item.model)}
+              ${_eqFieldRow('수량', item.qty)}
+              ${_eqFieldRow('납품/제작업체', item.supplier)}
+              ${_eqFieldRow('시리얼번호', item.serialNo)}
+              ${_eqFieldRow('담당자', item.contact)}
+              ${_eqFieldRow('연락처', item.tel)}
+              <div class="equip-field-row"><span class="equip-field-label">상태</span>${statusBadge}</div>
+            </div>
+          </div>
+          <div class="equip-photo-col">
+            ${_renderPhotoColView(item.photos)}
+          </div>
         </div>
         <div class="equip-section">
           <div class="equip-section-head">🔧 관리내역</div>
@@ -4730,37 +4805,45 @@ function renderEquipModal() {
         <button class="equip-modal-close" onclick="${isEdit ? `openEquipView('${eqModalId}')` : 'closeEquipModal()'}">✕</button>
       </div>
       <div class="equip-modal-body">
-        <div class="equip-section">
-          <div class="equip-section-head">📋 기본 정보</div>
-          <div class="equip-field-row"><span class="equip-field-label">장비명 *</span><input class="equip-field-input" id="ef_name" value="${_escEq(item.name)}" placeholder="장비명 입력"></div>
-          <div class="equip-field-row"><span class="equip-field-label">구분</span><input class="equip-field-input" id="ef_tag" value="${_escEq(item.tag)}" placeholder="예: 마이크, 스피커, 콘솔…" list="eqTagList"><datalist id="eqTagList">${_getTagSuggestions()}</datalist></div>
-          <div class="equip-field-row" id="ef_subcat_row" style="${(item.cat||eqCurrentCat)==='음향장비'?'':'display:none'}"><span class="equip-field-label">소분류</span>
-            <select class="equip-field-input" id="ef_subcat">
-              <option value="">— 선택 안 함 —</option>
-              ${soundSubcats.map(s=>`<option value="${_escEq(s)}"${(item.subcat||'')=== s?' selected':''}>${_escEq(s)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="equip-field-row"><span class="equip-field-label">모델명</span><input class="equip-field-input" id="ef_model" value="${_escEq(item.model)}" placeholder="모델명"></div>
-          <div class="equip-field-row"><span class="equip-field-label">수량</span><input class="equip-field-input" id="ef_qty" value="${_escEq(item.qty)}" placeholder="예: 2EA"></div>
-          <div class="equip-field-row"><span class="equip-field-label">납품/제작업체</span><input class="equip-field-input" id="ef_supplier" value="${_escEq(item.supplier)}" placeholder="업체명"></div>
-          <div class="equip-field-row"><span class="equip-field-label">시리얼번호</span><input class="equip-field-input" id="ef_serialNo" value="${_escEq(item.serialNo)}" placeholder="시리얼번호"></div>
-          <div class="equip-field-row"><span class="equip-field-label">담당자</span><input class="equip-field-input" id="ef_contact" value="${_escEq(item.contact)}" placeholder="담당자 이름"></div>
-          <div class="equip-field-row"><span class="equip-field-label">연락처</span><input class="equip-field-input" id="ef_tel" value="${_escEq(item.tel)}" placeholder="010-0000-0000"></div>
-          <div class="equip-field-row"><span class="equip-field-label">카테고리</span>
-            <select class="equip-field-input" id="ef_cat" onchange="onEqCatChange(this.value)">
-              ${EQUIP_CATS.map(c=>`<option value="${c}"${(item.cat||eqCurrentCat)===c?' selected':''}>${c}</option>`).join('')}
-            </select>
-          </div>
-          <div class="equip-field-row"><span class="equip-field-label">상태</span>
-            <div class="equip-status-toggle">
-              <button type="button" id="ef_status_a" onclick="selectEqStatus('active')" class="equip-status-opt${_eqFormStatus==='active'?' sel-active':''}">● 사용중</button>
-              <button type="button" id="ef_status_r" onclick="selectEqStatus('retired')" class="equip-status-opt${_eqFormStatus==='retired'?' sel-retired':''}">○ 미사용</button>
+        <div class="equip-info-photo-row">
+          <div class="equip-info-col">
+            <div class="equip-section">
+              <div class="equip-section-head">📋 기본 정보</div>
+              <div class="equip-field-row"><span class="equip-field-label">장비명 *</span><input class="equip-field-input" id="ef_name" value="${_escEq(item.name)}" placeholder="장비명 입력"></div>
+              <div class="equip-field-row"><span class="equip-field-label">구분</span><input class="equip-field-input" id="ef_tag" value="${_escEq(item.tag||'')}" placeholder="예: 마이크, 스피커…" list="eqTagList"><datalist id="eqTagList">${_getTagSuggestions()}</datalist></div>
+              <div class="equip-field-row" id="ef_subcat_row" style="${(item.cat||eqCurrentCat)==='음향장비'?'':'display:none'}"><span class="equip-field-label">소분류</span>
+                <select class="equip-field-input" id="ef_subcat">
+                  <option value="">— 선택 안 함 —</option>
+                  ${soundSubcats.map(s=>`<option value="${_escEq(s)}"${(item.subcat||'')=== s?' selected':''}>${_escEq(s)}</option>`).join('')}
+                </select>
+              </div>
+              <div class="equip-field-row"><span class="equip-field-label">모델명</span><input class="equip-field-input" id="ef_model" value="${_escEq(item.model||'')}" placeholder="모델명"></div>
+              <div class="equip-field-row"><span class="equip-field-label">수량</span><input class="equip-field-input" id="ef_qty" value="${_escEq(item.qty||'')}" placeholder="예: 2EA"></div>
+              <div class="equip-field-row"><span class="equip-field-label">납품/제작업체</span><input class="equip-field-input" id="ef_supplier" value="${_escEq(item.supplier||'')}" placeholder="업체명"></div>
+              <div class="equip-field-row"><span class="equip-field-label">시리얼번호</span><input class="equip-field-input" id="ef_serialNo" value="${_escEq(item.serialNo||'')}" placeholder="시리얼번호"></div>
+              <div class="equip-field-row"><span class="equip-field-label">담당자</span><input class="equip-field-input" id="ef_contact" value="${_escEq(item.contact||'')}" placeholder="담당자 이름"></div>
+              <div class="equip-field-row"><span class="equip-field-label">연락처</span><input class="equip-field-input" id="ef_tel" value="${_escEq(item.tel||'')}" placeholder="010-0000-0000"></div>
+              <div class="equip-field-row"><span class="equip-field-label">카테고리</span>
+                <select class="equip-field-input" id="ef_cat" onchange="onEqCatChange(this.value)">
+                  ${EQUIP_CATS.map(c=>`<option value="${c}"${(item.cat||eqCurrentCat)===c?' selected':''}>${c}</option>`).join('')}
+                </select>
+              </div>
+              <div class="equip-field-row"><span class="equip-field-label">상태</span>
+                <div class="equip-status-toggle">
+                  <button type="button" id="ef_status_a" onclick="selectEqStatus('active')" class="equip-status-opt${_eqFormStatus==='active'?' sel-active':''}">● 사용중</button>
+                  <button type="button" id="ef_status_r" onclick="selectEqStatus('retired')" class="equip-status-opt${_eqFormStatus==='retired'?' sel-retired':''}">○ 미사용</button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="equip-section">
-          <div class="equip-section-head">📷 사진 (최대 4장)</div>
-          <div class="equip-photo-grid" id="efPhotoGrid">${_renderPhotosEdit(item.photos)}</div>
+          <div class="equip-photo-col">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">📷 사진</div>
+            <div class="equip-photo-col-inner" id="efPhotoGrid" onclick="document.getElementById('efPImg0').click()">
+              ${_renderPhotosEdit(item.photos)}
+            </div>
+            <input type="file" id="efPImg0" accept="image/*" capture="environment" style="display:none" onchange="handleEquipPhoto(event,0)">
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center;">클릭하여 사진 변경</div>
+          </div>
         </div>
         ${isEdit ? `<div class="equip-section"><div class="equip-section-head">🔧 관리내역</div>${_renderLogsSection(item)}</div>` : ''}
       </div>
@@ -4784,22 +4867,28 @@ function selectEqStatus(s) {
   if (r) { r.className = 'equip-status-opt' + (s==='retired'?' sel-retired':''); }
 }
 
-function _renderPhotosView(photos, editable) {
-  const arr = photos ? [...photos] : [];
-  while (arr.length < 4) arr.push(null);
-  return arr.map((p,i) => p
-    ? `<div class="equip-photo-slot" onclick="_eqLightbox('${p}')"><img src="${p}" alt="사진${i+1}"></div>`
-    : `<div class="equip-photo-slot" style="cursor:default"><span style="font-size:18px;color:var(--border2)">—</span></div>`
-  ).join('');
+function _renderPhotoColView(photos) {
+  const p = photos && photos.length > 0 ? photos[0] : null;
+  if (p) {
+    return `<div class="equip-photo-col-inner" onclick="_eqLightbox('${p}')"><img src="${p}" alt="장비사진" loading="lazy"></div>`;
+  }
+  return `<div class="equip-photo-col-inner" style="cursor:default"><span style="font-size:28px;color:var(--border2);">📷</span></div>`;
+}
+
+function _renderPhotosView(photos) {
+  const p = photos && photos.length > 0 ? photos[0] : null;
+  if (p) return `<div class="equip-photo-slot" onclick="_eqLightbox('${p}')"><img src="${p}" alt="장비사진" loading="lazy"></div>`;
+  return `<div class="equip-photo-slot" style="cursor:default"><span style="font-size:28px;color:var(--border2);">📷</span></div>`;
 }
 
 function _renderPhotosEdit(photos) {
   _eqEditPhotos = photos ? [...photos] : [];
-  while (_eqEditPhotos.length < 4) _eqEditPhotos.push(null);
-  return _eqEditPhotos.map((p,i) => p
-    ? `<div class="equip-photo-slot"><img src="${p}" alt="사진${i+1}" onclick="_eqLightbox('${p}')"><button class="equip-photo-del" onclick="event.stopPropagation();removeEquipPhoto(${i})">✕</button></div>`
-    : `<div class="equip-photo-slot" onclick="document.getElementById('efPImg${i}').click()"><span class="equip-photo-add">＋</span><input type="file" id="efPImg${i}" accept="image/*" style="display:none" onchange="handleEquipPhoto(event,${i})"></div>`
-  ).join('');
+  while (_eqEditPhotos.length < 1) _eqEditPhotos.push(null);
+  const p = _eqEditPhotos[0];
+  if (p) {
+    return `<img src="${p}" alt="장비사진" style="width:100%;height:100%;object-fit:cover;" onclick="event.stopPropagation();_eqLightbox('${p}')"><button class="equip-photo-del" onclick="event.stopPropagation();removeEquipPhoto(0)" style="width:28px;height:28px;font-size:13px;">✕</button>`;
+  }
+  return `<span class="equip-photo-add">＋</span>`;
 }
 
 function handleEquipPhoto(event, idx) {
@@ -4815,7 +4904,7 @@ function handleEquipPhoto(event, idx) {
       if (h > MAX) { w = w*MAX/h; h = MAX; }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      _eqEditPhotos[idx] = canvas.toDataURL('image/jpeg', 0.7);
+      _eqEditPhotos[0] = canvas.toDataURL('image/jpeg', 0.7);
       const grid = document.getElementById('efPhotoGrid');
       if (grid) grid.innerHTML = _renderPhotosEdit(_eqEditPhotos);
     };
@@ -4825,7 +4914,7 @@ function handleEquipPhoto(event, idx) {
 }
 
 function removeEquipPhoto(idx) {
-  _eqEditPhotos[idx] = null;
+  _eqEditPhotos[0] = null;
   const grid = document.getElementById('efPhotoGrid');
   if (grid) grid.innerHTML = _renderPhotosEdit(_eqEditPhotos);
 }
@@ -4902,7 +4991,7 @@ function startEquipEdit() {
   eqEditDraft.cat = found.cat;
   _eqFormStatus = eqEditDraft.status;
   _eqEditPhotos = eqEditDraft.photos ? [...eqEditDraft.photos] : [];
-  while (_eqEditPhotos.length < 4) _eqEditPhotos.push(null);
+  while (_eqEditPhotos.length < 1) _eqEditPhotos.push(null);
   eqModalMode = 'edit';
   renderEquipModal();
 }
