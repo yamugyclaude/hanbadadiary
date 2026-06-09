@@ -1664,6 +1664,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <div class="stage-modal-type-btn" onclick="selectStageCatType('stage')">🎪<br>무대</div>
         <div class="stage-modal-type-btn" onclick="selectStageCatType('scaffold')">🏗️<br>비계틀</div>
         <div class="stage-modal-type-btn" onclick="selectStageCatType('truss')">⬡<br>트러스</div>
+        <div class="stage-modal-type-btn" onclick="selectStageCatType('event')">🏟️<br>이벤트</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button onclick="closeStageCatModal()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
@@ -6588,8 +6589,9 @@ setupScrollTopBtn();
 
 // 기본 카테고리 (수정·삭제 불가)
 const STAGE_DEFAULT_CATS = [
-  { id: 'cat_stage',    name: '무대설치',   type: 'stage',    locked: true,  params: { width:11, depth:8, height:0.6, tiers:1 } },
-  { id: 'cat_scaffold', name: '비계틀설치', type: 'scaffold', locked: true,  params: { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], tiers:2, rows:2, row_depth:1.83, tier_h:1.83, xbrace:true } },
+  { id: 'cat_stage',    name: '무대설치',      type: 'stage',    locked: true,  params: { width:11, depth:8, height:0.6, tiers:1 } },
+  { id: 'cat_scaffold', name: '비계틀설치',    type: 'scaffold', locked: true,  params: { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], tiers:2, rows:2, row_depth:1.83, tier_h:1.83, xbrace:true } },
+  { id: 'cat_event',    name: '이벤트 구조물', type: 'event',    locked: true,  params: { scaffold_bays:4, scaffold_tiers:2, scaffold_rows:2, row_depth:1.83, tier_h:1.83, screen_w:7.2, screen_h:4.5, truss_size:0.29, show_left_frame:true } },
 ];
 
 let stageCats = [];        // 전체 카테고리 목록
@@ -6635,7 +6637,7 @@ function renderStageSubtabs() {
   let html = '';
   stageCats.forEach(cat => {
     const active = cat.id === stageCurrentCat ? 'active' : '';
-    const emoji = cat.type === 'stage' ? '🎪' : cat.type === 'scaffold' ? '🏗️' : cat.type === 'truss' ? '⬡' : '📐';
+    const emoji = cat.type === 'stage' ? '🎪' : cat.type === 'scaffold' ? '🏗️' : cat.type === 'truss' ? '⬡' : cat.type === 'event' ? '🏟️' : '📐';
     html += `<div class="stage-subtab ${active}" onclick="switchStageCat('${cat.id}')">${emoji} ${cat.name}`;
     if (!cat.locked) {
       html += `<span class="stage-subtab-actions">
@@ -6687,7 +6689,7 @@ function selectStageCatType(type) {
 
 function updateStageCatTypeUI() {
   document.querySelectorAll('#stageCatTypeWrap .stage-modal-type-btn').forEach((btn, i) => {
-    const types = ['stage','scaffold','truss'];
+    const types = ['stage','scaffold','truss','event'];
     btn.classList.toggle('selected', types[i] === _stageCatTypeSelected);
   });
 }
@@ -6704,6 +6706,8 @@ function confirmStageCat() {
       ? { width:10, depth:8, height:0.6, tiers:1 }
       : _stageCatTypeSelected === 'scaffold'
       ? { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], tiers:2, rows:2, row_depth:1.83, tier_h:1.83, xbrace:true }
+      : _stageCatTypeSelected === 'event'
+      ? { scaffold_bays:4, scaffold_tiers:2, scaffold_rows:2, row_depth:1.83, tier_h:1.83, screen_w:7.2, screen_h:4.5, truss_size:0.29, show_left_frame:true }
       : { width:10, height:5, depth:1, bays:5 };
     const newCat = { id:'cat_'+Date.now(), name, type:_stageCatTypeSelected, locked:false, params:defaultParams };
     stageCats.push(newCat);
@@ -6816,6 +6820,53 @@ function renderStagePanel() {
       </div>
       ${renderStageQty(cat)}
     `;
+  } else if (cat.type === 'event') {
+    el.innerHTML = `
+      <div class="stage-section-title">🏟️ 이벤트 구조물</div>
+      <div class="stage-section-title" style="font-size:11px;color:var(--text-muted);margin-top:-4px;">비계틀 + 사각 트러스 + LED 프레임</div>
+      <div class="stage-fields">
+        <div class="stage-field">
+          <label>비계 베이 수</label>
+          <input type="number" id="sp_scaffold_bays" value="${cat.params.scaffold_bays||4}" min="1" max="20" step="1" oninput="updateStageParam('scaffold_bays',this.value)">
+          <span class="stage-unit">베이</span>
+        </div>
+        <div class="stage-field">
+          <label>비계 단 수</label>
+          <input type="number" id="sp_scaffold_tiers" value="${cat.params.scaffold_tiers||2}" min="1" max="10" step="1" oninput="updateStageParam('scaffold_tiers',this.value)">
+          <span class="stage-unit">단</span>
+        </div>
+        <div class="stage-field">
+          <label>비계 열 수</label>
+          <input type="number" id="sp_scaffold_rows" value="${cat.params.scaffold_rows||2}" min="1" max="6" step="1" oninput="updateStageParam('scaffold_rows',this.value)">
+          <span class="stage-unit">열</span>
+        </div>
+        <div class="stage-field">
+          <label>단 높이</label>
+          <input type="number" id="sp_tier_h" value="${cat.params.tier_h||1.83}" min="0.5" max="5" step="0.01" oninput="updateStageParam('tier_h',this.value)">
+          <span class="stage-unit">m</span>
+        </div>
+        <div class="stage-field">
+          <label>LED 가로</label>
+          <input type="number" id="sp_screen_w" value="${cat.params.screen_w||7.2}" min="1" max="30" step="0.1" oninput="updateStageParam('screen_w',this.value)">
+          <span class="stage-unit">m</span>
+        </div>
+        <div class="stage-field">
+          <label>LED 높이</label>
+          <input type="number" id="sp_screen_h" value="${cat.params.screen_h||4.5}" min="1" max="20" step="0.1" oninput="updateStageParam('screen_h',this.value)">
+          <span class="stage-unit">m</span>
+        </div>
+        <div class="stage-field">
+          <label>트러스 단면</label>
+          <input type="number" id="sp_truss_size" value="${cat.params.truss_size||0.29}" min="0.1" max="1" step="0.01" oninput="updateStageParam('truss_size',this.value)">
+          <span class="stage-unit">m</span>
+        </div>
+        <div class="stage-field" style="align-items:center;justify-content:center;gap:8px;flex-direction:row;padding-top:16px;">
+          <label style="margin:0;">좌측 프레임</label>
+          <input type="checkbox" id="sp_show_left_frame" ${cat.params.show_left_frame!==false?'checked':''} style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;" onchange="updateStageParam('show_left_frame',this.checked)">
+        </div>
+      </div>
+      ${renderStageQty(cat)}
+    `;
   } else {
     // 트러스/커스텀
     el.innerHTML = `
@@ -6892,6 +6943,27 @@ function renderStageQty(cat) {
       ['수평재 (가로)', `${horzBars} 개`],
       ['연결재 (깊이)', `${depthBars} 개`],
     ];
+  } else if (cat.type === 'event') {
+    const bays = +p.scaffold_bays||4, tiers = +p.scaffold_tiers||2, rowCnt = +p.scaffold_rows||2;
+    const rd = +p.row_depth||1.83, th = +p.tier_h||1.83;
+    const scaffoldW = bays * 1.83;
+    const scaffoldD = (rowCnt-1) * rd;
+    const scaffoldH = tiers * th;
+    const ts = +p.truss_size||0.29;
+    const sw = +p.screen_w||7.2, sh = +p.screen_h||4.5;
+    // truss lengths
+    const topBeamLen = scaffoldW;
+    const frameH = scaffoldH + 1.5;
+    const leftFrameBeamLen = scaffoldD;
+    rows = [
+      ['비계틀 가로', `${scaffoldW.toFixed(2)} m (${bays}베이)`],
+      ['비계틀 높이', `${scaffoldH.toFixed(2)} m (${tiers}단)`],
+      ['비계틀 깊이', `${scaffoldD.toFixed(2)} m (${rowCnt}열)`],
+      ['수평 트러스', `${topBeamLen.toFixed(2)} m`],
+      ['수직 트러스 높이', `${frameH.toFixed(2)} m`],
+      ['LED 화면', `${sw}m × ${sh}m`],
+      ['트러스 단면', `${(ts*100).toFixed(0)}cm × ${(ts*100).toFixed(0)}cm`],
+    ];
   } else {
     const w = +p.width||10, h2 = +p.height||5;
     rows = [['가로', `${w} m`], ['높이', `${h2} m`]];
@@ -6905,7 +6977,7 @@ function renderStageQty(cat) {
 function updateStageParam(key, val) {
   const cat = stageCats.find(c => c.id === stageCurrentCat);
   if (!cat) return;
-  if (key === 'xbrace') cat.params[key] = !!val;
+  if (key === 'xbrace' || key === 'show_left_frame') cat.params[key] = !!val;
   else cat.params[key] = isNaN(+val) ? val : +val;
   saveStageCats();
   // 수량 박스만 갱신
@@ -7103,12 +7175,17 @@ function buildAndRender3D() {
     buildStageModel(cat.params);
   } else if (cat.type === 'scaffold') {
     buildScaffoldModel(cat.params);
+  } else if (cat.type === 'event') {
+    buildEventModel(cat.params);
   } else {
     buildTrussModel(cat.params);
   }
 
   // 그리드 헬퍼
-  const gridSize = Math.max(20, Math.ceil(Math.max(cat.params.width||10, cat.params.depth||8) * 1.5 / 5) * 5);
+  const _gp = cat.params;
+  const _gw = cat.type==='event' ? (_gp.scaffold_bays||4)*1.83+(_gp.screen_w||7.2) : (_gp.width||10);
+  const _gd = cat.type==='event' ? Math.max((_gp.scaffold_rows||2-1)*(_gp.row_depth||1.83)+4, _gp.screen_w||7.2) : (_gp.depth||8);
+  const gridSize = Math.max(20, Math.ceil(Math.max(_gw, _gd) * 1.5 / 5) * 5);
   const grid = new THREE.GridHelper(gridSize, gridSize/2, 0x1e2636, 0x1a2030);
   _stageScene.add(grid);
 
@@ -7279,6 +7356,232 @@ function buildScaffoldModel(p) {
   }
 
   _stageZoom = Math.max(totalW, totalH, totalD) * 1.5 + 3;
+  renderStage3D();
+}
+
+/* ── 이벤트 구조물 모델 (비계틀 + 사각트러스 + LED 프레임) ── */
+function buildEventModel(p) {
+  const bays    = Math.max(1, +p.scaffold_bays  || 4);
+  const tiers   = Math.max(1, +p.scaffold_tiers || 2);
+  const rows    = Math.max(1, +p.scaffold_rows  || 2);
+  const rd      = +p.row_depth   || 1.83;
+  const th      = +p.tier_h     || 1.83;
+  const ts      = +p.truss_size  || 0.29;
+  const screenW = +p.screen_w    || 7.2;
+  const screenH = +p.screen_h    || 4.5;
+  const showLeft = p.show_left_frame !== false;
+
+  const bayW = 1.83;
+  const scaffoldW = bays * bayW;
+  const scaffoldD = Math.max(0, (rows - 1) * rd);
+  const scaffoldH = tiers * th;
+  const frameH    = scaffoldH + th * 0.8; // 수직 트러스 프레임 높이 (비계보다 조금 높게)
+
+  const pipeR  = 0.025;
+  const trussR = 0.020;
+  const ts2    = ts / 2;
+
+  // --- 재질 ---
+  const matPost  = new THREE.MeshLambertMaterial({ color: 0xb8b8b8 });
+  const matBar   = new THREE.MeshLambertMaterial({ color: 0x909090 });
+  const matXbr   = new THREE.MeshLambertMaterial({ color: 0x787878 });
+  const matJoint = new THREE.MeshLambertMaterial({ color: 0xd0d0d0 });
+  const matTruss = new THREE.MeshLambertMaterial({ color: 0xd4a843 });
+  const matScreen= new THREE.MeshLambertMaterial({ color: 0x0d1a3a, transparent:true, opacity:0.75 });
+  const matSEdge = new THREE.LineBasicMaterial({ color: 0x2244cc });
+
+  // ─── 공통 헬퍼: 실린더 추가 ───
+  function addC(x0,y0,z0, x1,y1,z1, mat, r) {
+    r = r || pipeR;
+    const start = new THREE.Vector3(x0,y0,z0);
+    const end   = new THREE.Vector3(x1,y1,z1);
+    const dir   = new THREE.Vector3().subVectors(end, start);
+    const len   = dir.length();
+    if (len < 0.001) return;
+    const geo  = new THREE.CylinderGeometry(r,r,len,6,1);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.addVectors(start, end).multiplyScalar(0.5);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
+    _stageScene.add(mesh);
+  }
+  function addSph(x,y,z, r, mat) {
+    const geo  = new THREE.SphereGeometry(r||pipeR*1.5, 8, 6);
+    const mesh = new THREE.Mesh(geo, mat||matJoint);
+    mesh.position.set(x,y,z);
+    _stageScene.add(mesh);
+  }
+
+  // ─── 사각 트러스 빔 헬퍼 (X축 방향) ───
+  function addTrussX(x0, x1, cy, cz) {
+    const len = x1 - x0;
+    if (Math.abs(len) < 0.001) return;
+    const segs = Math.max(2, Math.round(Math.abs(len) / 0.55));
+    const sl = len / segs;
+    // 4 코너 코드
+    const corners = [[cy+ts2,cz+ts2],[cy-ts2,cz+ts2],[cy-ts2,cz-ts2],[cy+ts2,cz-ts2]];
+    for (const [cy2,cz2] of corners) addC(x0,cy2,cz2, x1,cy2,cz2, matTruss, trussR);
+    // 면 대각 가새
+    for (let s=0; s<segs; s++) {
+      const xa=x0+s*sl, xb=x0+(s+1)*sl;
+      // 상면
+      addC(xa,cy+ts2,cz+ts2, xb,cy+ts2,cz-ts2, matTruss, trussR*0.55);
+      addC(xa,cy+ts2,cz-ts2, xb,cy+ts2,cz+ts2, matTruss, trussR*0.55);
+      // 전면
+      addC(xa,cy+ts2,cz+ts2, xb,cy-ts2,cz+ts2, matTruss, trussR*0.55);
+      addC(xa,cy-ts2,cz+ts2, xb,cy+ts2,cz+ts2, matTruss, trussR*0.55);
+    }
+    // 끝단 노드
+    for (const [cy2,cz2] of corners) { addSph(x0,cy2,cz2, trussR*1.6, matTruss); addSph(x1,cy2,cz2, trussR*1.6, matTruss); }
+  }
+
+  // ─── 사각 트러스 빔 헬퍼 (Y축 방향) ───
+  function addTrussY(cx, y0, y1, cz) {
+    const len = y1 - y0;
+    if (Math.abs(len) < 0.001) return;
+    const segs = Math.max(2, Math.round(Math.abs(len) / 0.55));
+    const sl = len / segs;
+    const corners = [[cx+ts2,cz+ts2],[cx-ts2,cz+ts2],[cx-ts2,cz-ts2],[cx+ts2,cz-ts2]];
+    for (const [cx2,cz2] of corners) addC(cx2,y0,cz2, cx2,y1,cz2, matTruss, trussR);
+    for (let s=0; s<segs; s++) {
+      const ya=y0+s*sl, yb=y0+(s+1)*sl;
+      addC(cx+ts2,ya,cz+ts2, cx-ts2,yb,cz+ts2, matTruss, trussR*0.55);
+      addC(cx-ts2,ya,cz+ts2, cx+ts2,yb,cz+ts2, matTruss, trussR*0.55);
+      addC(cx+ts2,ya,cz+ts2, cx+ts2,yb,cz-ts2, matTruss, trussR*0.55);
+      addC(cx+ts2,ya,cz-ts2, cx+ts2,yb,cz+ts2, matTruss, trussR*0.55);
+    }
+    for (const [cx2,cz2] of corners) { addSph(cx2,y0,cz2, trussR*1.6, matTruss); addSph(cx2,y1,cz2, trussR*1.6, matTruss); }
+  }
+
+  // ─── 사각 트러스 빔 헬퍼 (Z축 방향) ───
+  function addTrussZ(cx, cy, z0, z1) {
+    const len = z1 - z0;
+    if (Math.abs(len) < 0.001) return;
+    const segs = Math.max(2, Math.round(Math.abs(len) / 0.55));
+    const sl = len / segs;
+    const corners = [[cx+ts2,cy+ts2],[cx-ts2,cy+ts2],[cx-ts2,cy-ts2],[cx+ts2,cy-ts2]];
+    for (const [cx2,cy2] of corners) addC(cx2,cy2,z0, cx2,cy2,z1, matTruss, trussR);
+    for (let s=0; s<segs; s++) {
+      const za=z0+s*sl, zb=z0+(s+1)*sl;
+      addC(cx+ts2,cy+ts2,za, cx-ts2,cy+ts2,zb, matTruss, trussR*0.55);
+      addC(cx-ts2,cy+ts2,za, cx+ts2,cy+ts2,zb, matTruss, trussR*0.55);
+      addC(cx+ts2,cy+ts2,za, cx+ts2,cy-ts2,zb, matTruss, trussR*0.55);
+      addC(cx+ts2,cy-ts2,za, cx+ts2,cy+ts2,zb, matTruss, trussR*0.55);
+    }
+    for (const [cx2,cy2] of corners) { addSph(cx2,cy2,z0, trussR*1.6, matTruss); addSph(cx2,cy2,z1, trussR*1.6, matTruss); }
+  }
+
+  // ════════════════════════════════════════
+  // 좌표계: 비계틀 중심 X=0, 앞면 Z=0, 뒷면 Z=-scaffoldD
+  const ox = -scaffoldW / 2; // 비계틀 X 시작
+
+  // ════════════════════════════════════════
+  // 1. 비계틀 (H-frame scaffolding)
+  // ════════════════════════════════════════
+  for (let col = 0; col <= bays; col++) {
+    const x = ox + col * bayW;
+    for (let row = 0; row < rows; row++) {
+      const z = -row * rd;
+      // 수직 포스트
+      addC(x, 0, z, x, scaffoldH, z, matPost, pipeR);
+      // 각 단 상단 바 (H-프레임 가로봉) + 중간 바
+      for (let tier = 0; tier < tiers; tier++) {
+        const yTop = (tier + 1) * th;
+        const yMid = tier * th + th * 0.5;
+        if (col < bays) {
+          // 상단 가로봉
+          addC(x, yTop, z, ox+(col+1)*bayW, yTop, z, matBar, pipeR*0.85);
+          // 중간 가로봉
+          addC(x, yMid, z, ox+(col+1)*bayW, yMid, z, matBar, pipeR*0.75);
+        }
+        // 조인트 노드
+        addSph(x, yTop, z, pipeR*1.8, matJoint);
+      }
+    }
+  }
+  // 깊이 연결봉 (앞뒤 열 연결)
+  for (let col = 0; col <= bays; col++) {
+    const x = ox + col * bayW;
+    for (let row = 0; row < rows - 1; row++) {
+      const z0 = -row * rd, z1 = -(row+1) * rd;
+      for (let tier = 0; tier <= tiers; tier++) {
+        addC(x, tier*th, z0, x, tier*th, z1, matBar, pipeR*0.85);
+      }
+    }
+  }
+  // X대 (사이드 면: 각 기둥 위치에서 앞뒤로 연결)
+  for (let col = 0; col <= bays; col++) {
+    const x = ox + col * bayW;
+    for (let tier = 0; tier < tiers; tier++) {
+      const y0 = tier * th, y1 = (tier + 1) * th;
+      for (let row = 0; row < rows - 1; row++) {
+        const z0 = -row * rd, z1 = -(row+1) * rd;
+        addC(x, y0, z0, x, y1, z1, matXbr, pipeR*0.78);
+        addC(x, y1, z0, x, y0, z1, matXbr, pipeR*0.78);
+      }
+    }
+  }
+
+  // ════════════════════════════════════════
+  // 2. 수평 트러스 빔 (비계틀 상단, 앞줄)
+  // ════════════════════════════════════════
+  const topBeamY = scaffoldH + ts2;
+  addTrussX(ox, ox + scaffoldW, topBeamY, 0);
+  // 뒷줄도 수평 빔 (선택)
+  if (rows > 1) addTrussX(ox, ox + scaffoldW, topBeamY, -scaffoldD);
+  // 앞뒤 연결 (좌우 끝단)
+  if (rows > 1) {
+    addTrussZ(ox,             topBeamY, 0, -scaffoldD);
+    addTrussZ(ox + scaffoldW, topBeamY, 0, -scaffoldD);
+  }
+
+  // ════════════════════════════════════════
+  // 3. 좌측 수직 트러스 프레임
+  // ════════════════════════════════════════
+  if (showLeft) {
+    const lx = ox - ts - 0.3; // 비계틀 좌측에서 약간 띄워서
+    // 수직 기둥 2개 (앞/뒤)
+    addTrussY(lx, 0, frameH, 0);
+    if (rows > 1) addTrussY(lx, 0, frameH, -scaffoldD);
+    else addTrussY(lx, 0, frameH, -ts*2);
+    // 상단 수평 빔 (앞뒤 연결)
+    const lzEnd = rows > 1 ? -scaffoldD : -ts*2;
+    addTrussZ(lx, frameH, 0, lzEnd);
+    // 좌측 프레임 → 비계틀 상단 연결 빔 (앞)
+    addTrussX(lx, ox, topBeamY, 0);
+    if (rows > 1) addTrussX(lx, ox, topBeamY, -scaffoldD);
+  }
+
+  // ════════════════════════════════════════
+  // 4. LED 스크린 프레임 (우측 독립 구조)
+  // ════════════════════════════════════════
+  const screenGap = 1.0; // 비계틀과 간격
+  const sx0 = ox + scaffoldW + screenGap;
+  const sx1 = sx0 + screenW;
+  const sy0 = 0.3; // 바닥에서 살짝 띄움 (트러스 발판 높이)
+  const sy1 = sy0 + screenH;
+  const sz  = -scaffoldD / 2; // 깊이 중심에 위치
+
+  // LED 스크린 패널 (반투명 박스)
+  const screenGeo = new THREE.BoxGeometry(screenW, screenH, 0.05);
+  const screenMesh = new THREE.Mesh(screenGeo, matScreen);
+  screenMesh.position.set(sx0 + screenW/2, sy0 + screenH/2, sz);
+  _stageScene.add(screenMesh);
+  const edgesGeo = new THREE.EdgesGeometry(screenGeo);
+  const edgesLine = new THREE.LineSegments(edgesGeo, matSEdge);
+  edgesLine.position.copy(screenMesh.position);
+  _stageScene.add(edgesLine);
+
+  // LED 프레임 사각 트러스 (4변)
+  addTrussX(sx0, sx1, sy0, sz);  // 하단 빔
+  addTrussX(sx0, sx1, sy1, sz);  // 상단 빔
+  addTrussY(sx0, sy0, sy1, sz);  // 좌측 수직 빔
+  addTrussY(sx1, sy0, sy1, sz);  // 우측 수직 빔
+
+  // ════════════════════════════════════════
+  // 카메라 거리 조정
+  const totalW = scaffoldW + (showLeft ? ts + 0.3 : 0) + screenGap + screenW;
+  const totalH = Math.max(frameH, screenH + 0.3);
+  _stageZoom = Math.max(totalW, totalH, scaffoldD) * 1.4 + 3;
   renderStage3D();
 }
 
