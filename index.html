@@ -1276,6 +1276,46 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   box-shadow:0 -5px 0 var(--border2), 0 5px 0 var(--border2);
 }
 .stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; border-top:none; padding:14px 16px env(safe-area-inset-bottom,20px); }
+/* ══ 레고 조립 시스템 ══ */
+#pageStage { display:flex; flex-direction:column; overflow:hidden; height:100%; }
+.stage-3d-wrap { flex:0 0 220px; min-height:120px; background:#0d1117; position:relative; transition:flex-basis .2s; }
+.stage-3d-wrap.hidden { flex-basis:0 !important; overflow:hidden; }
+.stage-3d-reset { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,.5); border:1px solid #333; color:#aaa; font-size:11px; padding:4px 8px; border-radius:6px; cursor:pointer; }
+.stage-3d-hint { position:absolute; bottom:8px; left:8px; font-size:10px; color:rgba(255,255,255,.3); pointer-events:none; }
+
+.lego-board-wrap { flex:1 1 0; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid var(--border); min-height:0; }
+.lego-board-toolbar { display:flex; align-items:center; justify-content:space-between; padding:6px 12px; flex-shrink:0; background:var(--surface2); border-bottom:1px solid var(--border); }
+.lego-board-title { font-size:12px; font-weight:700; color:var(--text-muted); }
+.lego-clear-btn { background:none; border:1px solid #cc3333; color:#cc3333; font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer; }
+.lego-board-area { flex:1 1 0; position:relative; overflow:hidden; background:var(--surface); }
+.lego-board-svg { width:100%; height:100%; display:block; }
+.lego-board-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; font-size:13px; color:var(--text-muted); line-height:1.8; pointer-events:none; }
+
+.lego-palette-wrap { flex:0 0 auto; border-top:2px solid var(--accent); background:var(--surface2); }
+.lego-palette-label { font-size:10px; color:var(--text-muted); font-weight:700; padding:6px 12px 2px; text-transform:uppercase; letter-spacing:.5px; }
+.lego-palette { display:flex; gap:8px; padding:8px 12px 12px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.lego-palette::-webkit-scrollbar { display:none; }
+.lego-part-card { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:4px; width:72px; cursor:grab; user-select:none; touch-action:none; }
+.lego-part-card:active { opacity:.7; }
+.lego-part-img-wrap { width:72px; height:56px; border-radius:10px; border:2px solid var(--border2); background:var(--surface); overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
+.lego-part-img-wrap img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
+.lego-part-img-wrap .lego-part-badge { position:absolute; bottom:2px; right:4px; font-size:8px; font-weight:700; background:rgba(0,0,0,.6); color:#fff; border-radius:3px; padding:1px 3px; }
+.lego-part-name { font-size:10px; color:var(--text-muted); font-weight:600; text-align:center; line-height:1.2; }
+
+/* 드래그 고스트 */
+.lego-drag-ghost { position:fixed; pointer-events:none; z-index:9999; opacity:.85; border-radius:10px; border:2px solid var(--accent); box-shadow:0 4px 20px rgba(61,186,150,.4); transform:translate(-50%,-50%) scale(1.1); transition:transform .1s; }
+
+/* SVG 위 부품 */
+.lego-placed { cursor:grab; }
+.lego-placed:active { cursor:grabbing; }
+.lego-connector { transition:r .15s, opacity .15s; }
+.lego-connector.snap-ready { r:8; opacity:1; }
+.lego-snap-line { stroke-dasharray:4 3; animation:dash .4s linear infinite; }
+@keyframes dash { to { stroke-dashoffset:-14; } }
+
+/* 자재규격 패널 */
+.stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 16px env(safe-area-inset-bottom,20px); }
+
 /* 조립 도구 */
 .assembly-palette { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
 .assembly-part-btn { display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--accent); background:var(--accent-dim); color:var(--accent); font-size:11px; font-weight:700; cursor:pointer; min-width:60px; text-align:center; }
@@ -1714,22 +1754,38 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
   <!-- STAGE PAGE -->
   <div class="page" id="pageStage">
+    <!-- 헤더 -->
     <div class="stage-header">
-      <span class="stage-header-title">🏗️ 무대설치 설계</span>
-      <button class="stage-spec-btn" id="stageSpecBtn" onclick="toggleSpecsView()">📐 자재규격</button>
+      <span class="stage-header-title">🏗️ 구조물 설계</span>
+      <div style="display:flex;gap:6px;">
+        <button class="stage-spec-btn" id="stageSpecBtn" onclick="toggleSpecsView()">📐 자재규격</button>
+        <button class="stage-spec-btn" id="stage3dToggleBtn" onclick="toggle3DView()">🎲 3D</button>
+      </div>
     </div>
-    <!-- 서브탭 바 -->
-    <div class="stage-subtab-wrap" id="stageSubtabWrap"></div>
-    <!-- 3D 뷰어 -->
+    <!-- 3D 뷰 (접기/펴기 가능) -->
     <div class="stage-3d-wrap" id="stage3dWrap">
       <canvas id="stage3dCanvas"></canvas>
       <div class="stage-3d-hint">드래그: 회전 · 스크롤: 확대축소</div>
-      <button class="stage-3d-reset" onclick="resetStage3DView()">⟳ 초기화</button>
+      <button class="stage-3d-reset" onclick="resetStage3DView()">⟳</button>
     </div>
-    <!-- 3D 창 높이 조절 핸들 -->
-    <div class="stage-resize-handle" id="stageResizeHandle" title="위아래로 드래그하여 3D 창 크기 조절"></div>
-    <!-- 입력 패널 (독립 스크롤) -->
-    <div class="stage-panel" id="stagePanel"></div>
+    <!-- 조립 보드 -->
+    <div class="lego-board-wrap" id="legoBoardWrap">
+      <div class="lego-board-toolbar">
+        <span class="lego-board-title">🧱 조립 보드</span>
+        <button class="lego-clear-btn" onclick="legoClearAll()">🗑 전체 삭제</button>
+      </div>
+      <div class="lego-board-area" id="legoBoardArea">
+        <svg id="legoBoardSvg" class="lego-board-svg"></svg>
+        <div class="lego-board-empty" id="legoBoardEmpty">아래 부품을 꾹 눌러서<br>여기에 올려놓으세요</div>
+      </div>
+    </div>
+    <!-- 부품 팔레트 -->
+    <div class="lego-palette-wrap" id="legoPaletteWrap">
+      <div class="lego-palette-label">부품 팔레트 — 꾹 눌러서 보드에 올리기</div>
+      <div class="lego-palette" id="legoPalette"></div>
+    </div>
+    <!-- 자재규격 패널 (숨겨진 상태) -->
+    <div class="stage-panel" id="stagePanel" style="display:none;"></div>
   </div>
 
   <!-- 무대설치 카테고리 추가/수정 모달 -->
@@ -6868,6 +6924,7 @@ function initStageTab() {
   renderStagePanel();
   buildAndRender3D();
   initStageResizeHandle();
+  initLegoBoard();
 }
 
 /* ── 3D 창 높이 드래그 리사이즈 ── */
@@ -8580,6 +8637,376 @@ function _asmLED(p, x0) {
   const sline = new THREE.LineSegments(sedges, matSEdge);
   sline.position.copy(smesh.position);
   _stageScene.add(sline);
+}
+
+/* ══════════════════════════════════════════════
+   🧱 레고 조립 시스템 — Lego Snap Engine
+   ══════════════════════════════════════════════ */
+
+// 부품 정의 (시각 크기 px, 연결점, 이미지)
+const LEGO_PARTS = {
+  hframe:   { name:'H프레임',    img:'images/parts/hframe.jpg',   w:80, h:80,
+    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:80,dy:0},{id:'BL',dx:0, dy:80},{id:'BR',dx:80,dy:80}],
+    color:'#3dba96' },
+  xbrace:   { name:'X대',        img:'images/parts/xbrace.jpg',   w:80, h:80,
+    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:80,dy:0},{id:'BL',dx:0, dy:80},{id:'BR',dx:80,dy:80}],
+    color:'#d97248' },
+  hbar:     { name:'가로봉',     img:'images/parts/hbar.png',     w:160,h:20,
+    connectors:[{id:'L',dx:0,  dy:10},{id:'R',dx:160,dy:10}],
+    color:'#888888' },
+  truss:    { name:'트러스빔',   img:'images/parts/truss.png',    w:200,h:40,
+    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:200,dy:0},{id:'BL',dx:0,dy:40},{id:'BR',dx:200,dy:40}],
+    color:'#d4a843' },
+  ledframe: { name:'LED프레임',  img:'images/parts/ledframe.jpg', w:100,h:130,
+    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:100,dy:0},{id:'BL',dx:0,dy:130},{id:'BR',dx:100,dy:130}],
+    color:'#5588dd' },
+};
+
+const SNAP_DIST = 36; // 스냅 거리 (px)
+let legoPlaced = [];  // 배치된 부품 목록
+let _legoDrag  = null; // 현재 드래그 상태
+let _legoSvg   = null;
+let _legoGhost = null;
+let _legoBoardRect = null;
+
+/* ── 초기화 ── */
+function initLegoBoard() {
+  _legoSvg = document.getElementById('legoBoardSvg');
+  if (!_legoSvg) return;
+  renderLegoPalette();
+  renderLegoBoard();
+}
+
+/* ── 팔레트 렌더링 ── */
+function renderLegoPalette() {
+  const pal = document.getElementById('legoPalette');
+  if (!pal) return;
+  pal.innerHTML = Object.entries(LEGO_PARTS).map(([type, def]) =>
+    '<div class="lego-part-card" data-type="' + type + '" id="palCard_' + type + '">' +
+    '<div class="lego-part-img-wrap" style="border-color:' + def.color + '">' +
+    '<img src="' + def.img + '" alt="' + def.name + '" onerror="this.style.display=\'none\';this.parentNode.innerHTML+=\'<span style=font-size:24px>' + (type==='hframe'?'🏗️':type==='xbrace'?'✕':type==='hbar'?'━':type==='truss'?'⬡':'📺') + '</span>\'">' +
+    '<span class="lego-part-badge">' + def.name + '</span>' +
+    '</div>' +
+    '<span class="lego-part-name">' + def.name + '</span>' +
+    '</div>'
+  ).join('');
+
+  // 이벤트 등록
+  Object.keys(LEGO_PARTS).forEach(type => {
+    const card = document.getElementById('palCard_' + type);
+    if (!card) return;
+    card.addEventListener('mousedown',  e => legoPaletteDragStart(e, type, false));
+    card.addEventListener('touchstart', e => legoPaletteDragStart(e, type, true), { passive:false });
+  });
+}
+
+/* ── 보드 렌더링 ── */
+function renderLegoBoard() {
+  if (!_legoSvg) return;
+  const empty = document.getElementById('legoBoardEmpty');
+  if (empty) empty.style.display = legoPlaced.length === 0 ? 'flex' : 'none';
+
+  _legoSvg.innerHTML = '';
+
+  // 배치된 부품들
+  legoPlaced.forEach((item, idx) => {
+    const def = LEGO_PARTS[item.type];
+    if (!def) return;
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','lego-placed');
+    g.setAttribute('data-idx', idx);
+    g.setAttribute('transform','translate('+item.x+','+item.y+')');
+
+    // 배경 사각형
+    const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bg.setAttribute('width', def.w); bg.setAttribute('height', def.h);
+    bg.setAttribute('rx','8'); bg.setAttribute('fill','#1a2030');
+    bg.setAttribute('stroke', def.color); bg.setAttribute('stroke-width','2');
+    g.appendChild(bg);
+
+    // 이미지
+    const img = document.createElementNS('http://www.w3.org/2000/svg','image');
+    img.setAttribute('href', def.img);
+    img.setAttribute('x','2'); img.setAttribute('y','2');
+    img.setAttribute('width', def.w-4); img.setAttribute('height', def.h-4);
+    img.setAttribute('preserveAspectRatio','xMidYMid meet');
+    img.setAttribute('clip-path','inset(0 round 6px)');
+    g.appendChild(img);
+
+    // 이름 라벨
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x', def.w/2); txt.setAttribute('y', def.h-4);
+    txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-size','9');
+    txt.setAttribute('fill', def.color); txt.setAttribute('font-weight','700');
+    txt.setAttribute('font-family','Noto Sans KR,sans-serif');
+    txt.textContent = def.name;
+    g.appendChild(txt);
+
+    // 연결점 (작게, 드래그 중일 때만 크게)
+    def.connectors.forEach(c => {
+      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('class','lego-connector');
+      dot.setAttribute('cx', c.dx); dot.setAttribute('cy', c.dy);
+      dot.setAttribute('r','4'); dot.setAttribute('fill', def.color);
+      dot.setAttribute('opacity','0.5');
+      dot.setAttribute('data-part-idx', idx); dot.setAttribute('data-con-id', c.id);
+      g.appendChild(dot);
+    });
+
+    // 드래그 이벤트
+    g.addEventListener('mousedown',  e => legoItemDragStart(e, idx, false));
+    g.addEventListener('touchstart', e => legoItemDragStart(e, idx, true), {passive:false});
+
+    // 더블탭/더블클릭 → 삭제
+    g.addEventListener('dblclick', () => legoRemoveItem(idx));
+
+    _legoSvg.appendChild(g);
+  });
+
+  // 3D 동기화
+  legoSyncTo3D();
+}
+
+/* ── 드래그 시작 (팔레트) ── */
+function legoPaletteDragStart(e, type, isTouch) {
+  e.preventDefault();
+  const def = LEGO_PARTS[type];
+  const pt  = isTouch ? e.touches[0] : e;
+
+  _legoDrag = { isNew:true, type, startX:pt.clientX, startY:pt.clientY };
+  createLegoGhost(type, pt.clientX, pt.clientY);
+  if (isTouch) {
+    document.addEventListener('touchmove', legoDragMove, {passive:false});
+    document.addEventListener('touchend',  legoDragEnd);
+  } else {
+    document.addEventListener('mousemove', legoDragMove);
+    document.addEventListener('mouseup',   legoDragEnd);
+  }
+}
+
+/* ── 드래그 시작 (보드 위 기존 부품) ── */
+function legoItemDragStart(e, idx, isTouch) {
+  e.preventDefault(); e.stopPropagation();
+  const item = legoPlaced[idx];
+  if (!item) return;
+  const pt = isTouch ? e.touches[0] : e;
+
+  _legoDrag = { isNew:false, idx, type:item.type, origX:item.x, origY:item.y, startX:pt.clientX, startY:pt.clientY };
+  createLegoGhost(item.type, pt.clientX, pt.clientY);
+
+  if (isTouch) {
+    document.addEventListener('touchmove', legoDragMove, {passive:false});
+    document.addEventListener('touchend',  legoDragEnd);
+  } else {
+    document.addEventListener('mousemove', legoDragMove);
+    document.addEventListener('mouseup',   legoDragEnd);
+  }
+}
+
+/* ── 고스트 생성 ── */
+function createLegoGhost(type, cx, cy) {
+  removeLegoGhost();
+  const def = LEGO_PARTS[type];
+  _legoGhost = document.createElement('div');
+  _legoGhost.className = 'lego-drag-ghost';
+  _legoGhost.style.cssText = 'width:' + def.w + 'px;height:' + def.h + 'px;background:#1a2030;border-color:' + def.color + ';';
+  const img = document.createElement('img');
+  img.src = def.img; img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:8px;';
+  _legoGhost.appendChild(img);
+  document.body.appendChild(_legoGhost);
+  moveLegoGhost(cx, cy);
+}
+
+function removeLegoGhost() {
+  if (_legoGhost) { _legoGhost.remove(); _legoGhost = null; }
+}
+
+function moveLegoGhost(cx, cy) {
+  if (!_legoGhost) return;
+  _legoGhost.style.left = cx + 'px';
+  _legoGhost.style.top  = cy + 'px';
+}
+
+/* ── 드래그 이동 ── */
+function legoDragMove(e) {
+  e.preventDefault();
+  const pt = e.touches ? e.touches[0] : e;
+  moveLegoGhost(pt.clientX, pt.clientY);
+
+  // 스냅 미리보기
+  const boardPos = clientToBoard(pt.clientX, pt.clientY);
+  if (boardPos && _legoDrag) {
+    const snap = findSnapTarget(_legoDrag.type, boardPos.x, boardPos.y, _legoDrag.isNew ? -1 : _legoDrag.idx);
+    highlightSnap(snap);
+  }
+}
+
+/* ── 드래그 끝 ── */
+function legoDragEnd(e) {
+  document.removeEventListener('mousemove', legoDragMove);
+  document.removeEventListener('mouseup',   legoDragEnd);
+  document.removeEventListener('touchmove', legoDragMove);
+  document.removeEventListener('touchend',  legoDragEnd);
+  clearSnapHighlight();
+
+  const pt = e.changedTouches ? e.changedTouches[0] : e;
+
+  // 보드 영역 밖이면 삭제
+  const boardPos = clientToBoard(pt.clientX, pt.clientY);
+  if (!boardPos) {
+    if (_legoDrag && !_legoDrag.isNew) legoRemoveItem(_legoDrag.idx);
+    removeLegoGhost(); _legoDrag = null; return;
+  }
+
+  // 스냅 계산
+  const skipIdx = _legoDrag && !_legoDrag.isNew ? _legoDrag.idx : -1;
+  const snap = findSnapTarget(_legoDrag.type, boardPos.x, boardPos.y, skipIdx);
+  const finalX = snap ? snap.snapX : boardPos.x - LEGO_PARTS[_legoDrag.type].w/2;
+  const finalY = snap ? snap.snapY : boardPos.y - LEGO_PARTS[_legoDrag.type].h/2;
+
+  if (_legoDrag.isNew) {
+    legoPlaced.push({ type:_legoDrag.type, x:finalX, y:finalY, id:'lego_'+Date.now() });
+  } else {
+    legoPlaced[_legoDrag.idx].x = finalX;
+    legoPlaced[_legoDrag.idx].y = finalY;
+  }
+
+  removeLegoGhost();
+  _legoDrag = null;
+  renderLegoBoard();
+}
+
+/* ── 보드 좌표 변환 ── */
+function clientToBoard(cx, cy) {
+  const area = document.getElementById('legoBoardArea');
+  if (!area) return null;
+  const r = area.getBoundingClientRect();
+  if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return null;
+  return { x: cx - r.left, y: cy - r.top };
+}
+
+/* ── 스냅 알고리즘 ── */
+function findSnapTarget(type, mx, my, skipIdx) {
+  const def = LEGO_PARTS[type];
+  let best = null, bestDist = SNAP_DIST;
+
+  legoPlaced.forEach((item, pIdx) => {
+    if (pIdx === skipIdx) return;
+    const pDef = LEGO_PARTS[item.type];
+    if (!pDef) return;
+
+    pDef.connectors.forEach(pc => {
+      const pcX = item.x + pc.dx, pcY = item.y + pc.dy;
+
+      def.connectors.forEach(dc => {
+        // 드래그 중인 부품을 중심에 놓았을 때의 커넥터 위치
+        const dcX = mx - def.w/2 + dc.dx;
+        const dcY = my - def.h/2 + dc.dy;
+        const dist = Math.hypot(pcX - dcX, pcY - dcY);
+
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = {
+            snapX: mx - def.w/2 + (pcX - dcX),
+            snapY: my - def.h/2 + (pcY - dcY),
+            pcX, pcY, dist
+          };
+        }
+      });
+    });
+  });
+  return best;
+}
+
+/* ── 스냅 하이라이트 ── */
+function highlightSnap(snap) {
+  if (!_legoSvg) return;
+  _legoSvg.querySelectorAll('.snap-indicator').forEach(e=>e.remove());
+  if (!snap) return;
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('class','snap-indicator');
+  c.setAttribute('cx', snap.pcX); c.setAttribute('cy', snap.pcY);
+  c.setAttribute('r','10'); c.setAttribute('fill','none');
+  c.setAttribute('stroke','#3dba96'); c.setAttribute('stroke-width','2.5');
+  c.setAttribute('opacity','0.9');
+  _legoSvg.appendChild(c);
+}
+function clearSnapHighlight() {
+  if (_legoSvg) _legoSvg.querySelectorAll('.snap-indicator').forEach(e=>e.remove());
+}
+
+/* ── 부품 삭제 ── */
+function legoRemoveItem(idx) {
+  legoPlaced.splice(idx, 1);
+  renderLegoBoard();
+}
+
+function legoClearAll() {
+  if (legoPlaced.length === 0) return;
+  if (!confirm('조립 보드를 모두 지울까요?')) return;
+  legoPlaced = [];
+  renderLegoBoard();
+}
+
+/* ── 3D 동기화 ── */
+function legoSyncTo3D() {
+  if (!_stageScene || typeof THREE === 'undefined') return;
+
+  // 기존 오브젝트 제거
+  const toRemove = [];
+  _stageScene.traverse(obj => { if (obj.isMesh || obj.isLineSegments) toRemove.push(obj); });
+  toRemove.forEach(obj => { _stageScene.remove(obj); if(obj.geometry)obj.geometry.dispose(); if(obj.material)obj.material.dispose(); });
+
+  if (legoPlaced.length === 0) { renderStage3D(); return; }
+
+  // 보드 → 3D 좌표 변환 (픽셀 → 미터, 1px = 약 0.025m 기준)
+  const SCALE = 0.025;
+  const area = document.getElementById('legoBoardArea');
+  const boardW = area ? area.clientWidth : 400;
+  const boardH = area ? area.clientHeight : 300;
+
+  legoPlaced.forEach(item => {
+    const def = LEGO_PARTS[item.type];
+    if (!def) return;
+    // 보드 중앙 기준으로 3D x,z 계산 (Y는 위아래)
+    const cx3 = (item.x + def.w/2 - boardW/2) * SCALE;
+    const cy3 = 0;
+    const cz3 = (item.y + def.h/2 - boardH/2) * SCALE * 0.5;
+    const pw  = def.w * SCALE;
+    const ph  = def.h * SCALE;
+
+    const matMap = {
+      hframe:'#b8b8b8', xbrace:'#3dba96', hbar:'#888888', truss:'#d4a843', ledframe:'#1a3a8a'
+    };
+    const mat = new THREE.MeshLambertMaterial({ color: matMap[item.type] || '#888', transparent:item.type==='ledframe', opacity:item.type==='ledframe'?0.7:1 });
+    const depth = item.type === 'truss' ? pw * 0.2 : item.type === 'hframe' ? pw * 0.1 : pw * 0.05;
+    const geo = new THREE.BoxGeometry(pw, ph, depth);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(cx3, ph/2, cz3);
+    _stageScene.add(mesh);
+    const edges = new THREE.EdgesGeometry(geo);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: matMap[item.type]||'#888'}));
+    line.position.copy(mesh.position);
+    _stageScene.add(line);
+  });
+
+  const grid = new THREE.GridHelper(20, 10, 0x1e2636, 0x1a2030);
+  _stageScene.add(grid);
+
+  _stageCenterY = 1.5;
+  _stageZoom = 10;
+  renderStage3D();
+}
+
+/* ── 3D 접기/펴기 ── */
+function toggle3DView() {
+  const wrap = document.getElementById('stage3dWrap');
+  const btn  = document.getElementById('stage3dToggleBtn');
+  if (!wrap) return;
+  wrap.classList.toggle('hidden');
+  const hidden = wrap.classList.contains('hidden');
+  if (btn) btn.classList.toggle('active', !hidden);
+  if (!hidden) { resizeStage3D(); legoSyncTo3D(); }
 }
 
 /* 트러스/커스텀 모델 */
