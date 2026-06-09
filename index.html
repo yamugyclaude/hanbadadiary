@@ -1238,11 +1238,23 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .stage-subtab-action-btn { background:none; border:none; color:var(--text-muted); font-size:11px; cursor:pointer; padding:2px 4px; border-radius:4px; }
 .stage-subtab-action-btn:hover { background:var(--surface2); color:var(--text); }
 .stage-subtab-add { padding:10px 12px; font-size:18px; color:var(--accent); cursor:pointer; border-bottom:2px solid transparent; user-select:none; }
-.stage-3d-wrap { flex:1 1 0; min-height:220px; max-height:340px; background:var(--surface); position:relative; }
+.stage-3d-wrap { flex:0 0 auto; height:260px; min-height:120px; background:var(--surface); position:relative; }
 .stage-3d-wrap canvas { width:100% !important; height:100% !important; display:block; }
 .stage-3d-hint { position:absolute; bottom:8px; right:10px; font-size:10px; color:var(--text-muted); pointer-events:none; }
 .stage-3d-reset { position:absolute; top:8px; right:8px; background:var(--surface2); border:1px solid var(--border2); color:var(--text-muted); font-size:11px; padding:4px 8px; border-radius:6px; cursor:pointer; }
-.stage-panel { flex:0 0 auto; overflow-y:auto; border-top:1px solid var(--border); padding:14px 16px 20px; }
+/* 3D 창 ↔ 패널 리사이즈 핸들 */
+.stage-resize-handle {
+  flex-shrink:0; height:18px; background:var(--surface2);
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  cursor:ns-resize; user-select:none; touch-action:none;
+}
+.stage-resize-handle::before {
+  content:''; display:block; width:36px; height:3px;
+  border-radius:2px; background:var(--border2);
+  box-shadow:0 -5px 0 var(--border2), 0 5px 0 var(--border2);
+}
+.stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; border-top:none; padding:14px 16px env(safe-area-inset-bottom,20px); }
 .stage-section-title { font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
 .stage-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
 .stage-field { display:flex; flex-direction:column; gap:4px; }
@@ -1650,7 +1662,9 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <div class="stage-3d-hint">드래그: 회전 · 스크롤: 확대축소</div>
       <button class="stage-3d-reset" onclick="resetStage3DView()">⟳ 초기화</button>
     </div>
-    <!-- 입력 패널 -->
+    <!-- 3D 창 높이 조절 핸들 -->
+    <div class="stage-resize-handle" id="stageResizeHandle" title="위아래로 드래그하여 3D 창 크기 조절"></div>
+    <!-- 입력 패널 (독립 스크롤) -->
     <div class="stage-panel" id="stagePanel"></div>
   </div>
 
@@ -6628,6 +6642,48 @@ function initStageTab() {
   initStage3D();
   renderStagePanel();
   buildAndRender3D();
+  initStageResizeHandle();
+}
+
+/* ── 3D 창 높이 드래그 리사이즈 ── */
+function initStageResizeHandle() {
+  const handle = document.getElementById('stageResizeHandle');
+  const wrap   = document.getElementById('stage3dWrap');
+  if (!handle || !wrap) return;
+  // 중복 등록 방지
+  if (handle._resizeInited) return;
+  handle._resizeInited = true;
+
+  let dragging = false, startY = 0, startH = 0;
+  const MIN_H = 100, MAX_H = 600;
+
+  function onStart(e) {
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    startH = wrap.offsetHeight;
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    const newH = Math.min(MAX_H, Math.max(MIN_H, startH + (cy - startY)));
+    wrap.style.height = newH + 'px';
+    resizeStage3D();
+    e.preventDefault();
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = '';
+  }
+
+  handle.addEventListener('mousedown',  onStart, { passive: false });
+  handle.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove',  onMove, { passive: false });
+  document.addEventListener('touchmove',  onMove, { passive: false });
+  document.addEventListener('mouseup',  onEnd);
+  document.addEventListener('touchend', onEnd);
 }
 
 /* ── 서브탭 렌더 ── */
