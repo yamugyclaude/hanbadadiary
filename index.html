@@ -7508,15 +7508,15 @@ function buildEventModel(p) {
       }
     }
   }
-  // X대 (사이드 면: 각 기둥 위치에서 앞뒤로 연결)
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + col * bayW;
-    for (let tier = 0; tier < tiers; tier++) {
-      const y0 = tier * th, y1 = (tier + 1) * th;
-      for (let row = 0; row < rows - 1; row++) {
-        const z0 = -row * rd, z1 = -(row+1) * rd;
-        addC(x, y0, z0, x, y1, z1, matXbr, pipeR*0.78);
-        addC(x, y1, z0, x, y0, z1, matXbr, pipeR*0.78);
+  // X대 (가로 면: 각 열의 앞면/뒷면 — 베이 좌우 기둥 연결)
+  for (let row = 0; row < rows; row++) {
+    const z = -row * rd;
+    for (let bay = 0; bay < bays; bay++) {
+      const x0 = ox + bay * bayW, x1 = ox + (bay + 1) * bayW;
+      for (let tier = 0; tier < tiers; tier++) {
+        const y0 = tier * th, y1 = (tier + 1) * th;
+        addC(x0, y0, z, x1, y1, z, matXbr, pipeR*0.78);
+        addC(x1, y0, z, x0, y1, z, matXbr, pipeR*0.78);
       }
     }
   }
