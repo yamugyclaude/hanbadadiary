@@ -1230,6 +1230,24 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 #pageStage { flex-direction: column; overflow: hidden; }
 .stage-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; flex-shrink:0; border-bottom:1px solid var(--border); }
 .stage-header-title { font-size:15px; font-weight:800; color:var(--text); }
+.stage-spec-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text-muted); font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.stage-spec-btn.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+/* 자재규격 패널 */
+.specs-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 16px env(safe-area-inset-bottom,20px); }
+.specs-section { margin-bottom:20px; }
+.specs-section-title { font-size:13px; font-weight:800; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+.specs-table { width:100%; border-collapse:collapse; }
+.specs-table th { font-size:10px; color:var(--text-muted); font-weight:700; text-align:left; padding:4px 6px; border-bottom:1px solid var(--border); }
+.specs-table td { padding:4px 4px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.specs-table tr:last-child td { border-bottom:none; }
+.specs-input { background:var(--surface); border:1.5px solid var(--border2); border-radius:6px; color:var(--text); font-size:13px; padding:5px 7px; width:100%; outline:none; font-family:'Noto Sans KR',sans-serif; }
+.specs-input:focus { border-color:var(--accent); }
+.specs-name-input { width:90px; }
+.specs-num-input  { width:64px; }
+.specs-del-btn { background:none; border:none; color:#cc3333; font-size:16px; cursor:pointer; padding:2px 5px; }
+.specs-add-btn { background:var(--accent-dim); border:1.5px solid var(--accent); color:var(--accent); font-size:11px; font-weight:700; padding:5px 12px; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.specs-unit { font-size:10px; color:var(--text-muted); margin-left:2px; }
+.specs-hint { font-size:11px; color:var(--text-muted); background:var(--surface2); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.6; }
 .stage-subtab-wrap { display:flex; align-items:center; gap:0; padding:0 14px; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; scrollbar-width:none; }
 .stage-subtab-wrap::-webkit-scrollbar { display:none; }
 .stage-subtab { display:flex; align-items:center; gap:6px; padding:10px 14px; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; user-select:none; }
@@ -1698,6 +1716,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <div class="page" id="pageStage">
     <div class="stage-header">
       <span class="stage-header-title">🏗️ 무대설치 설계</span>
+      <button class="stage-spec-btn" id="stageSpecBtn" onclick="toggleSpecsView()">📐 자재규격</button>
     </div>
     <!-- 서브탭 바 -->
     <div class="stage-subtab-wrap" id="stageSubtabWrap"></div>
@@ -6673,6 +6692,162 @@ let _stageCatModalMode = 'add'; // 'add' | 'edit'
 let _stageCatEditId = null;
 let _stageCatTypeSelected = 'stage';
 
+/* ══════════════════════════════════════════════
+   📐 자재 규격 (Specs) 시스템
+   ══════════════════════════════════════════════ */
+
+const DEFAULT_STAGE_SPECS = {
+  hframe: [
+    { id:'hf1', name:'H프레임 A', w:1829, h:1829 },
+    { id:'hf2', name:'H프레임 B', w:1524, h:1829 },
+    { id:'hf3', name:'H프레임 C', w:914,  h:1829 },
+  ],
+  xbrace: [
+    { id:'xb1', name:'X대 A', w:2134, h:1219 },
+  ],
+  hbar: [
+    { id:'hb1', name:'가로봉 A', len:2000 },
+    { id:'hb2', name:'가로봉 B', len:1500 },
+  ],
+  truss: [
+    { id:'tr1', name:'트러스 빔 A', len:2000, sec:390 },
+  ],
+  ledframe: [
+    { id:'lf1', name:'LED 프레임 A', w:3419, h:4399, sec:290 },
+  ],
+  deck: [
+    { id:'dk1', name:'발판 A (좁은)', w:193,  len:1864 },
+    { id:'dk2', name:'발판 B (넓은)', w:310,  len:1796 },
+  ],
+};
+
+const SPEC_META = {
+  hframe:   { label:'🏗️ H프레임 (비계틀)', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'폭',type:'num',unit:'mm'},{k:'h',lbl:'높이',type:'num',unit:'mm'}] },
+  xbrace:   { label:'✕ X대 (크로스 브레이스)', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'가로',type:'num',unit:'mm'},{k:'h',lbl:'세로',type:'num',unit:'mm'}] },
+  hbar:     { label:'━ 수평 연결봉', cols:[{k:'name',lbl:'이름',type:'text'},{k:'len',lbl:'길이',type:'num',unit:'mm'}] },
+  truss:    { label:'⬡ 트러스 빔', cols:[{k:'name',lbl:'이름',type:'text'},{k:'len',lbl:'길이',type:'num',unit:'mm'},{k:'sec',lbl:'단면',type:'num',unit:'mm'}] },
+  ledframe: { label:'📺 LED 프레임', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'가로',type:'num',unit:'mm'},{k:'h',lbl:'세로',type:'num',unit:'mm'},{k:'sec',lbl:'트러스단면',type:'num',unit:'mm'}] },
+  deck:     { label:'▬ 발판 (데크)', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'폭',type:'num',unit:'mm'},{k:'len',lbl:'길이',type:'num',unit:'mm'}] },
+};
+
+let stageSpecs = {};
+let _stageSpecsMode = false; // true면 자재규격 뷰
+
+function loadStageSpecs() {
+  const saved = localStorage.getItem('stageSpecs');
+  if (saved) { try { stageSpecs = JSON.parse(saved); } catch(e) { stageSpecs = {}; } }
+  // 기본값 채우기
+  Object.entries(DEFAULT_STAGE_SPECS).forEach(([k, v]) => {
+    if (!stageSpecs[k]) stageSpecs[k] = JSON.parse(JSON.stringify(v));
+  });
+}
+
+function saveStageSpecs() {
+  localStorage.setItem('stageSpecs', JSON.stringify(stageSpecs));
+}
+
+function toggleSpecsView() {
+  _stageSpecsMode = !_stageSpecsMode;
+  const btn = document.getElementById('stageSpecBtn');
+  if (btn) btn.classList.toggle('active', _stageSpecsMode);
+  // 서브탭/3D/패널 표시 제어
+  const subtabWrap = document.getElementById('stageSubtabWrap');
+  const wrap3d     = document.getElementById('stage3dWrap');
+  const handle     = document.getElementById('stageResizeHandle');
+  const panel      = document.getElementById('stagePanel');
+  if (_stageSpecsMode) {
+    if (subtabWrap) subtabWrap.style.display = 'none';
+    if (wrap3d)     wrap3d.style.display     = 'none';
+    if (handle)     handle.style.display     = 'none';
+    // specs 패널 표시
+    if (panel) { panel.innerHTML = renderSpecsPanel(); }
+  } else {
+    if (subtabWrap) subtabWrap.style.display = '';
+    if (wrap3d)     wrap3d.style.display     = '';
+    if (handle)     handle.style.display     = '';
+    renderStagePanel();
+    buildAndRender3D();
+  }
+}
+
+function renderSpecsPanel() {
+  let html = `
+  <div class="specs-hint">
+    📏 현장에서 자재를 직접 재고 아래 수치를 입력하세요.<br>
+    입력한 치수가 3D 모델과 조립 도구에 자동 반영됩니다.
+  </div>`;
+
+  Object.entries(SPEC_META).forEach(([type, meta]) => {
+    const rows = stageSpecs[type] || [];
+    const thHtml = meta.cols.map(c =>
+      `<th>${c.lbl}${c.unit?`<span class="specs-unit">(${c.unit})</span>`:''}</th>`
+    ).join('') + '<th></th>';
+
+    const rowsHtml = rows.map((row, i) => {
+      const cells = meta.cols.map(c => {
+        if (c.type === 'text') {
+          return `<td><input class="specs-input specs-name-input" value="${row[c.k]||''}" oninput="updateSpec('${type}',${i},'${c.k}',this.value)"></td>`;
+        } else {
+          return `<td><input class="specs-input specs-num-input" type="number" value="${row[c.k]||0}" min="1" step="1" oninput="updateSpec('${type}',${i},'${c.k}',this.value)"></td>`;
+        }
+      }).join('');
+      return `<tr>${cells}<td><button class="specs-del-btn" onclick="deleteSpec('${type}',${i})">✕</button></td></tr>`;
+    }).join('');
+
+    html += `<div class="specs-section">
+      <div class="specs-section-title">
+        <span>${meta.label}</span>
+        <button class="specs-add-btn" onclick="addSpec('${type}')">＋ 추가</button>
+      </div>
+      <table class="specs-table">
+        <thead><tr>${thHtml}</tr></thead>
+        <tbody>${rowsHtml || `<tr><td colspan="${meta.cols.length+1}" style="text-align:center;color:var(--text-muted);padding:12px;font-size:12px;">아직 없음 — ＋ 추가로 입력하세요</td></tr>`}</tbody>
+      </table>
+    </div>`;
+  });
+
+  return html;
+}
+
+function updateSpec(type, idx, key, val) {
+  if (!stageSpecs[type] || !stageSpecs[type][idx]) return;
+  const meta = SPEC_META[type].cols.find(c => c.k === key);
+  stageSpecs[type][idx][key] = (meta && meta.type === 'num') ? (+val||0) : val;
+  saveStageSpecs();
+}
+
+function addSpec(type) {
+  if (!stageSpecs[type]) stageSpecs[type] = [];
+  const meta = SPEC_META[type];
+  const newRow = { id: 'spec_'+Date.now() };
+  meta.cols.forEach(c => { newRow[c.k] = c.type === 'text' ? '새 자재' : 0; });
+  stageSpecs[type].push(newRow);
+  saveStageSpecs();
+  const panel = document.getElementById('stagePanel');
+  if (panel) panel.innerHTML = renderSpecsPanel();
+}
+
+function deleteSpec(type, idx) {
+  if (!stageSpecs[type]) return;
+  stageSpecs[type].splice(idx, 1);
+  saveStageSpecs();
+  const panel = document.getElementById('stagePanel');
+  if (panel) panel.innerHTML = renderSpecsPanel();
+}
+
+/* 규격 조회 헬퍼 — 3D 렌더러에서 사용 */
+function getSpec(type, id) {
+  return (stageSpecs[type] || []).find(s => s.id === id) || null;
+}
+function getSpecs(type) {
+  return stageSpecs[type] || DEFAULT_STAGE_SPECS[type] || [];
+}
+/* 첫 번째 규격 반환 (기본값) */
+function getFirstSpec(type) {
+  const arr = getSpecs(type);
+  return arr.length ? arr[0] : null;
+}
+
 function loadStageCats() {
   const saved = localStorage.getItem('stageCats');
   if (saved) {
@@ -6689,6 +6864,7 @@ function saveStageCats() {
 }
 
 function initStageTab() {
+  loadStageSpecs();
   loadStageCats();
   if (!stageCurrentCat || !stageCats.find(c => c.id === stageCurrentCat)) {
     stageCurrentCat = stageCats[0]?.id || null;
@@ -7880,6 +8056,7 @@ function _renderAssemblyBlockCard(b, idx) {
     const bayChips = bw.map((w,i)=>`<div class="scaffold-bay-chip ${chipClass(w)}" onclick="cycleAssemblyScaffoldBay(${idx},${i})" style="cursor:pointer;font-size:10px;padding:4px 7px;" title="탭하면 폭 변경"><span class="chip-idx">B${i+1}</span><span class="chip-val">${w.toFixed(2)}</span></div>`).join('');
     const tierChips = bt.map((t,i)=>`<div class="scaffold-tier-chip t${Math.min(t,4)}" onclick="cycleAssemblyScaffoldTier(${idx},${i})" style="cursor:pointer;font-size:10px;padding:4px 7px;"><span class="chip-idx">B${i+1}</span><span class="chip-val">${t}단</span></div>`).join('');
     fieldsHtml = `
+      ${(()=>{const opts=getSpecs('hframe').map(s=>`<option value="${s.id}">${s.name} (폭 ${s.w}mm / 높이 ${s.h}mm)</option>`).join('');return opts?`<div style="margin-bottom:8px;"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">H프레임 규격 적용</div><select class="specs-input" style="font-size:12px;" onchange="applyHFrameToScaffoldBlock(${idx},this.value)"><option value="">-- 규격 선택하면 자동 적용 --</option>${opts}</select></div>`:''})()}
       <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">베이 폭 <button class="scaffold-bay-remove-btn" style="font-size:10px;padding:2px 6px;" onclick="removeAssemblyScaffoldBay(${idx})">－</button> <button class="scaffold-bay-add-btn" style="font-size:10px;padding:2px 6px;" onclick="addAssemblyScaffoldBay(${idx})">＋</button></div>
       <div class="scaffold-bay-chips" style="margin-bottom:8px;">${bayChips}</div>
       <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">베이별 단 수</div>
@@ -7891,22 +8068,44 @@ function _renderAssemblyBlockCard(b, idx) {
         <div class="assembly-block-field" style="align-items:center;flex-direction:row;gap:6px;padding-top:16px;"><label style="margin:0;">X대</label><input type="checkbox" ${b.params.xbrace!==false?'checked':''} style="width:16px;height:16px;accent-color:var(--accent);" onchange="updateAssemblyBlockParam(${idx},'xbrace',this.checked)"></div>
       </div>`;
   } else if (b.type === 'truss_h') {
+    const trussOpts = getSpecs('truss').map(s =>
+      `<option value="${s.id}" ${b.params.specId===s.id?'selected':''}>${s.name} (${s.len}mm / ${s.sec}mm)</option>`
+    ).join('');
+    const selTruss = b.params.specId ? getSpec('truss', b.params.specId) : getFirstSpec('truss');
+    const tLen = selTruss ? (selTruss.len/1000).toFixed(3) : (b.params.length||5.49);
+    const tSec = selTruss ? (selTruss.sec/1000).toFixed(3) : (b.params.ts||0.29);
     fieldsHtml = `<div class="assembly-block-fields">
-      <div class="assembly-block-field"><label>길이 (m)</label><input type="number" value="${b.params.length||5.49}" min="0.5" max="30" step="0.01" oninput="updateAssemblyBlockParam(${idx},'length',this.value)"></div>
+      ${trussOpts ? `<div class="assembly-block-field" style="grid-column:1/-1"><label>트러스 빔 규격 선택</label><select class="specs-input" onchange="applySpecToBlock(${idx},'truss',this.value)">${trussOpts}</select></div>` : ''}
+      <div class="assembly-block-field"><label>길이 (m)</label><input type="number" value="${tLen}" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(${idx},'length',this.value)"></div>
       <div class="assembly-block-field"><label>높이 위치 (m)</label><input type="number" value="${b.params.y||3.66}" min="0" max="20" step="0.01" oninput="updateAssemblyBlockParam(${idx},'y',this.value)"></div>
-      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${b.params.ts||0.29}" min="0.1" max="1" step="0.01" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
+      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${tSec}" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
     </div>`;
   } else if (b.type === 'truss_v') {
+    const trussOpts = getSpecs('truss').map(s =>
+      `<option value="${s.id}" ${b.params.specId===s.id?'selected':''}>${s.name} (${s.len}mm / ${s.sec}mm)</option>`
+    ).join('');
+    const selTruss = b.params.specId ? getSpec('truss', b.params.specId) : getFirstSpec('truss');
+    const vH = selTruss ? (selTruss.len/1000).toFixed(3) : (b.params.height||5.5);
+    const vSec = selTruss ? (selTruss.sec/1000).toFixed(3) : (b.params.ts||0.29);
     fieldsHtml = `<div class="assembly-block-fields">
-      <div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="${b.params.height||5.5}" min="0.5" max="20" step="0.01" oninput="updateAssemblyBlockParam(${idx},'height',this.value)"></div>
+      ${trussOpts ? `<div class="assembly-block-field" style="grid-column:1/-1"><label>트러스 빔 규격 선택</label><select class="specs-input" onchange="applySpecToBlock(${idx},'truss',this.value)">${trussOpts}</select></div>` : ''}
+      <div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="${vH}" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(${idx},'height',this.value)"></div>
       <div class="assembly-block-field"><label>깊이 (m)</label><input type="number" value="${b.params.depth||1.83}" min="0.1" max="10" step="0.01" oninput="updateAssemblyBlockParam(${idx},'depth',this.value)"></div>
-      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${b.params.ts||0.29}" min="0.1" max="1" step="0.01" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
+      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${vSec}" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
     </div>`;
   } else if (b.type === 'led') {
+    const ledOpts = getSpecs('ledframe').map(s =>
+      `<option value="${s.id}" ${b.params.specId===s.id?'selected':''}>${s.name} (${s.w}×${s.h}mm)</option>`
+    ).join('');
+    const selLED = b.params.specId ? getSpec('ledframe', b.params.specId) : getFirstSpec('ledframe');
+    const lW = selLED ? (selLED.w/1000).toFixed(3) : (b.params.width||7.2);
+    const lH = selLED ? (selLED.h/1000).toFixed(3) : (b.params.height||4.5);
+    const lSec = selLED ? (selLED.sec/1000).toFixed(3) : (b.params.ts||0.29);
     fieldsHtml = `<div class="assembly-block-fields">
-      <div class="assembly-block-field"><label>가로 (m)</label><input type="number" value="${b.params.width||7.2}" min="0.5" max="30" step="0.1" oninput="updateAssemblyBlockParam(${idx},'width',this.value)"></div>
-      <div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="${b.params.height||4.5}" min="0.5" max="20" step="0.1" oninput="updateAssemblyBlockParam(${idx},'height',this.value)"></div>
-      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${b.params.ts||0.29}" min="0.1" max="1" step="0.01" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
+      ${ledOpts ? `<div class="assembly-block-field" style="grid-column:1/-1"><label>LED 프레임 규격 선택</label><select class="specs-input" onchange="applySpecToBlock(${idx},'ledframe',this.value)">${ledOpts}</select></div>` : ''}
+      <div class="assembly-block-field"><label>가로 (m)</label><input type="number" value="${lW}" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(${idx},'width',this.value)"></div>
+      <div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="${lH}" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(${idx},'height',this.value)"></div>
+      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${lSec}" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
     </div>`;
   }
 
@@ -7968,6 +8167,40 @@ function addAssemblyBlock(type) {
 function removeAssemblyBlock(idx) {
   const cat = _getAssemblyCat(); if (!cat) return;
   cat.params.blocks.splice(idx, 1);
+  saveStageCats();
+  renderStagePanel();
+  buildAndRender3D();
+}
+
+function applySpecToBlock(idx, type, specId) {
+  const cat = _getAssemblyCat(); if (!cat) return;
+  const b = cat.params.blocks[idx]; if (!b) return;
+  const spec = getSpec(type, specId); if (!spec) return;
+  b.params.specId = specId;
+  // 스펙 값을 파라미터에 반영 (m 단위로 변환)
+  if (type === 'truss') {
+    if (b.type === 'truss_h') { b.params.length = spec.len/1000; b.params.ts = spec.sec/1000; }
+    if (b.type === 'truss_v') { b.params.height = spec.len/1000; b.params.ts = spec.sec/1000; }
+  } else if (type === 'ledframe') {
+    b.params.width  = spec.w/1000;
+    b.params.height = spec.h/1000;
+    b.params.ts     = spec.sec/1000;
+  }
+  saveStageCats();
+  renderStagePanel();
+  buildAndRender3D();
+}
+
+/* scaffold 블록에 H프레임 규격으로 베이 폭 자동 입력 */
+function applyHFrameToScaffoldBlock(blockIdx, specId) {
+  const cat = _getAssemblyCat(); if (!cat) return;
+  const b = cat.params.blocks[blockIdx]; if (!b || b.type !== 'scaffold') return;
+  const spec = getSpec('hframe', specId); if (!spec) return;
+  // 모든 베이 폭을 spec.w(mm→m)로 변경
+  const wm = spec.w / 1000;
+  const hm = spec.h / 1000;
+  b.params.bay_widths = b.params.bay_widths.map(() => wm);
+  b.params.tier_h = hm;
   saveStageCats();
   renderStagePanel();
   buildAndRender3D();
