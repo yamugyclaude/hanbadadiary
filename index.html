@@ -6674,10 +6674,7 @@ setupScrollTopBtn();
 
 // 기본 카테고리 (수정·삭제 불가)
 const STAGE_DEFAULT_CATS = [
-  { id: 'cat_stage',    name: '무대설치',      type: 'stage',    locked: true,  params: { width:11, depth:8, height:0.6, tiers:1 } },
-  { id: 'cat_scaffold', name: '비계틀설치',    type: 'scaffold', locked: true,  params: { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], bay_tiers:[2,2,2,2,2,2], rows:2, row_depth:1.83, tier_h:1.83, xbrace:true } },
-  { id: 'cat_event',    name: '이벤트 구조물', type: 'event',    locked: true,  params: { scaffold_bays:4, scaffold_tiers:2, scaffold_rows:2, row_depth:1.83, tier_h:1.83, screen_w:7.2, screen_h:4.5, truss_size:0.29, show_left_frame:true } },
-  { id: 'cat_assembly', name: '🧱 조립 도구',   type: 'assembly', locked: true,  params: { blocks: [] } },
+  { id: 'cat_assembly', name: '조립 도구', type: 'assembly', locked: true, params: { blocks: [] } },
 ];
 
 let stageCats = [];        // 전체 카테고리 목록
@@ -6853,10 +6850,13 @@ function loadStageCats() {
   if (saved) {
     try { stageCats = JSON.parse(saved); } catch(e) { stageCats = []; }
   } else { stageCats = []; }
+  // 구버전 카테고리 제거 (stage/scaffold/event → 더 이상 기본 카테고리 아님)
+  stageCats = stageCats.filter(c => !['cat_stage','cat_scaffold','cat_event'].includes(c.id));
   // 기본 카테고리가 없으면 삽입
   STAGE_DEFAULT_CATS.forEach(def => {
     if (!stageCats.find(c => c.id === def.id)) stageCats.unshift({...def});
   });
+  saveStageCats();
 }
 
 function saveStageCats() {
@@ -8024,25 +8024,25 @@ function _assemblyTotalWidth(p) {
 /* ── 패널 렌더링 ── */
 function renderAssemblyPanel(cat) {
   const blocks = cat.params.blocks || [];
+
   const paletteHtml = Object.entries(ASSEMBLY_BLOCK_DEFAULTS).map(([type, def]) =>
-    `<button class="assembly-part-btn" onclick="addAssemblyBlock('${type}')">
-      <span class="abt-icon">${def.icon}</span>
-      <span>${def.label}</span>
-    </button>`
+    '<button class="assembly-part-btn" onclick="addAssemblyBlock(\'' + type + '\')">' +
+    '<span class="abt-icon">' + def.icon + '</span>' +
+    '<span>' + def.label + '</span>' +
+    '</button>'
   ).join('');
 
   const blocksHtml = blocks.length === 0
-    ? `<div class="assembly-empty">⬆️ 위에서 블록을 추가하세요<br><span style="font-size:11px;margin-top:4px;display:block;">비계틀·트러스·LED를 자유롭게 조합</span></div>`
+    ? '<div class="assembly-empty">아래 버튼으로 자재를 추가하세요<br><span style="font-size:11px;margin-top:6px;display:block;color:var(--text-muted);">비계틀 → 트러스 → LED 순으로 추가하면<br>왼쪽부터 오른쪽으로 조립됩니다</span></div>'
     : blocks.map((b, idx) => _renderAssemblyBlockCard(b, idx)).join('');
 
   const qtyHtml = _renderAssemblyQty(blocks);
 
-  return `
-    <div class="stage-section-title">🧱 조립 블록 추가</div>
-    <div class="assembly-palette">${paletteHtml}</div>
-    <div class="assembly-block-list" id="assemblyBlockList">${blocksHtml}</div>
-    ${qtyHtml}
-  `;
+  return '<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">자재 추가</div>' +
+    '<div class="assembly-palette">' + paletteHtml + '</div>' +
+    (blocks.length > 0 ? '<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">조립 순서 (' + blocks.length + '개)</div>' : '') +
+    '<div class="assembly-block-list" id="assemblyBlockList">' + blocksHtml + '</div>' +
+    qtyHtml;
 }
 
 function _renderAssemblyBlockCard(b, idx) {
@@ -8053,69 +8053,119 @@ function _renderAssemblyBlockCard(b, idx) {
     const bw = b.params.bay_widths || [1.83,1.83,1.83];
     const bt = b.params.bay_tiers || bw.map(()=>2);
     const chipClass = w => w===1.83?'w183':w===1.50?'w150':'w140';
-    const bayChips = bw.map((w,i)=>`<div class="scaffold-bay-chip ${chipClass(w)}" onclick="cycleAssemblyScaffoldBay(${idx},${i})" style="cursor:pointer;font-size:10px;padding:4px 7px;" title="탭하면 폭 변경"><span class="chip-idx">B${i+1}</span><span class="chip-val">${w.toFixed(2)}</span></div>`).join('');
-    const tierChips = bt.map((t,i)=>`<div class="scaffold-tier-chip t${Math.min(t,4)}" onclick="cycleAssemblyScaffoldTier(${idx},${i})" style="cursor:pointer;font-size:10px;padding:4px 7px;"><span class="chip-idx">B${i+1}</span><span class="chip-val">${t}단</span></div>`).join('');
-    fieldsHtml = `
-      ${(()=>{const opts=getSpecs('hframe').map(s=>`<option value="${s.id}">${s.name} (폭 ${s.w}mm / 높이 ${s.h}mm)</option>`).join('');return opts?`<div style="margin-bottom:8px;"><div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">H프레임 규격 적용</div><select class="specs-input" style="font-size:12px;" onchange="applyHFrameToScaffoldBlock(${idx},this.value)"><option value="">-- 규격 선택하면 자동 적용 --</option>${opts}</select></div>`:''})()}
-      <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">베이 폭 <button class="scaffold-bay-remove-btn" style="font-size:10px;padding:2px 6px;" onclick="removeAssemblyScaffoldBay(${idx})">－</button> <button class="scaffold-bay-add-btn" style="font-size:10px;padding:2px 6px;" onclick="addAssemblyScaffoldBay(${idx})">＋</button></div>
-      <div class="scaffold-bay-chips" style="margin-bottom:8px;">${bayChips}</div>
-      <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">베이별 단 수</div>
-      <div class="scaffold-tier-chips" style="margin-bottom:8px;">${tierChips}</div>
-      <div class="assembly-block-fields">
-        <div class="assembly-block-field"><label>열 수</label><input type="number" value="${b.params.rows||2}" min="1" max="6" step="1" oninput="updateAssemblyBlockParam(${idx},'rows',this.value)"></div>
-        <div class="assembly-block-field"><label>단 높이 (m)</label><input type="number" value="${b.params.tier_h||1.83}" min="0.5" max="5" step="0.01" oninput="updateAssemblyBlockParam(${idx},'tier_h',this.value)"></div>
-        <div class="assembly-block-field"><label>열 간격 (m)</label><input type="number" value="${b.params.row_depth||1.83}" min="0.5" max="5" step="0.01" oninput="updateAssemblyBlockParam(${idx},'row_depth',this.value)"></div>
-        <div class="assembly-block-field" style="align-items:center;flex-direction:row;gap:6px;padding-top:16px;"><label style="margin:0;">X대</label><input type="checkbox" ${b.params.xbrace!==false?'checked':''} style="width:16px;height:16px;accent-color:var(--accent);" onchange="updateAssemblyBlockParam(${idx},'xbrace',this.checked)"></div>
-      </div>`;
+    const bayChips = bw.map((w,i) =>
+      '<div class="scaffold-bay-chip ' + chipClass(w) + '" onclick="cycleAssemblyScaffoldBay(' + idx + ',' + i + ')" style="cursor:pointer;font-size:10px;padding:4px 7px;" title="탭하면 폭 변경">' +
+      '<span class="chip-idx">B' + (i+1) + '</span><span class="chip-val">' + w.toFixed(2) + 'm</span></div>'
+    ).join('');
+    const tierChips = bt.map((t,i) =>
+      '<div class="scaffold-tier-chip t' + Math.min(t,4) + '" onclick="cycleAssemblyScaffoldTier(' + idx + ',' + i + ')" style="cursor:pointer;font-size:10px;padding:4px 7px;">' +
+      '<span class="chip-idx">B' + (i+1) + '</span><span class="chip-val">' + t + '단</span></div>'
+    ).join('');
+
+    // H프레임 규격 선택 드롭다운
+    const hfSpecs = getSpecs('hframe');
+    let hfOpts = '<option value="">직접 입력</option>';
+    hfSpecs.forEach(s => {
+      const sel = b.params.hfSpecId === s.id ? ' selected' : '';
+      hfOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (' + s.w + 'mm × ' + s.h + 'mm)</option>';
+    });
+
+    const totalW = bw.reduce((a,x)=>a+x,0).toFixed(2);
+    const maxT = Math.max(...bt);
+    const th = +b.params.tier_h || 1.83;
+
+    fieldsHtml =
+      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
+      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 H프레임 규격 선택</div>' +
+      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applyHFrameToScaffoldBlock(' + idx + ',this.value)">' + hfOpts + '</select>' +
+      '<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">📏 선택하면 폭·높이 자동 입력. 자재규격에서 추가 가능.</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
+      '<span style="font-size:11px;color:var(--text-muted);font-weight:600;">기둥 간격 (베이 폭) — 탭하면 변경</span>' +
+      '<span style="display:flex;gap:4px;">' +
+      '<button class="scaffold-bay-remove-btn" style="font-size:11px;padding:3px 8px;" onclick="removeAssemblyScaffoldBay(' + idx + ')">－ 베이</button>' +
+      '<button class="scaffold-bay-add-btn" style="font-size:11px;padding:3px 8px;" onclick="addAssemblyScaffoldBay(' + idx + ')">＋ 베이</button>' +
+      '</span></div>' +
+      '<div class="scaffold-bay-chips" style="margin-bottom:10px;">' + bayChips + '</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">층 수 (단) — 탭하면 변경</div>' +
+      '<div class="scaffold-tier-chips" style="margin-bottom:10px;">' + tierChips + '</div>' +
+      '<div class="assembly-block-fields">' +
+      '<div class="assembly-block-field"><label>열 수 (앞뒤)</label><input type="number" value="' + (b.params.rows||2) + '" min="1" max="6" step="1" oninput="updateAssemblyBlockParam(' + idx + ',\'rows\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>앞뒤 간격 (m)</label><input type="number" value="' + (b.params.row_depth||1.83) + '" min="0.5" max="5" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'row_depth\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>층 높이 (m)</label><input type="number" value="' + (+b.params.tier_h||1.83) + '" min="0.5" max="5" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'tier_h\',this.value)"></div>' +
+      '<div class="assembly-block-field" style="flex-direction:row;align-items:center;gap:8px;padding-top:16px;"><label style="margin:0;">X대 설치</label><input type="checkbox" ' + (b.params.xbrace!==false?'checked':'') + ' style="width:16px;height:16px;accent-color:var(--accent);" onchange="updateAssemblyBlockParam(' + idx + ',\'xbrace\',this.checked)"></div>' +
+      '</div>' +
+      '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);text-align:right;">가로 합계: <b style="color:var(--accent)">' + totalW + 'm</b> · 최대 높이: <b style="color:var(--accent)">' + (maxT*th).toFixed(2) + 'm</b></div>';
+
   } else if (b.type === 'truss_h') {
-    const trussOpts = getSpecs('truss').map(s =>
-      `<option value="${s.id}" ${b.params.specId===s.id?'selected':''}>${s.name} (${s.len}mm / ${s.sec}mm)</option>`
-    ).join('');
-    const selTruss = b.params.specId ? getSpec('truss', b.params.specId) : getFirstSpec('truss');
-    const tLen = selTruss ? (selTruss.len/1000).toFixed(3) : (b.params.length||5.49);
-    const tSec = selTruss ? (selTruss.sec/1000).toFixed(3) : (b.params.ts||0.29);
-    fieldsHtml = `<div class="assembly-block-fields">
-      ${trussOpts ? `<div class="assembly-block-field" style="grid-column:1/-1"><label>트러스 빔 규격 선택</label><select class="specs-input" onchange="applySpecToBlock(${idx},'truss',this.value)">${trussOpts}</select></div>` : ''}
-      <div class="assembly-block-field"><label>길이 (m)</label><input type="number" value="${tLen}" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(${idx},'length',this.value)"></div>
-      <div class="assembly-block-field"><label>높이 위치 (m)</label><input type="number" value="${b.params.y||3.66}" min="0" max="20" step="0.01" oninput="updateAssemblyBlockParam(${idx},'y',this.value)"></div>
-      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${tSec}" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
-    </div>`;
+    const tSpecs = getSpecs('truss');
+    let tOpts = '<option value="">직접 입력</option>';
+    tSpecs.forEach(s => {
+      const sel = b.params.specId === s.id ? ' selected' : '';
+      tOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (길이 ' + s.len + 'mm / 단면 ' + s.sec + 'mm)</option>';
+    });
+    fieldsHtml =
+      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
+      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 트러스 규격 선택</div>' +
+      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applySpecToBlock(' + idx + ',\'truss\',this.value)">' + tOpts + '</select>' +
+      '</div>' +
+      '<div class="assembly-block-fields">' +
+      '<div class="assembly-block-field"><label>길이 (m)</label><input type="number" value="' + (+b.params.length||5.49) + '" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'length\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>설치 높이 (m)</label><input type="number" value="' + (+b.params.y||3.66) + '" min="0" max="20" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'y\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>단면 크기 (m)</label><input type="number" value="' + (+b.params.ts||0.29) + '" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'ts\',this.value)"></div>' +
+      '</div>';
+
   } else if (b.type === 'truss_v') {
-    const trussOpts = getSpecs('truss').map(s =>
-      `<option value="${s.id}" ${b.params.specId===s.id?'selected':''}>${s.name} (${s.len}mm / ${s.sec}mm)</option>`
-    ).join('');
-    const selTruss = b.params.specId ? getSpec('truss', b.params.specId) : getFirstSpec('truss');
-    const vH = selTruss ? (selTruss.len/1000).toFixed(3) : (b.params.height||5.5);
-    const vSec = selTruss ? (selTruss.sec/1000).toFixed(3) : (b.params.ts||0.29);
-    fieldsHtml = `<div class="assembly-block-fields">
-      ${trussOpts ? `<div class="assembly-block-field" style="grid-column:1/-1"><label>트러스 빔 규격 선택</label><select class="specs-input" onchange="applySpecToBlock(${idx},'truss',this.value)">${trussOpts}</select></div>` : ''}
-      <div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="${vH}" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(${idx},'height',this.value)"></div>
-      <div class="assembly-block-field"><label>깊이 (m)</label><input type="number" value="${b.params.depth||1.83}" min="0.1" max="10" step="0.01" oninput="updateAssemblyBlockParam(${idx},'depth',this.value)"></div>
-      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${vSec}" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
-    </div>`;
+    const tSpecs = getSpecs('truss');
+    let tOpts = '<option value="">직접 입력</option>';
+    tSpecs.forEach(s => {
+      const sel = b.params.specId === s.id ? ' selected' : '';
+      tOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (길이 ' + s.len + 'mm / 단면 ' + s.sec + 'mm)</option>';
+    });
+    fieldsHtml =
+      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
+      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 트러스 규격 선택</div>' +
+      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applySpecToBlock(' + idx + ',\'truss\',this.value)">' + tOpts + '</select>' +
+      '</div>' +
+      '<div class="assembly-block-fields">' +
+      '<div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="' + (+b.params.height||5.5) + '" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'height\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>앞뒤 깊이 (m)</label><input type="number" value="' + (+b.params.depth||1.83) + '" min="0.1" max="10" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'depth\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>단면 크기 (m)</label><input type="number" value="' + (+b.params.ts||0.29) + '" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'ts\',this.value)"></div>' +
+      '</div>';
+
   } else if (b.type === 'led') {
-    const ledOpts = getSpecs('ledframe').map(s =>
-      `<option value="${s.id}" ${b.params.specId===s.id?'selected':''}>${s.name} (${s.w}×${s.h}mm)</option>`
-    ).join('');
-    const selLED = b.params.specId ? getSpec('ledframe', b.params.specId) : getFirstSpec('ledframe');
-    const lW = selLED ? (selLED.w/1000).toFixed(3) : (b.params.width||7.2);
-    const lH = selLED ? (selLED.h/1000).toFixed(3) : (b.params.height||4.5);
-    const lSec = selLED ? (selLED.sec/1000).toFixed(3) : (b.params.ts||0.29);
-    fieldsHtml = `<div class="assembly-block-fields">
-      ${ledOpts ? `<div class="assembly-block-field" style="grid-column:1/-1"><label>LED 프레임 규격 선택</label><select class="specs-input" onchange="applySpecToBlock(${idx},'ledframe',this.value)">${ledOpts}</select></div>` : ''}
-      <div class="assembly-block-field"><label>가로 (m)</label><input type="number" value="${lW}" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(${idx},'width',this.value)"></div>
-      <div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="${lH}" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(${idx},'height',this.value)"></div>
-      <div class="assembly-block-field"><label>트러스 단면 (m)</label><input type="number" value="${lSec}" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(${idx},'ts',this.value)"></div>
-    </div>`;
+    const lSpecs = getSpecs('ledframe');
+    let lOpts = '<option value="">직접 입력</option>';
+    lSpecs.forEach(s => {
+      const sel = b.params.specId === s.id ? ' selected' : '';
+      lOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (' + s.w + ' × ' + s.h + 'mm)</option>';
+    });
+    fieldsHtml =
+      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
+      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 LED 프레임 규격 선택</div>' +
+      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applySpecToBlock(' + idx + ',\'ledframe\',this.value)">' + lOpts + '</select>' +
+      '</div>' +
+      '<div class="assembly-block-fields">' +
+      '<div class="assembly-block-field"><label>가로 폭 (m)</label><input type="number" value="' + (+b.params.width||7.2) + '" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'width\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>세로 높이 (m)</label><input type="number" value="' + (+b.params.height||4.5) + '" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'height\',this.value)"></div>' +
+      '<div class="assembly-block-field"><label>단면 크기 (m)</label><input type="number" value="' + (+b.params.ts||0.29) + '" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'ts\',this.value)"></div>' +
+      '</div>';
   }
 
-  return `<div class="assembly-block-card type-${b.type}">
-    <div class="assembly-block-header">
-      <div class="assembly-block-title">${def.icon} ${def.label} <span class="assembly-block-tag ${def.tag}">#${idx+1}</span></div>
-      <button class="assembly-block-remove" onclick="removeAssemblyBlock(${idx})" title="삭제">✕</button>
-    </div>
-    ${fieldsHtml}
-  </div>`;
+  const colorMap = {scaffold:'var(--accent)',truss_h:'#d97248',truss_v:'#c9a84c',led:'#5588dd'};
+  const color = colorMap[b.type] || 'var(--text-muted)';
+
+  return '<div class="assembly-block-card type-' + b.type + '">' +
+    '<div class="assembly-block-header">' +
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+    '<span style="font-size:18px;">' + def.icon + '</span>' +
+    '<div><div class="assembly-block-title" style="color:' + color + '">' + def.label + '</div>' +
+    '<div style="font-size:10px;color:var(--text-muted);">#' + (idx+1) + ' 블록</div></div>' +
+    '</div>' +
+    '<button class="assembly-block-remove" onclick="removeAssemblyBlock(' + idx + ')" title="삭제">✕</button>' +
+    '</div>' +
+    fieldsHtml +
+    '</div>';
 }
 
 function _renderAssemblyQty(blocks) {
