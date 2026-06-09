@@ -1277,7 +1277,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 }
 .stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; border-top:none; padding:14px 16px env(safe-area-inset-bottom,20px); }
 /* ══ 레고 조립 시스템 ══ */
-#pageStage { overflow:hidden !important; display:flex !important; flex-direction:column !important; position:relative !important; }
+/* active일 때만 flex — display:none이 !important에 막히지 않도록 */
+#pageStage.active { display:flex; flex-direction:column; overflow:hidden; position:relative; }
 
 /* 3D 뷰 */
 .stage-3d-wrap { flex:0 0 0px; overflow:hidden; background:#0d1117; position:relative; transition:flex-basis .25s ease; }
