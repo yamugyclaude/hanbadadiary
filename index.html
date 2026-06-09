@@ -1277,8 +1277,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 }
 .stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; border-top:none; padding:14px 16px env(safe-area-inset-bottom,20px); }
 /* ══ 레고 조립 시스템 ══ */
-/* pageStage: .page(flex:1, overflow-y:scroll)를 overflow:hidden으로 덮음 */
-#pageStage { overflow:hidden !important; display:flex !important; flex-direction:column !important; }
+#pageStage { overflow:hidden !important; display:flex !important; flex-direction:column !important; position:relative !important; }
 
 /* 3D 뷰 */
 .stage-3d-wrap { flex:0 0 0px; overflow:hidden; background:#0d1117; position:relative; transition:flex-basis .25s ease; }
@@ -1305,19 +1304,19 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   transition:transform .15s; }
 .lego-add-fab:active { transform:scale(.92); }
 
-/* 부품 팔레트 시트 (하단 슬라이드업 오버레이) */
-.lego-sheet-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:opacity .25s; }
+/* 부품 선택 시트 — #pageStage 기준 absolute, 다른 페이지 침범 없음 */
+.lego-sheet-overlay { position:absolute; inset:0; z-index:200; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .2s; }
 .lego-sheet-overlay.open { opacity:1; pointer-events:all; }
-.lego-sheet { position:fixed; left:0; right:0; bottom:0; z-index:201;
+.lego-sheet { position:absolute; left:0; right:0; bottom:0; z-index:201;
   background:var(--surface2); border-radius:18px 18px 0 0;
   border-top:2px solid var(--accent);
-  transform:translateY(100%); transition:transform .3s cubic-bezier(.4,0,.2,1);
-  max-height:60vh; display:flex; flex-direction:column; }
+  transform:translateY(100%); transition:transform .28s cubic-bezier(.4,0,.2,1);
+  max-height:55%; display:flex; flex-direction:column; }
 .lego-sheet.open { transform:translateY(0); }
-.lego-sheet-handle { width:36px; height:4px; border-radius:2px; background:var(--border2); margin:10px auto 2px; flex-shrink:0; }
-.lego-sheet-title { font-size:14px; font-weight:800; color:var(--accent); text-align:center; padding:4px 0 10px; flex-shrink:0; }
-.lego-sheet-close { position:absolute; top:10px; right:14px; background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; padding:4px; }
-.lego-sheet-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:12px; padding:8px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.lego-sheet-handle { width:36px; height:4px; border-radius:2px; background:var(--border2); margin:10px auto 4px; flex-shrink:0; }
+.lego-sheet-title { font-size:13px; font-weight:800; color:var(--accent); text-align:center; padding:2px 0 8px; flex-shrink:0; }
+.lego-sheet-close { position:absolute; top:8px; right:14px; background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer; padding:4px; line-height:1; }
+.lego-sheet-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:4px 14px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
 /* 부품 카드 (시트 안) */
 .lego-part-card { display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 6px 8px; border-radius:14px; border:2px solid var(--border2); background:var(--surface); cursor:grab; user-select:none; touch-action:none; transition:transform .15s, border-color .15s; }
@@ -1807,17 +1806,16 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <button class="lego-add-fab" onclick="legoOpenSheet()" title="부품 추가">＋</button>
       </div>
     </div>
+    <!-- 부품 선택 시트 (pageStage 안, position:absolute로 보드 위 덮음) -->
+    <div class="lego-sheet-overlay" id="legoSheetOverlay" onclick="legoCloseSheet()"></div>
+    <div class="lego-sheet" id="legoSheet">
+      <div class="lego-sheet-handle"></div>
+      <div class="lego-sheet-title">🧱 부품 선택 — 탭하면 보드에 추가</div>
+      <button class="lego-sheet-close" onclick="legoCloseSheet()">✕</button>
+      <div class="lego-sheet-grid" id="legoSheetGrid"></div>
+    </div>
     <!-- 자재규격 패널 (숨겨진 상태) -->
     <div class="stage-panel" id="stagePanel" style="display:none;"></div>
-  </div>
-
-  <!-- 부품 팔레트 슬라이드 시트 (pageStage 밖, body 레벨) -->
-  <div class="lego-sheet-overlay" id="legoSheetOverlay" onclick="legoCloseSheet()"></div>
-  <div class="lego-sheet" id="legoSheet">
-    <div class="lego-sheet-handle"></div>
-    <div class="lego-sheet-title">🧱 부품 선택</div>
-    <button class="lego-sheet-close" onclick="legoCloseSheet()">✕</button>
-    <div class="lego-sheet-grid" id="legoSheetGrid"></div>
   </div>
 
   <!-- 무대설치 카테고리 추가/수정 모달 -->
@@ -8728,21 +8726,21 @@ function legoCloseSheet() {
 const LEGO_EMOJI = { hframe:'🏗️', xbrace:'✕', hbar:'━', truss:'⬡', ledframe:'📺' };
 function renderLegoSheet() {
   const grid = document.getElementById('legoSheetGrid');
-  if (!grid || grid.children.length > 0) return; // 이미 렌더됨
+  if (!grid) return;
+  grid.innerHTML = ''; // 매번 새로 렌더
   Object.entries(LEGO_PARTS).forEach(([type, def]) => {
     const card = document.createElement('div');
     card.className = 'lego-part-card';
-    card.id = 'sheetCard_' + type;
     card.style.borderColor = def.color;
 
     const thumb = document.createElement('div');
     thumb.className = 'lego-part-thumb';
-    thumb.style.background = def.color + '22';
-
+    thumb.style.background = def.color + '33';
+    // 이미지 시도, 실패하면 이모지
     const img = document.createElement('img');
     img.src = def.img;
     img.alt = def.name;
-    img.onerror = function() { this.remove(); thumb.textContent = LEGO_EMOJI[type] || '🔩'; };
+    img.onerror = function() { thumb.innerHTML = '<span style="font-size:32px">' + (LEGO_EMOJI[type]||'🔩') + '</span>'; };
     thumb.appendChild(img);
 
     const label = document.createElement('span');
@@ -8754,9 +8752,34 @@ function renderLegoSheet() {
     card.appendChild(label);
     grid.appendChild(card);
 
-    card.addEventListener('mousedown',  e => { legoCloseSheet(); legoPaletteDragStart(e, type, false); });
-    card.addEventListener('touchstart', e => { legoCloseSheet(); legoPaletteDragStart(e, type, true); }, { passive:false });
+    // 탭/클릭 → 보드 중앙에 추가 후 시트 닫기
+    card.addEventListener('click', () => {
+      legoAddToCenter(type);
+      legoCloseSheet();
+    });
+    card.addEventListener('touchend', e => {
+      e.preventDefault();
+      legoAddToCenter(type);
+      legoCloseSheet();
+    });
   });
+}
+
+/* ── 보드 중앙에 부품 추가 ── */
+function legoAddToCenter(type) {
+  const area = document.getElementById('legoBoardArea');
+  const def  = LEGO_PARTS[type];
+  if (!area || !def) return;
+  const bw = area.clientWidth  || 300;
+  const bh = area.clientHeight || 400;
+  // 겹치지 않게 약간씩 오프셋
+  const offset = (legoPlaced.length % 5) * 20;
+  legoPlaced.push({
+    type, id: 'lego_' + Date.now(),
+    x: Math.max(0, (bw - def.w) / 2 + offset),
+    y: Math.max(0, (bh - def.h) / 2 + offset)
+  });
+  renderLegoBoard();
 }
 
 /* ── 보드 렌더링 ── */
