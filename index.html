@@ -1723,14 +1723,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <!-- 3D 뷰어 -->
     <div class="stage-3d-wrap" id="stage3dWrap">
       <canvas id="stage3dCanvas"></canvas>
-      <div class="stage-3d-views">
-        <button class="stage-3d-view-btn active" id="vbtn3d"   onclick="setStageView('3d')">3D</button>
-        <button class="stage-3d-view-btn"        id="vbtnFront" onclick="setStageView('front')">정면</button>
-        <button class="stage-3d-view-btn"        id="vbtnSide"  onclick="setStageView('side')">측면</button>
-        <button class="stage-3d-view-btn"        id="vbtnTop"   onclick="setStageView('top')">상면</button>
-      </div>
       <div class="stage-3d-hint">드래그: 회전 · 스크롤: 확대축소</div>
-      <button class="stage-3d-reset" onclick="setStageView('3d')">⟳ 초기화</button>
+      <button class="stage-3d-reset" onclick="resetStage3DView()">⟳ 초기화</button>
     </div>
     <!-- 3D 창 높이 조절 핸들 -->
     <div class="stage-resize-handle" id="stageResizeHandle" title="위아래로 드래그하여 3D 창 크기 조절"></div>
@@ -6047,7 +6041,7 @@ renderTasks('directive');
 } else if (tab === 'stage') {
 document.getElementById('tab-stage').classList.add('active');
 const p = document.getElementById('pageStage'); p.style.display='flex'; p.classList.add('active');
-initStageTab();
+setTimeout(initStageTab, 30);
 }
 }
 
@@ -7496,7 +7490,11 @@ function resizeStage3D() {
   const wrap = document.getElementById('stage3dWrap');
   if (!wrap || !_stageRenderer || !_stageCamera) return;
   const w = wrap.clientWidth, h = wrap.clientHeight;
-  if (w < 10 || h < 10) return;
+  if (w < 10 || h < 10) {
+    // 아직 레이아웃 미완료 — 잠시 후 재시도
+    setTimeout(resizeStage3D, 60);
+    return;
+  }
   _stageRenderer.setSize(w, h);
   _stageCamera.aspect = w / h;
   _stageCamera.updateProjectionMatrix();
@@ -7533,7 +7531,10 @@ function setStageView(mode) {
   renderStage3D();
 }
 
-function resetStage3DView() { setStageView('3d'); }
+function resetStage3DView() {
+  _stageRot = { x: 0.45, y: 0.6 };
+  renderStage3D();
+}
 
 /* ── 3D 모델 생성 ── */
 function buildAndRender3D() {
