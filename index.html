@@ -1256,6 +1256,24 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .stage-qty-row:last-child { border-bottom:none; }
 .stage-qty-label { color:var(--text2); }
 .stage-qty-val { font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; }
+.scaffold-bay-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.scaffold-bay-header-label { font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; }
+.scaffold-bay-header-btns { display:flex; gap:6px; }
+.scaffold-bay-add-btn { background:var(--accent); border:none; border-radius:6px; color:#0a0c10; font-size:13px; font-weight:700; padding:4px 10px; cursor:pointer; }
+.scaffold-bay-remove-btn { background:var(--surface2); border:1.5px solid var(--border2); border-radius:6px; color:var(--text-muted); font-size:13px; font-weight:700; padding:4px 10px; cursor:pointer; }
+.scaffold-bay-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.scaffold-bay-chip { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface2); cursor:pointer; min-width:46px; }
+.scaffold-bay-chip .chip-idx { font-size:9px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
+.scaffold-bay-chip .chip-val { font-size:13px; font-weight:700; font-family:'JetBrains Mono',monospace; }
+.scaffold-bay-chip.w183 { border-color:var(--accent); background:var(--accent-dim); }
+.scaffold-bay-chip.w183 .chip-val { color:var(--accent); }
+.scaffold-bay-chip.w150 { border-color:#d97248; background:rgba(217,114,72,0.13); }
+.scaffold-bay-chip.w150 .chip-val { color:#d97248; }
+.scaffold-bay-chip.w140 { border-color:#c9a84c; background:rgba(201,168,76,0.12); }
+.scaffold-bay-chip.w140 .chip-val { color:#c9a84c; }
+.scaffold-bay-legend { display:flex; gap:10px; margin-bottom:10px; }
+.scaffold-bay-legend-item { display:flex; align-items:center; gap:4px; font-size:11px; }
+.scaffold-bay-legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
 .stage-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted); gap:10px; padding:40px; text-align:center; }
 /* 무대설치 모달 */
 .stage-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:3000; display:none; align-items:flex-end; justify-content:center; }
@@ -6571,7 +6589,7 @@ setupScrollTopBtn();
 // 기본 카테고리 (수정·삭제 불가)
 const STAGE_DEFAULT_CATS = [
   { id: 'cat_stage',    name: '무대설치',   type: 'stage',    locked: true,  params: { width:11, depth:8, height:0.6, tiers:1 } },
-  { id: 'cat_scaffold', name: '비계틀설치', type: 'scaffold', locked: true,  params: { bays:6, tiers:2, rows:2, frame_w:1.83, tier_h:1.83, xbrace:true } },
+  { id: 'cat_scaffold', name: '비계틀설치', type: 'scaffold', locked: true,  params: { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], tiers:2, rows:2, row_depth:1.83, tier_h:1.83, xbrace:true } },
 ];
 
 let stageCats = [];        // 전체 카테고리 목록
@@ -6685,7 +6703,7 @@ function confirmStageCat() {
     const defaultParams = _stageCatTypeSelected === 'stage'
       ? { width:10, depth:8, height:0.6, tiers:1 }
       : _stageCatTypeSelected === 'scaffold'
-      ? { bays:6, tiers:2, rows:2, frame_w:1.83, tier_h:1.83, xbrace:true }
+      ? { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], tiers:2, rows:2, row_depth:1.83, tier_h:1.83, xbrace:true }
       : { width:10, height:5, depth:1, bays:5 };
     const newCat = { id:'cat_'+Date.now(), name, type:_stageCatTypeSelected, locked:false, params:defaultParams };
     stageCats.push(newCat);
@@ -6748,14 +6766,29 @@ function renderStagePanel() {
       ${renderStageQty(cat)}
     `;
   } else if (cat.type === 'scaffold') {
+    const bw = cat.params.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
+    const chipClass = w => w===1.83?'w183':w===1.50?'w150':'w140';
+    const chipsHtml = bw.map((w,i) => `
+      <div class="scaffold-bay-chip ${chipClass(w)}" onclick="cycleScaffoldBay(${i})" title="탭하면 폭 변경">
+        <span class="chip-idx">B${i+1}</span>
+        <span class="chip-val">${w.toFixed(2)}</span>
+      </div>`).join('');
     el.innerHTML = `
-      <div class="stage-section-title">비계틀 치수 입력</div>
-      <div class="stage-fields">
-        <div class="stage-field">
-          <label>가로 베이 수</label>
-          <input type="number" id="sp_bays" value="${cat.params.bays||6}" min="1" max="30" step="1" oninput="updateStageParam('bays',this.value)">
-          <span class="stage-unit">개</span>
+      <div class="scaffold-bay-header">
+        <span class="scaffold-bay-header-label">가로 베이 폭 (기둥 중심 간 거리)</span>
+        <div class="scaffold-bay-header-btns">
+          <button class="scaffold-bay-remove-btn" onclick="removeScaffoldBay()">－ 베이</button>
+          <button class="scaffold-bay-add-btn" onclick="addScaffoldBay()">＋ 베이</button>
         </div>
+      </div>
+      <div class="scaffold-bay-legend">
+        <div class="scaffold-bay-legend-item"><div class="scaffold-bay-legend-dot" style="background:var(--accent)"></div><span style="color:var(--accent);font-weight:700">1.83m</span></div>
+        <div class="scaffold-bay-legend-item"><div class="scaffold-bay-legend-dot" style="background:#d97248"></div><span style="color:#d97248;font-weight:700">1.50m</span></div>
+        <div class="scaffold-bay-legend-item"><div class="scaffold-bay-legend-dot" style="background:#c9a84c"></div><span style="color:#c9a84c;font-weight:700">1.40m</span></div>
+        <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">탭하면 변경</span>
+      </div>
+      <div class="scaffold-bay-chips" id="scaffoldBayChips">${chipsHtml}</div>
+      <div class="stage-fields" style="margin-top:4px;">
         <div class="stage-field">
           <label>단 수 (높이)</label>
           <input type="number" id="sp_tiers" value="${cat.params.tiers||2}" min="1" max="10" step="1" oninput="updateStageParam('tiers',this.value)">
@@ -6767,8 +6800,8 @@ function renderStagePanel() {
           <span class="stage-unit">열</span>
         </div>
         <div class="stage-field">
-          <label>프레임 폭</label>
-          <input type="number" id="sp_frame_w" value="${cat.params.frame_w||1.83}" min="0.5" max="5" step="0.01" oninput="updateStageParam('frame_w',this.value)">
+          <label>열 간격 (깊이)</label>
+          <input type="number" id="sp_row_depth" value="${cat.params.row_depth||1.83}" min="0.5" max="5" step="0.01" oninput="updateStageParam('row_depth',this.value)">
           <span class="stage-unit">m</span>
         </div>
         <div class="stage-field">
@@ -6830,22 +6863,34 @@ function renderStageQty(cat) {
       ['프레임 (1.8m 간격)', `${frame} 개`],
     ];
   } else if (cat.type === 'scaffold') {
-    const bays = +p.bays||6, tiers = +p.tiers||2, rows2 = +p.rows||2;
-    const fw = +p.frame_w||1.83, th = +p.tier_h||1.83;
-    const hFrames = (bays+1) * rows2; // 가로방향 H프레임 수
-    const xbraces = bays * tiers * rows2 * (p.xbrace!==false ? 1 : 0);
-    const horzBars = bays * tiers * rows2;
-    const legCount = (bays+1) * (rows2+1) * tiers;
-    const totalW = bays * fw;
+    const bw = p.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
+    const bays = bw.length;
+    const tiers = +p.tiers||2, rows2 = +p.rows||2;
+    const rd = +p.row_depth||1.83, th = +p.tier_h||1.83;
+    const totalW = bw.reduce((a,b)=>a+b, 0);
     const totalH2 = tiers * th;
-    const totalD = (rows2-1) * fw;
+    const totalD = (rows2-1) * rd;
+    const hFrames = (bays+1) * rows2;
+    const xbraces = bays * tiers * rows2 * (p.xbrace!==false ? 2 : 0); // X자이므로 2개
+    const horzBars = bays * (tiers+1) * rows2;
+    const depthBars = (bays+1) * (rows2-1) * (tiers+1);
+    // 폭 분포 카운트
+    const cnt183 = bw.filter(w=>w===1.83).length;
+    const cnt150 = bw.filter(w=>w===1.50).length;
+    const cnt140 = bw.filter(w=>w===1.40).length;
+    let distStr = [];
+    if (cnt183) distStr.push(`1.83×${cnt183}`);
+    if (cnt150) distStr.push(`1.50×${cnt150}`);
+    if (cnt140) distStr.push(`1.40×${cnt140}`);
     rows = [
+      ['베이 구성', distStr.join(' + ') || `${bays}개`],
       ['전체 가로', `${totalW.toFixed(2)} m`],
       ['전체 높이', `${totalH2.toFixed(2)} m`],
       ['전체 깊이', `${totalD.toFixed(2)} m`],
-      ['H프레임', `${hFrames} 개`],
+      ['H프레임 (수직)', `${hFrames * rows2} 개`],
       ['X대 (가새)', `${xbraces} 개`],
-      ['수평재', `${horzBars} 개`],
+      ['수평재 (가로)', `${horzBars} 개`],
+      ['연결재 (깊이)', `${depthBars} 개`],
     ];
   } else {
     const w = +p.width||10, h2 = +p.height||5;
@@ -6867,6 +6912,71 @@ function updateStageParam(key, val) {
   const qtyEl = document.querySelector('#stagePanel .stage-qty-box');
   if (qtyEl) qtyEl.outerHTML = renderStageQty(cat).replace(/^.*?<div class="stage-qty-box">/s,'<div class="stage-qty-box">');
   // 양 업데이트
+  const panel = document.getElementById('stagePanel');
+  if (panel) {
+    const oldBox = panel.querySelector('.stage-qty-box');
+    if (oldBox) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderStageQty(cat);
+      oldBox.replaceWith(tmp.firstElementChild);
+    }
+  }
+  buildAndRender3D();
+}
+
+/* ── 비계틀 베이 조작 ── */
+function _getScaffoldCat() {
+  return stageCats.find(c => c.id === stageCurrentCat && c.type === 'scaffold');
+}
+
+function _ensureBayWidths(cat) {
+  if (!Array.isArray(cat.params.bay_widths) || cat.params.bay_widths.length === 0) {
+    cat.params.bay_widths = [1.83,1.83,1.83,1.83,1.83,1.83];
+  }
+}
+
+function addScaffoldBay() {
+  const cat = _getScaffoldCat(); if (!cat) return;
+  _ensureBayWidths(cat);
+  if (cat.params.bay_widths.length >= 30) return;
+  // 마지막 베이와 같은 폭으로 추가
+  const last = cat.params.bay_widths[cat.params.bay_widths.length-1] || 1.83;
+  cat.params.bay_widths.push(last);
+  saveStageCats();
+  renderStagePanel();
+  buildAndRender3D();
+}
+
+function removeScaffoldBay() {
+  const cat = _getScaffoldCat(); if (!cat) return;
+  _ensureBayWidths(cat);
+  if (cat.params.bay_widths.length <= 1) return;
+  cat.params.bay_widths.pop();
+  saveStageCats();
+  renderStagePanel();
+  buildAndRender3D();
+}
+
+function cycleScaffoldBay(idx) {
+  const cat = _getScaffoldCat(); if (!cat) return;
+  _ensureBayWidths(cat);
+  const cycle = [1.83, 1.50, 1.40];
+  const cur = cat.params.bay_widths[idx];
+  const ci = cycle.findIndex(v => Math.abs(v-cur)<0.01);
+  cat.params.bay_widths[idx] = cycle[(ci+1) % cycle.length];
+  saveStageCats();
+  // 칩만 업데이트
+  const chipsEl = document.getElementById('scaffoldBayChips');
+  if (chipsEl) {
+    const bw = cat.params.bay_widths;
+    const chipClass = w => w===1.83?'w183':w===1.50?'w150':'w140';
+    chipsEl.innerHTML = bw.map((w,i) => `
+      <div class="scaffold-bay-chip ${chipClass(w)}" onclick="cycleScaffoldBay(${i})" title="탭하면 폭 변경">
+        <span class="chip-idx">B${i+1}</span>
+        <span class="chip-val">${w.toFixed(2)}</span>
+      </div>`).join('');
+  }
+  // 수량 업데이트
   const panel = document.getElementById('stagePanel');
   if (panel) {
     const oldBox = panel.querySelector('.stage-qty-box');
@@ -7031,20 +7141,31 @@ function buildStageModel(p) {
 
 /* 비계틀 모델 */
 function buildScaffoldModel(p) {
-  const bays = Math.min(+p.bays||6, 20);
+  const bwRaw = p.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
+  const bw = bwRaw.slice(0, 20); // 최대 20베이
+  const bays = bw.length;
   const tiers = Math.min(+p.tiers||2, 8);
   const rowCount = Math.min(+p.rows||2, 6);
-  const fw = +p.frame_w||1.83;
+  const rd = +p.row_depth||1.83;
   const th = +p.tier_h||1.83;
   const useX = p.xbrace !== false;
   const pipeR = 0.028;
-  const totalW = bays * fw;
-  const totalD = (rowCount - 1) * fw;
+
+  // 기둥 X 좌표 누적 계산 (중심 기준)
+  const totalW = bw.reduce((a,b)=>a+b, 0);
+  const colX = []; // col 0 ~ bays 의 X 좌표
+  let cx = 0;
+  colX.push(cx);
+  for (let i = 0; i < bays; i++) { cx += bw[i]; colX.push(cx); }
+  const ox = -totalW / 2;
+  const totalD = (rowCount - 1) * rd;
   const totalH = tiers * th;
-  const ox = -totalW / 2, oz = -totalD / 2;
+  const oz = -totalD / 2;
 
   const matPipe = new THREE.MeshLambertMaterial({ color: 0x8899bb });
-  const matX = new THREE.MeshLambertMaterial({ color: 0x5588aa });
+  const matX183 = new THREE.MeshLambertMaterial({ color: 0x3dba96 });
+  const matX150 = new THREE.MeshLambertMaterial({ color: 0xd97248 });
+  const matX140 = new THREE.MeshLambertMaterial({ color: 0xc9a84c });
 
   function addCylinder(ax, ay, az, bx, by, bz, mat) {
     const dx = bx-ax, dy = by-ay, dz = bz-az;
@@ -7060,10 +7181,10 @@ function buildScaffoldModel(p) {
     _stageScene.add(mesh);
   }
 
-  // 기둥 (수직) - H프레임의 수직 파이프
+  // 기둥 (수직)
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col <= bays; col++) {
-      const x = ox + col * fw, z = oz + row * fw;
+      const x = ox + colX[col], z = oz + row * rd;
       addCylinder(x, 0, z, x, totalH, z, matPipe);
     }
   }
@@ -7072,32 +7193,34 @@ function buildScaffoldModel(p) {
   for (let tier = 0; tier <= tiers; tier++) {
     const y = tier * th;
     for (let row = 0; row < rowCount; row++) {
-      const z = oz + row * fw;
+      const z = oz + row * rd;
       for (let col = 0; col < bays; col++) {
-        const x = ox + col * fw;
-        addCylinder(x, y, z, x + fw, y, z, matPipe);
+        const x0 = ox + colX[col], x1 = ox + colX[col+1];
+        addCylinder(x0, y, z, x1, y, z, matPipe);
       }
     }
     // 깊이 방향 연결재
     for (let col = 0; col <= bays; col++) {
-      const x = ox + col * fw;
+      const x = ox + colX[col];
       for (let row = 0; row < rowCount - 1; row++) {
-        const z = oz + row * fw;
-        addCylinder(x, y, z, x, y, z + fw, matPipe);
+        const z = oz + row * rd;
+        addCylinder(x, y, z, x, y, z + rd, matPipe);
       }
     }
   }
 
-  // X대 (가새) - 각 베이의 앞면
+  // X대 (가새) - 베이 폭에 따라 색상 구분
   if (useX) {
     for (let tier = 0; tier < tiers; tier++) {
       const y0 = tier * th, y1 = (tier+1) * th;
       for (let row = 0; row < rowCount; row++) {
-        const z = oz + row * fw;
+        const z = oz + row * rd;
         for (let col = 0; col < bays; col++) {
-          const x0 = ox + col * fw, x1 = ox + (col+1) * fw;
-          addCylinder(x0, y0, z, x1, y1, z, matX);
-          addCylinder(x1, y0, z, x0, y1, z, matX);
+          const x0 = ox + colX[col], x1 = ox + colX[col+1];
+          const w = bw[col];
+          const matXc = w===1.83 ? matX183 : w===1.50 ? matX150 : matX140;
+          addCylinder(x0, y0, z, x1, y1, z, matXc);
+          addCylinder(x1, y0, z, x0, y1, z, matXc);
         }
       }
     }
