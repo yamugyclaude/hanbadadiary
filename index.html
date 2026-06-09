@@ -874,13 +874,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .equip-photo-del { position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.65); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 /* 기본정보+사진 가로 레이아웃 */
 .equip-info-photo-row { display:flex; gap:14px; align-items:flex-start; }
-.equip-info-col { flex:3; min-width:0; }
-.equip-photo-col { flex:1; min-width:90px; max-width:160px; }
-.equip-photo-col-inner { border-radius:10px; overflow:hidden; background:var(--surface3); border:1.5px dashed var(--border2); aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
-.equip-photo-col-inner img { width:100%; height:100%; object-fit:cover; }
+.equip-info-col { flex:2.4; min-width:0; }
+.equip-photo-col { flex:1.6; min-width:110px; }
+.equip-photo-col-inner { border-radius:10px; overflow:hidden; background:var(--surface3); border:1.5px solid var(--border2); aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
+.equip-photo-col-inner img { width:100%; height:100%; object-fit:contain; background:var(--surface3); }
 /* 카드 썸네일 */
 .equip-card-thumb { width:100%; aspect-ratio:4/3; border-radius:8px; overflow:hidden; background:var(--surface2); border:1px solid var(--border); margin-bottom:6px; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; }
-.equip-card-thumb img { width:100%; height:100%; object-fit:cover; }
+.equip-card-thumb img { width:100%; height:100%; object-fit:contain; background:var(--surface2); }
 .equip-card-thumb-add { font-size:20px; color:var(--border2); }
 .equip-card-thumb-btn { position:absolute; inset:0; background:transparent; border:none; cursor:pointer; width:100%; height:100%; }
 .equip-log-item { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:flex-start; }
