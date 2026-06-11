@@ -338,7 +338,7 @@
         <label>API 키</label>
         <input type="password" id="apiKeyInput" placeholder="gsk_...로 시작하는 키 입력">
         <label>모델 (변경하지 않아도 됩니다)</label>
-        <input type="text" id="modelInput" placeholder="llama-3.3-70b-versatile">
+        <input type="text" id="modelInput" placeholder="openai/gpt-oss-120b">
         <div class="btn-row">
           <button class="btn btn-primary" id="btnSaveKey">저장</button>
         </div>
@@ -383,7 +383,7 @@
   const STORAGE_KEY = "TO_NOTES_V1";
   const API_KEY_STORAGE = "TO_GROQ_KEY";
   const MODEL_STORAGE = "TO_GROQ_MODEL";
-  const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+  const DEFAULT_MODEL = "openai/gpt-oss-120b";
 
   const $ = (sel, root) => (root||document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root||document).querySelectorAll(sel));
