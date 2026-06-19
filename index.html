@@ -1021,6 +1021,10 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .snd-zone-head { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--surface3); border-bottom:1px solid var(--border); }
 .snd-zone-name { font-size:13px; font-weight:800; color:var(--gold); }
 .snd-zone-chips { padding:10px 14px; display:flex; flex-wrap:wrap; gap:6px; }
+.snd-zone-meta { padding:2px 14px 8px; font-size:11px; color:var(--text-muted); }
+/* 구역 콘솔/스피커 브랜드 버튼 */
+.sz-brand-btn { background:var(--surface); border:1.5px solid var(--border2); color:var(--text-muted); font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background .15s,border-color .15s,color .15s; }
+.sz-brand-btn.sel { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
 /* 뷰모드 */
 .view-mode .snd-mode-toggle { pointer-events:none; }
 .view-mode #sndAddZoneBtn { display:none !important; }
@@ -2003,11 +2007,31 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           <button class="add-row-btn" id="sndAddZoneBtn" onclick="openSndZoneForm()">📍 구역 추가</button>
           <!-- 구역 추가 폼 -->
           <div id="sndZoneForm" style="display:none;background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:14px;margin-top:8px;">
-            <input id="sndZoneName" type="text" placeholder="구역명 (예: 수영 START, 바꿈터, 체조…)" style="width:100%;background:var(--surface);border:1.5px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:8px;">
+            <input id="sndZoneName" type="text" placeholder="구역명 (예: 수영 START, 바꿈터, 체조…)" style="width:100%;background:var(--surface);border:1.5px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:10px;">
+            <!-- 구역별 콘솔 -->
+            <div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:6px;">🎛️ 콘솔</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;" id="sndZoneConsoleBtns">
+              <button class="sz-brand-btn" data-brand="Midas" onclick="toggleZoneBrand(this,'console')">Midas</button>
+              <button class="sz-brand-btn" data-brand="Behringer" onclick="toggleZoneBrand(this,'console')">Behringer</button>
+              <button class="sz-brand-btn" data-brand="Allen &amp; Heath" onclick="toggleZoneBrand(this,'console')">Allen &amp; Heath</button>
+              <button class="sz-brand-btn" data-brand="Yamaha" onclick="toggleZoneBrand(this,'console')">Yamaha</button>
+              <button class="sz-brand-btn" data-brand="Soundcraft" onclick="toggleZoneBrand(this,'console')">Soundcraft</button>
+              <button class="sz-brand-btn" data-brand="Peavey" onclick="toggleZoneBrand(this,'console')">Peavey</button>
+            </div>
+            <input id="sndZoneConsoleModel" type="text" placeholder="모델명 (자동입력)" style="width:100%;background:var(--surface);border:1.5px solid var(--border2);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:10px;">
+            <!-- 구역별 스피커 -->
+            <div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:6px;">🔊 스피커</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="sndZoneSpeakerBtns">
+              <button class="sz-brand-btn" data-brand="d&b" onclick="toggleZoneBrand(this,'speaker')">D&amp;B</button>
+              <button class="sz-brand-btn" data-brand="JBL" onclick="toggleZoneBrand(this,'speaker')">JBL</button>
+              <button class="sz-brand-btn" data-brand="MAUI" onclick="toggleZoneBrand(this,'speaker')">MAUI</button>
+              <button class="sz-brand-btn" data-brand="기타" onclick="toggleZoneBrand(this,'speaker')">기타</button>
+            </div>
+            <!-- 음향장비 -->
             <div id="sndZonePicker" style="margin-bottom:8px;"></div>
             <div id="sndZoneDraft" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:16px;"></div>
             <div style="display:flex;gap:8px;">
-              <button onclick="confirmSndZone()" style="flex:1;background:var(--accent);border:none;color:#0a0c10;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✅ 구역 추가</button>
+              <button onclick="confirmSndZone()" style="flex:1;background:var(--accent);border:none;color:#0a0c10;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✅ 구역 저장</button>
               <button onclick="closeSndZoneForm()" style="background:var(--surface3);border:1.5px solid var(--border2);color:var(--text-muted);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
             </div>
           </div>
@@ -2016,19 +2040,21 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <div class="equip-select-block">
           <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🎛️ 콘솔 브랜드</div>
           <div class="equip-option-grid" id="consoleBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-            <div class="equip-opt" data-val="Midas" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas</div>
-            <div class="equip-opt" data-val="Behringer" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer</div>
-            <div class="equip-opt" data-val="Allen &amp; Heath" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath</div>
-            <div class="equip-opt" data-val="Yamaha" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha</div>
+            <div class="equip-opt" data-val="Midas" data-model="M32R Live" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Midas <span style="font-size:10px;color:var(--text-muted);">M32R Live</span></div>
+            <div class="equip-opt" data-val="Behringer" data-model="Wing" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Behringer <span style="font-size:10px;color:var(--text-muted);">Wing</span></div>
+            <div class="equip-opt" data-val="Allen &amp; Heath" data-model="SQ7" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Allen &amp; Heath <span style="font-size:10px;color:var(--text-muted);">SQ7</span></div>
+            <div class="equip-opt" data-val="Yamaha" data-model="DM3" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Yamaha <span style="font-size:10px;color:var(--text-muted);">DM3</span></div>
+            <div class="equip-opt" data-val="Soundcraft" data-model="아날로그" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Soundcraft <span style="font-size:10px;color:var(--text-muted);">아날로그</span></div>
+            <div class="equip-opt" data-val="Peavey" data-model="아날로그" onclick="toggleConsoleBrand(this)"><div class="equip-opt-dot"></div>Peavey <span style="font-size:10px;color:var(--text-muted);">아날로그</span></div>
           </div>
           <div id="consoleInputWrap" style="display:none;margin-top:10px">
-            <input id="f_consoleModel" type="text" placeholder="모델명 직접 입력 (예: M32R)">
+            <input id="f_consoleModel" type="text" placeholder="모델명 (자동입력 또는 직접 수정)">
           </div>
         </div>
         <div class="equip-select-block">
           <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
           <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-            <div class="equip-opt" data-val="d&b" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>d&amp;b audiotechnik</div>
+            <div class="equip-opt" data-val="d&b" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>D&amp;B</div>
             <div class="equip-opt" data-val="JBL" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
             <div class="equip-opt" data-val="MAUI" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
             <div class="equip-opt" data-val="기타" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>기타</div>
@@ -2060,10 +2086,10 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
     </div>
 
-    <!-- 투입 장비 -->
+    <!-- 그외 투입장비 -->
     <div class="section-block collapsed" id="sec4">
       <div class="section-header" onclick="toggleSection('sec4')">
-        <div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">투입 장비</span></div>
+        <div class="section-header-left"><span class="section-icon">🔧</span><span class="section-title">그외 투입장비</span></div>
         <span class="section-chevron">▼</span>
       </div>
       <div class="section-content">
@@ -2876,6 +2902,10 @@ function renderSndZoneList() {
         item.name + (item.qty ? '<span class="sound-equip-chip-qty">· ' + item.qty + '</span>' : '') +
         '<button class="sound-equip-chip-del" onclick="removeSndZoneItem(' + i + ',\'' + item.equipId + '\')">✕</button></span>';
     }).join('');
+    var metaParts = [];
+    if (z.console) metaParts.push('🎛️ ' + z.console + (z.consoleModel ? ' ' + z.consoleModel : ''));
+    if (z.speaker) metaParts.push('🔊 ' + (z.speaker === 'd&b' ? 'D&B' : z.speaker));
+    var meta = metaParts.length ? '<div class="snd-zone-meta">' + metaParts.join('　') + '</div>' : '';
     return '<div class="snd-zone-card">' +
       '<div class="snd-zone-head" style="border-left:4px solid ' + col + ';">' +
       '<span class="snd-zone-name">' + z.name + '</span>' +
@@ -2883,6 +2913,7 @@ function renderSndZoneList() {
       '<button class="zone-card-edit-btn snd-zone-del-btn" style="font-size:12px;" onclick="editSndZone(' + i + ')">✏️</button>' +
       '<button class="zone-card-del-btn snd-zone-del-btn" style="font-size:12px;" onclick="deleteSndZone(' + i + ')">🗑</button>' +
       '</div></div>' +
+      meta +
       '<div class="snd-zone-chips">' + (chips || '<span style="font-size:11px;color:var(--text-muted);">장비 없음</span>') + '</div>' +
       '</div>';
   }).join('');
@@ -2893,9 +2924,50 @@ function removeSndZoneItem(zIdx, equipId) {
   renderSndZoneList();
 }
 
+let sndZoneDraftConsole = '';  // 구역 콘솔 브랜드
+let sndZoneDraftSpeaker = '';  // 구역 스피커 브랜드
+
+function toggleZoneBrand(btn, type) {
+  const brand = btn.dataset.brand;
+  const container = type === 'console' ? document.getElementById('sndZoneConsoleBtns') : document.getElementById('sndZoneSpeakerBtns');
+  const current = type === 'console' ? sndZoneDraftConsole : sndZoneDraftSpeaker;
+  // 같은 것 누르면 해제, 다른 것 누르면 단일 선택
+  const newVal = current === brand ? '' : brand;
+  if (type === 'console') {
+    sndZoneDraftConsole = newVal;
+    const inp = document.getElementById('sndZoneConsoleModel');
+    inp.value = newVal ? (CONSOLE_MODELS[newVal] || '') : '';
+  } else {
+    sndZoneDraftSpeaker = newVal;
+  }
+  container.querySelectorAll('.sz-brand-btn').forEach(b => {
+    b.classList.toggle('sel', b.dataset.brand === newVal);
+  });
+}
+
+function _resetZoneFormBrands() {
+  sndZoneDraftConsole = ''; sndZoneDraftSpeaker = '';
+  document.getElementById('sndZoneConsoleBtns').querySelectorAll('.sz-brand-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('sndZoneSpeakerBtns').querySelectorAll('.sz-brand-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('sndZoneConsoleModel').value = '';
+}
+
+function _applyZoneFormBrands(zone) {
+  sndZoneDraftConsole = zone.console || '';
+  sndZoneDraftSpeaker = zone.speaker || '';
+  document.getElementById('sndZoneConsoleBtns').querySelectorAll('.sz-brand-btn').forEach(b => {
+    b.classList.toggle('sel', b.dataset.brand === sndZoneDraftConsole);
+  });
+  document.getElementById('sndZoneSpeakerBtns').querySelectorAll('.sz-brand-btn').forEach(b => {
+    b.classList.toggle('sel', b.dataset.brand === sndZoneDraftSpeaker);
+  });
+  document.getElementById('sndZoneConsoleModel').value = zone.consoleModel || (sndZoneDraftConsole ? CONSOLE_MODELS[sndZoneDraftConsole]||'' : '');
+}
+
 function openSndZoneForm() {
   sndZoneEditIdx = null; sndZoneDraftItems = [];
   document.getElementById('sndZoneName').value = '';
+  _resetZoneFormBrands();
   renderSndZoneDraft(); renderSndZonePicker();
   document.getElementById('sndZoneForm').style.display = '';
   document.getElementById('sndAddZoneBtn').style.display = 'none';
@@ -2904,6 +2976,7 @@ function openSndZoneForm() {
 
 function closeSndZoneForm() {
   sndZoneEditIdx = null; sndZoneDraftItems = [];
+  _resetZoneFormBrands();
   document.getElementById('sndZoneForm').style.display = 'none';
   document.getElementById('sndAddZoneBtn').style.display = '';
 }
@@ -2912,6 +2985,7 @@ function editSndZone(idx) {
   sndZoneEditIdx = idx;
   sndZoneDraftItems = JSON.parse(JSON.stringify(soundZones[idx].items || []));
   document.getElementById('sndZoneName').value = soundZones[idx].name;
+  _applyZoneFormBrands(soundZones[idx]);
   renderSndZoneDraft(); renderSndZonePicker();
   document.getElementById('sndZoneForm').style.display = '';
   document.getElementById('sndAddZoneBtn').style.display = 'none';
@@ -2922,11 +2996,19 @@ function deleteSndZone(idx) { soundZones.splice(idx, 1); renderSndZoneList(); }
 function confirmSndZone() {
   var name = document.getElementById('sndZoneName').value.trim();
   if (!name) { showToast('구역명을 입력하세요'); return; }
+  var consoleModel = document.getElementById('sndZoneConsoleModel').value.trim();
+  var zoneData = {
+    id: sndZoneEditIdx !== null ? soundZones[sndZoneEditIdx].id : 'sz_' + Date.now(),
+    name: name,
+    items: [...sndZoneDraftItems],
+    console: sndZoneDraftConsole,
+    consoleModel: consoleModel,
+    speaker: sndZoneDraftSpeaker
+  };
   if (sndZoneEditIdx !== null) {
-    soundZones[sndZoneEditIdx].name = name;
-    soundZones[sndZoneEditIdx].items = [...sndZoneDraftItems];
+    soundZones[sndZoneEditIdx] = zoneData;
   } else {
-    soundZones.push({ id: 'sz_' + Date.now(), name: name, items: [...sndZoneDraftItems] });
+    soundZones.push(zoneData);
   }
   closeSndZoneForm(); renderSndZoneList();
 }
@@ -2993,7 +3075,7 @@ function openSoundSetupView() {
   var zones = log.soundZones || [];
   if (setupMode === 'single' && items.length) {
     html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📦 투입 장비 (단일세팅)</div>';
+    html += '<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px;">📦 그외 투입장비 (단일세팅)</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
     items.forEach(function(item) {
       html += '<span style="background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;">';
@@ -3289,7 +3371,7 @@ function editLog(id) {
   if (Array.isArray(log.consoleBrands)) {
     log.consoleBrands.forEach(b => consoleBrands.add(b));
   } else {
-    const cBrands = ['Midas','Behringer','Allen & Heath','Yamaha'];
+    const cBrands = ['Midas','Behringer','Allen & Heath','Yamaha','Soundcraft','Peavey'];
     for (const b of cBrands) { if (consoleSelected.startsWith(b)) { consoleBrands.add(b); break; } }
   }
   // speakerBrands 복원 — 저장된 브랜드 목록(배열) 또는 레거시 문자열 파싱
@@ -3460,6 +3542,11 @@ function toggleStairPos(el) {
 let consoleBrands = new Set();
 let speakerBrands = new Set();
 
+const CONSOLE_MODELS = {
+  'Midas':'M32R Live', 'Behringer':'Wing', 'Allen & Heath':'SQ7',
+  'Yamaha':'DM3', 'Soundcraft':'아날로그', 'Peavey':'아날로그'
+};
+
 function toggleConsoleBrand(el) {
   const val = el.dataset.val;
   if (consoleBrands.has(val)) {
@@ -3471,8 +3558,16 @@ function toggleConsoleBrand(el) {
     el.classList.add('selected');
     el.querySelector('.equip-opt-dot').textContent = '●';
   }
-  document.getElementById('consoleInputWrap').style.display = consoleBrands.size > 0 ? 'block' : 'none';
-  if (consoleBrands.size === 1) document.getElementById('f_consoleModel').focus();
+  const wrap = document.getElementById('consoleInputWrap');
+  const inp  = document.getElementById('f_consoleModel');
+  wrap.style.display = consoleBrands.size > 0 ? 'block' : 'none';
+  // 브랜드 1개 선택 시 모델 자동입력
+  if (consoleBrands.size === 1) {
+    const brand = [...consoleBrands][0];
+    inp.value = CONSOLE_MODELS[brand] || '';
+  } else if (consoleBrands.size === 0) {
+    inp.value = '';
+  }
 }
 
 function toggleSpeakerBrand(el) {
