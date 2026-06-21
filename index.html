@@ -1755,6 +1755,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
 
       <button class="stagecalc-reset-btn" onclick="scReset()">초기화</button>
+      <button class="dae-export-btn" style="margin-top:10px" onclick="scLinkTo3D()">🔗 3D 도면에 연동</button>
 
       </div><!-- /sc-page-calc -->
 
@@ -6847,6 +6848,15 @@ async function autoLoadAll() {
 // ═══════════════════════════════════════════════
 // 🏗️ 3D 도면
 // ═══════════════════════════════════════════════
+
+function scLinkTo3D() {
+  const w = (scM * 1.8).toFixed(1);
+  const d = (scN * 0.9).toFixed(1);
+  document.getElementById('dae-w').value = w;
+  document.getElementById('dae-d').value = d;
+  scSwitchTab('3d');
+  showToast(`🔗 연동 완료 — ${w}m × ${d}m`);
+}
 
 function scSwitchTab(tab) {
   ['calc','3d'].forEach(t => {
