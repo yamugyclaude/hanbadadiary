@@ -1216,6 +1216,30 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   .theme-modal-sheet { border-radius: 16px !important; transform: scale(0.96) !important; max-width: 420px; }
   .theme-modal-overlay.show .theme-modal-sheet { transform: scale(1) !important; }
 
+  /* ── 무대계산기 PC 2열 레이아웃 ── */
+  .stagecalc-wrap { max-width: 1400px; padding: 20px 28px env(safe-area-inset-bottom, 60px); }
+  #sc-page-calc {
+    display: grid;
+    grid-template-columns: 5fr 6fr;
+    gap: 16px;
+    align-items: start;
+  }
+  #sc-page-calc > * { grid-column: 1; }
+  #sc-diagramCard { grid-column: 2; grid-row: 1 / 6; }
+  #sc-page-3d {
+    display: grid;
+    grid-template-columns: 4fr 5fr;
+    gap: 16px;
+    align-items: start;
+  }
+  #sc-page-3d > * { grid-column: 1; }
+  #sc-page-3d > .dae-section:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1 / 12;
+    position: sticky;
+    top: 8px;
+  }
+
   /* ── 하단 닫기 버튼 — PC에서 불필요 ── */
   .modal-close-bar { display: none; }
 
@@ -1353,7 +1377,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .truss-sect-inv { font-size:10px; flex:1; text-align:right; color:var(--text-muted); line-height:1.4; }
 .truss-sect-inv.ok { color:#3dba96; }
 .truss-sect-inv.warn { color:#e74c3c; }
-.stagecalc-wrap { max-width:560px; width:100%; margin:0 auto; padding:16px 14px env(safe-area-inset-bottom,60px); }
+.stagecalc-wrap { max-width:900px; width:100%; margin:0 auto; padding:16px 14px env(safe-area-inset-bottom,60px); }
 .stagecalc-hdr { display:flex; align-items:center; gap:12px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid var(--border); }
 .stagecalc-logo { width:40px; height:40px; border-radius:11px; background:#d97706; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
 .stagecalc-title { font-size:17px; font-weight:700; color:var(--text); }
@@ -1466,7 +1490,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-10</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-11</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1516,7 +1540,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="logo">한바다<span>일지</span></div>
     <span id="headerUserBadge" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(61,186,150,0.3);border-radius:20px;padding:3px 10px;flex-shrink:0;white-space:nowrap;"></span>
     <span style="flex:1;"></span>
-    <button onclick="location.reload(true)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">↺</button>
+    <button id="cloudReloadBtn" onclick="autoLoadAll()" title="클라우드 데이터 새로고침" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">☁️</button>
     <button onclick="openThemeModal()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">🎨</button>
     <button onclick="openUserMgmt()" id="adminBtn" style="display:none;background:none;border:1px solid var(--accent2);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👥 관리</button>
     <button onclick="doLogout()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">로그아웃</button>
@@ -4492,7 +4516,7 @@ async function loadChecklistFromCloud() {
   const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.checklist&select=v15`, {
     headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
   });
-  if (!res.ok) throw new Error('불러오기 실패: ' + res.status);
+  if (!res.ok) return false;
   const rows = await res.json();
   if (!rows.length || !rows[0].v15) return false; // 클라우드에 데이터 없음
   const d = rows[0].v15;
@@ -7325,21 +7349,28 @@ if (!sessionStorage.getItem('sl_session')) {
 
 // 앱 시작 시 자동으로 클라우드 데이터 불러오기 (afterLogin에서 호출됨)
 async function autoLoadAll() {
+  const btn = document.getElementById('cloudReloadBtn');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  let ok = 0, fail = 0;
+
+  // 1. 행사일지
   try {
-    // 1. 행사일지 - 전체 불러오기
     const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
     if (logRes.ok) {
       const rows = await logRes.json();
       if (rows.length) {
-        logs = rows.map(r => JSON.parse(r.data));
-        localStorage.setItem('soundlogs', JSON.stringify(logs));
+        logs = rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+        try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) {}
         renderList();
       }
-    }
+      ok++;
+    } else { fail++; }
+  } catch(e) { console.warn('행사일지 로드 실패:', e); fail++; }
 
-    // 2. 업무 데이터 - 전체 불러오기
+  // 2. 업무 데이터
+  try {
     const taskRes = await fetch(`${SB_URL}/rest/v1/tasks?select=type,data&order=created_at.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
@@ -7348,18 +7379,23 @@ async function autoLoadAll() {
       if (taskRows.length) {
         warehouseTasks = []; officeTasks = []; directiveTasks = [];
         taskRows.forEach(r => {
-          const t = JSON.parse(r.data);
-          if (r.type === 'warehouse') warehouseTasks.push(t);
-          else if (r.type === 'office') officeTasks.push(t);
-          else if (r.type === 'directive') directiveTasks.push(t);
+          try {
+            const t = JSON.parse(r.data);
+            if (r.type === 'warehouse') warehouseTasks.push(t);
+            else if (r.type === 'office') officeTasks.push(t);
+            else if (r.type === 'directive') directiveTasks.push(t);
+          } catch(e) {}
         });
-        localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-        localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-        localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+        try { localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks)); } catch(e) {}
+        try { localStorage.setItem('officeTasks',     JSON.stringify(officeTasks)); } catch(e) {}
+        try { localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks)); } catch(e) {}
       }
-    }
+      ok++;
+    } else { fail++; }
+  } catch(e) { console.warn('업무 데이터 로드 실패:', e); fail++; }
 
-    // 3. 차량 데이터
+  // 3. 차량 데이터
+  try {
     const vehRes = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.singleton&select=v15`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
@@ -7367,26 +7403,34 @@ async function autoLoadAll() {
       const vehRows = await vehRes.json();
       if (vehRows.length && vehRows[0].v15) {
         _applyVehicleCloudData(vehRows[0].v15);
-        localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+        try { localStorage.setItem('vehicleData', JSON.stringify(vehicleData)); } catch(e) {}
       }
-    }
+      ok++;
+    } else { fail++; }
+  } catch(e) { console.warn('차량 데이터 로드 실패:', e); fail++; }
 
-    // 4. 사용자 데이터 동기화
-    await loadUsersFromCloud();
+  // 4. 사용자
+  try { await loadUsersFromCloud(); ok++; } catch(e) { console.warn('사용자 로드 실패:', e); fail++; }
 
-    // 5. 체크리스트 동기화
-    await loadChecklistFromCloud();
+  // 5. 체크리스트
+  try { await loadChecklistFromCloud(); ok++; } catch(e) { console.warn('체크리스트 로드 실패:', e); fail++; }
 
-    // 6. 장비관리대장 동기화
+  // 6. 장비관리대장
+  try {
     await loadEquipmentFromCloud();
     initEquipmentDefault();
     renderEqSubcatBar();
     document.getElementById('eqSubcatBar').style.display = '';
+    ok++;
+  } catch(e) { console.warn('장비 로드 실패:', e); fail++; }
 
-    // 7. 알바관리 동기화
-    await loadAlbaFromCloud();
+  // 7. 알바관리
+  try { await loadAlbaFromCloud(); ok++; } catch(e) { console.warn('알바 로드 실패:', e); fail++; }
 
-  } catch(e) { console.error('자동 불러오기 실패:', e); }
+  if (btn) { btn.textContent = '☁️'; btn.disabled = false; }
+  if (fail === 0) showToast('✓ 데이터 불러옴');
+  else if (ok > 0) showToast(`⚠ 일부 데이터 불러오기 실패 (${fail}개) — 네트워크 확인`);
+  else showToast('❌ 데이터 불러오기 실패 — 네트워크 확인 후 ☁️ 버튼 재시도');
 }
 
 // ═══════════════════════════════════════════════
