@@ -1275,6 +1275,19 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .dae-placed-list { margin-top:10px; }
 .dae-placed-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px; }
 .dae-placed-row:last-child { border-bottom:none; }
+/* 트러스 설정 모달 */
+.truss-cfg-row { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border); gap:8px; }
+.truss-cfg-row:last-of-type { border-bottom:none; }
+.truss-cfg-label { font-size:12px; color:var(--text-muted); font-weight:600; flex-shrink:0; }
+.truss-btn-group { display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
+.truss-seg-btn { font-size:11px; padding:5px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface2); color:var(--text2); cursor:pointer; white-space:nowrap; }
+.truss-seg-btn.active { border-color:#3dba96; background:rgba(61,186,150,0.15); color:#3dba96; font-weight:700; }
+.truss-stepper { display:flex; align-items:center; gap:8px; }
+.truss-stepper button { width:32px; height:32px; border-radius:8px; border:1px solid var(--border2); background:var(--surface2); color:var(--text); font-size:18px; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center; }
+.truss-stepper-val { min-width:36px; text-align:center; font-weight:700; font-size:15px; }
+.truss-total-row { background:rgba(255,255,255,0.05); border-radius:10px; padding:12px 14px; margin:8px 0; display:flex; align-items:center; justify-content:space-between; }
+.truss-total-label { font-size:12px; color:var(--text-muted); font-weight:600; }
+.truss-total-val { font-size:18px; font-weight:800; color:#3dba96; }
 .stagecalc-wrap { max-width:560px; width:100%; margin:0 auto; padding:16px 14px env(safe-area-inset-bottom,60px); }
 .stagecalc-hdr { display:flex; align-items:center; gap:12px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid var(--border); }
 .stagecalc-logo { width:40px; height:40px; border-radius:11px; background:#d97706; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
@@ -2334,6 +2347,71 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   </div>
   <div style="text-align:right;padding:4px 6px 0">
     <button onclick="document.getElementById('daePlacePopup').classList.remove('show');daeSelectedPos=null;" style="font-size:11px;padding:3px 10px;background:#555;border:none;color:#fff;border-radius:4px;cursor:pointer">완료</button>
+  </div>
+</div>
+
+<!-- 트러스 설정 모달 -->
+<div class="modal-overlay" id="trussCfgModal">
+  <div class="modal-sheet" style="max-width:420px">
+    <div class="modal-title">⬛ 트러스 설정</div>
+    <div class="truss-cfg-row">
+      <div class="truss-cfg-label">방향</div>
+      <div class="truss-btn-group">
+        <button class="truss-seg-btn" id="tDir-h" onclick="_setTrussDir('h')">↔ 가로</button>
+        <button class="truss-seg-btn" id="tDir-v" onclick="_setTrussDir('v')">↕ 세로</button>
+      </div>
+    </div>
+    <div class="truss-cfg-row">
+      <div class="truss-cfg-label">섹션 규격</div>
+      <div class="truss-btn-group">
+        <button class="truss-seg-btn" id="tLen-0.5" onclick="_setTrussLen(0.5)">0.5m</button>
+        <button class="truss-seg-btn" id="tLen-1" onclick="_setTrussLen(1)">1m</button>
+        <button class="truss-seg-btn" id="tLen-1.5" onclick="_setTrussLen(1.5)">1.5m</button>
+        <button class="truss-seg-btn" id="tLen-2" onclick="_setTrussLen(2)">2m</button>
+      </div>
+    </div>
+    <div class="truss-cfg-row">
+      <div class="truss-cfg-label">섹션 수</div>
+      <div class="truss-stepper">
+        <button onclick="_adjTruss('sections',-1)">−</button>
+        <span class="truss-stepper-val" id="tSectionsVal">3</span>
+        <button onclick="_adjTruss('sections',1)">+</button>
+      </div>
+    </div>
+    <div class="truss-cfg-row">
+      <div class="truss-cfg-label">커넥터 수 (×0.2m)</div>
+      <div class="truss-stepper">
+        <button onclick="_adjTruss('connectors',-1)">−</button>
+        <span class="truss-stepper-val" id="tConnectorsVal">2</span>
+        <button onclick="_adjTruss('connectors',1)">+</button>
+      </div>
+    </div>
+    <div class="truss-total-row">
+      <div class="truss-total-label">총 길이 (섹션 × 규격 + 커넥터 × 0.2m)</div>
+      <div class="truss-total-val" id="tTotalSpan">3.4m</div>
+    </div>
+    <div class="truss-cfg-row">
+      <div class="truss-cfg-label">단면 규격 (박스 트러스)</div>
+      <div class="truss-btn-group">
+        <button class="truss-seg-btn" id="tSpec-200" onclick="_setTrussSpec(200)">200mm</button>
+        <button class="truss-seg-btn" id="tSpec-290" onclick="_setTrussSpec(290)">290mm</button>
+        <button class="truss-seg-btn" id="tSpec-400" onclick="_setTrussSpec(400)">400mm</button>
+        <button class="truss-seg-btn" id="tSpec-520" onclick="_setTrussSpec(520)">520mm</button>
+      </div>
+    </div>
+    <div class="truss-cfg-row">
+      <div class="truss-cfg-label">설치 높이 (지면 기준)</div>
+      <div class="truss-stepper">
+        <button onclick="_adjTrussF('elevation',-0.5)">−</button>
+        <span class="truss-stepper-val" id="tElevVal">4.0</span>m
+        <button onclick="_adjTrussF('elevation',0.5)">+</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeTrussCfg()">취소</button>
+      <button class="btn btn-primary" style="flex:2" onclick="daeApplyTrussConfig()">✔ 적용</button>
+    </div>
+    <button class="modal-close-bar-btn" style="margin-top:10px" onclick="closeTrussCfg()">✕ 닫기</button>
   </div>
 </div>
 
@@ -6998,15 +7076,26 @@ function daeRenderSVG() {
   // 장비 항목
   daePlacements.forEach(p => {
     const it = DAE_ITEMS[p.type] || {icon:'?', label:p.type};
-    const sz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
-    const hw = sz.pw/2, hd = sz.pd/2;
-    const iconFS = (Math.min(sz.pw, sz.pd) * 0.5).toFixed(3);
-    const lblFS  = (Math.min(sz.pw, sz.pd) * 0.22).toFixed(3);
+    const baseSz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
+    let pw = baseSz.pw, pd = baseSz.pd;
+    let label = it.label;
+
+    if (p.type === 'truss' && p.truss) {
+      const {span, spec, dir} = p.truss;
+      const thick = Math.max(spec / 1000 * 2.5, 0.3);
+      if (dir === 'v') { pw = thick; pd = span; }
+      else             { pw = span; pd = thick; }
+      label = `${spec}mm · ${span.toFixed(2)}m`;
+    }
+
+    const hw = pw/2, hd = pd/2;
+    const iconFS = (Math.min(pw, pd) * 0.45).toFixed(3);
+    const lblFS  = (Math.min(pw, pd) * 0.2).toFixed(3);
     s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">
-      <rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${sz.pw}" height="${sz.pd}"
-        fill="${sz.color}" fill-opacity="0.92" stroke="rgba(255,255,255,0.55)" stroke-width="0.055" rx="0.1"/>
+      <rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}"
+        fill="${baseSz.color}" fill-opacity="0.92" stroke="rgba(255,255,255,0.55)" stroke-width="0.055" rx="0.1"/>
       <text x="${p.x.toFixed(3)}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" font-size="${iconFS}">${it.icon}</text>
-      <text x="${p.x.toFixed(3)}" y="${(p.y+hd*0.72).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${lblFS}" font-weight="700">${it.label}</text>
+      <text x="${p.x.toFixed(3)}" y="${(p.y+hd*0.72).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${lblFS}" font-weight="700">${label}</text>
     </g>`;
   });
 
@@ -7099,14 +7188,18 @@ function _daeDragEnd(e) {
   daeDragState = null;
   if (e.type === 'pointercancel') { daeRenderSVG(); return; }
   if (!moved) {
-    // 짧은 탭 → 팝업 표시
+    // 짧은 탭 → 트러스면 설정 모달, 나머지는 팝업
     const p = daePlacements.find(pl => pl.id === id);
     if (p) {
-      daeSelectedPos = {x: p.x, y: p.y};
-      const it = DAE_ITEMS[p.type];
-      document.getElementById('daePlacePopupTitle').textContent = `${it?.icon} ${it?.label} 선택됨`;
-      daeRefreshPopupCurrentItems();
-      _daeShowPopup(e.clientX, e.clientY);
+      if (p.type === 'truss') {
+        openTrussConfig(id, e);
+      } else {
+        daeSelectedPos = {x: p.x, y: p.y};
+        const it = DAE_ITEMS[p.type];
+        document.getElementById('daePlacePopupTitle').textContent = `${it?.icon} ${it?.label} 선택됨`;
+        daeRefreshPopupCurrentItems();
+        _daeShowPopup(e.clientX, e.clientY);
+      }
     }
     return;
   }
@@ -7149,17 +7242,91 @@ function daeRemovePlacement(id) {
   daeRenderSVG();
 }
 
+// ── 트러스 설정 ──
+let _trussCfgId = null;
+const _trussDef = () => ({sectionLen: 1.0, sections: 3, connectors: 2, spec: 290, elevation: 4.0, dir: 'h'});
+let _trussCfg = _trussDef();
+
+function openTrussConfig(id, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  _trussCfgId = id;
+  const p = daePlacements.find(pl => pl.id === id);
+  _trussCfg = p?.truss ? {...p.truss} : _trussDef();
+  _updateTrussUI();
+  document.getElementById('trussCfgModal').classList.add('show');
+  document.getElementById('daePlacePopup').classList.remove('show');
+}
+
+function closeTrussCfg() {
+  document.getElementById('trussCfgModal').classList.remove('show');
+}
+
+function _setTrussLen(v) { _trussCfg.sectionLen = v; _updateTrussUI(); }
+function _setTrussSpec(v) { _trussCfg.spec = v; _updateTrussUI(); }
+function _setTrussDir(v) { _trussCfg.dir = v; _updateTrussUI(); }
+
+function _adjTruss(key, delta) {
+  const min = key === 'sections' ? 1 : 0;
+  _trussCfg[key] = Math.max(min, _trussCfg[key] + delta);
+  _updateTrussUI();
+}
+
+function _adjTrussF(key, delta) {
+  _trussCfg[key] = Math.max(0, parseFloat((_trussCfg[key] + delta).toFixed(1)));
+  _updateTrussUI();
+}
+
+function _updateTrussUI() {
+  const tc = _trussCfg;
+  const span = tc.sections * tc.sectionLen + tc.connectors * 0.2;
+  const sectEl = document.getElementById('tSectionsVal');
+  const connEl = document.getElementById('tConnectorsVal');
+  const elevEl = document.getElementById('tElevVal');
+  const spanEl = document.getElementById('tTotalSpan');
+  if (sectEl) sectEl.textContent = tc.sections;
+  if (connEl) connEl.textContent = tc.connectors;
+  if (elevEl) elevEl.textContent = tc.elevation.toFixed(1);
+  if (spanEl) spanEl.textContent = span.toFixed(2) + 'm';
+  [0.5, 1, 1.5, 2].forEach(v => {
+    document.getElementById(`tLen-${v}`)?.classList.toggle('active', tc.sectionLen === v);
+  });
+  [200, 290, 400, 520].forEach(v => {
+    document.getElementById(`tSpec-${v}`)?.classList.toggle('active', tc.spec === v);
+  });
+  ['h', 'v'].forEach(v => {
+    document.getElementById(`tDir-${v}`)?.classList.toggle('active', tc.dir === v);
+  });
+}
+
+function daeApplyTrussConfig() {
+  const tc = _trussCfg;
+  const span = parseFloat((tc.sections * tc.sectionLen + tc.connectors * 0.2).toFixed(3));
+  const p = daePlacements.find(pl => pl.id === _trussCfgId);
+  if (p) p.truss = {...tc, span};
+  closeTrussCfg();
+  daeRenderSVG();
+}
+
 function daePlaceItem(type) {
   if (!daeSelectedPos) return;
   if (type === null) {
     daePlacements = daePlacements.filter(p =>
       !(Math.abs(p.x - daeSelectedPos.x) < 0.8 && Math.abs(p.y - daeSelectedPos.y) < 0.8)
     );
+    daeRefreshPopupCurrentItems();
+    daeRenderSVG();
+  } else if (type === 'truss') {
+    const id = daeNextId++;
+    daePlacements.push({id, type, x: daeSelectedPos.x, y: daeSelectedPos.y});
+    document.getElementById('daePlacePopup').classList.remove('show');
+    daeSelectedPos = null;
+    daeRenderSVG();
+    openTrussConfig(id, null);
   } else {
     daePlacements.push({id: daeNextId++, type, x: daeSelectedPos.x, y: daeSelectedPos.y});
+    daeRefreshPopupCurrentItems();
+    daeRenderSVG();
   }
-  daeRefreshPopupCurrentItems();
-  daeRenderSVG();
 }
 
 function daeRenderPlacedList() {
@@ -7171,9 +7338,17 @@ function daeRenderPlacedList() {
   itemsEl.innerHTML = daePlacements.map(p => {
     const it = DAE_ITEMS[p.type];
     const rx = (p.x - DAE_MARGIN).toFixed(1), ry = (p.y - DAE_MARGIN).toFixed(1);
+    let detail = `(${rx}, ${ry})m`;
+    if (p.type === 'truss' && p.truss) {
+      const tc = p.truss;
+      detail = `${tc.spec}mm · ${tc.span.toFixed(2)}m @${tc.elevation.toFixed(1)}m`;
+    }
+    const editBtn = p.type === 'truss'
+      ? `<button onclick="openTrussConfig(${p.id},event)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 7px;margin-right:4px">⚙</button>`
+      : '';
     return `<div class="dae-placed-row">
       <span>${it?.icon} ${it?.label}</span>
-      <span style="font-weight:700;color:var(--accent)">(${rx}, ${ry})m</span>
+      <div style="display:flex;align-items:center;gap:4px">${editBtn}<span style="font-weight:700;color:var(--accent)">${detail}</span></div>
     </div>`;
   }).join('');
 }
@@ -7280,17 +7455,29 @@ function daeGenerate({ w, d, h, stair, memo }) {
 
   daePlacements.forEach((p, i) => {
     const it = DAE_ITEMS[p.type] || {label: p.type};
-    const sz = DAE_SIZES[p.type] || {rw:0.6, rd:0.6, rh:0.6, color:'#888888'};
+    const baseSz = DAE_SIZES[p.type] || {rw:0.6, rd:0.6, rh:0.6, color:'#888888'};
+    let rw = baseSz.rw, rd = baseSz.rd, rh = baseSz.rh, iColor = baseSz.color;
+    let itemElev = null; // null = default (stage h or 0)
+
+    if (p.type === 'truss' && p.truss) {
+      const {span, spec, dir, elevation} = p.truss;
+      const specM = spec / 1000;
+      if (dir === 'v') { rw = specM; rd = span; }
+      else             { rw = span; rd = specM; }
+      rh = specM;
+      itemElev = elevation;
+    }
+
     const gid = `geom-i${i}`;
     // SVG venue 좌표 → SketchUp 중심 좌표 (stage center = 0,0, Z_UP)
     const cx = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
     const cy = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3)); // Y 반전 (FRONT = -Y)
     const onStage = p.x >= DAE_MARGIN && p.x <= DAE_MARGIN + w && p.y >= DAE_MARGIN && p.y <= DAE_MARGIN + d;
-    const iz = onStage ? h : 0;
+    const iz = itemElev !== null ? itemElev : (onStage ? h : 0);
     const name = `${it.label.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_${i+1}`;
-    geoms += boxGeom(gid, sz.rw, sz.rd, sz.rh);
+    geoms += boxGeom(gid, rw, rd, rh);
     mats  += `<material id="mat-${gid}"><instance_effect url="#eff-i${i}"/></material>`;
-    effs  += `<effect id="eff-i${i}"><profile_COMMON><technique sid="common"><phong><diffuse><color>${hexRgb(sz.color)}</color></diffuse></phong></technique></profile_COMMON></effect>`;
+    effs  += `<effect id="eff-i${i}"><profile_COMMON><technique sid="common"><phong><diffuse><color>${hexRgb(iColor)}</color></diffuse></phong></technique></profile_COMMON></effect>`;
     nodes += `<node id="Item${i}" name="${name}" type="NODE">
       <translate>${cx} ${cy} ${iz}</translate>
       <instance_geometry url="#${gid}">
