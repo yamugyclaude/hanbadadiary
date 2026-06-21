@@ -2337,6 +2337,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="dae-place-item" onclick="daePlaceItem('monitor')"><span>🎛️</span><span>모니터</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('console')"><span>🎚️</span><span>콘솔</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('truss')"><span>⬛</span><span>트러스</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('truss_corner')"><span>🔲</span><span>코너(0.2m)</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('light')"><span>💡</span><span>조명/LED</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('stair')"><span>🪜</span><span>계단</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('tent')"><span>⛺</span><span>텐트</span></div>
@@ -2378,17 +2379,9 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <button onclick="_adjTruss('sections',1)">+</button>
       </div>
     </div>
-    <div class="truss-cfg-row">
-      <div class="truss-cfg-label">커넥터 수 (×0.2m)</div>
-      <div class="truss-stepper">
-        <button onclick="_adjTruss('connectors',-1)">−</button>
-        <span class="truss-stepper-val" id="tConnectorsVal">2</span>
-        <button onclick="_adjTruss('connectors',1)">+</button>
-      </div>
-    </div>
     <div class="truss-total-row">
-      <div class="truss-total-label">총 길이 (섹션 × 규격 + 커넥터 × 0.2m)</div>
-      <div class="truss-total-val" id="tTotalSpan">3.4m</div>
+      <div class="truss-total-label">총 길이 (섹션 수 × 섹션 규격)</div>
+      <div class="truss-total-val" id="tTotalSpan">3.0m</div>
     </div>
     <div class="truss-cfg-row">
       <div class="truss-cfg-label">단면 규격 (박스 트러스)</div>
@@ -6986,17 +6979,18 @@ async function autoLoadAll() {
 // ═══════════════════════════════════════════════
 
 const DAE_ITEMS = {
-  speaker: {icon:'🔊', label:'메인스피커'},
-  sub:     {icon:'📦', label:'서브우퍼'},
-  monitor: {icon:'🎛️', label:'모니터'},
-  console: {icon:'🎚️', label:'콘솔'},
-  truss:   {icon:'⬛', label:'트러스'},
-  light:   {icon:'💡', label:'조명/LED'},
-  stair:   {icon:'🪜', label:'계단'},
-  tent:    {icon:'⛺', label:'텐트'},
-  power:   {icon:'⚡', label:'전기'},
-  person:  {icon:'👥', label:'관객석'},
-  mic:     {icon:'🎤', label:'마이크스탠드'},
+  speaker:      {icon:'🔊', label:'메인스피커'},
+  sub:          {icon:'📦', label:'서브우퍼'},
+  monitor:      {icon:'🎛️', label:'모니터'},
+  console:      {icon:'🎚️', label:'콘솔'},
+  truss:        {icon:'⬛', label:'트러스'},
+  truss_corner: {icon:'🔲', label:'코너'},
+  light:        {icon:'💡', label:'조명/LED'},
+  stair:        {icon:'🪜', label:'계단'},
+  tent:         {icon:'⛺', label:'텐트'},
+  power:        {icon:'⚡', label:'전기'},
+  person:       {icon:'👥', label:'관객석'},
+  mic:          {icon:'🎤', label:'마이크스탠드'},
 };
 
 // pw/pd: 평면도 표시 크기(m) / rw/rd/rh: .dae 실제 크기(m)
@@ -7005,7 +6999,8 @@ const DAE_SIZES = {
   sub:     {pw:0.9, pd:0.9, rw:0.7, rd:0.7, rh:0.7, color:'#c0392b'},
   monitor: {pw:0.9, pd:0.6, rw:0.5, rd:0.3, rh:0.4, color:'#e67e22'},
   console: {pw:1.5, pd:1.2, rw:1.2, rd:0.9, rh:1.1, color:'#8e44ad'},
-  truss:   {pw:2.8, pd:0.4, rw:2.4, rd:0.2, rh:2.0, color:'#546e7a'},
+  truss:        {pw:2.8, pd:0.4, rw:2.4, rd:0.2, rh:2.0, color:'#546e7a'},
+  truss_corner: {pw:0.3, pd:0.3, rw:0.2, rd:0.2, rh:0.2, color:'#37474f'},
   light:   {pw:0.9, pd:0.9, rw:0.5, rd:0.5, rh:0.8, color:'#f39c12'},
   stair:   {pw:1.0, pd:1.0, rw:0.9, rd:0.9, rh:0.5, color:'#78909c'},
   tent:    {pw:2.5, pd:2.5, rw:3.0, rd:3.0, rh:3.0, color:'#2e7d32'},
@@ -7244,7 +7239,7 @@ function daeRemovePlacement(id) {
 
 // ── 트러스 설정 ──
 let _trussCfgId = null;
-const _trussDef = () => ({sectionLen: 1.0, sections: 3, connectors: 2, spec: 290, elevation: 4.0, dir: 'h'});
+const _trussDef = () => ({sectionLen: 1.0, sections: 3, spec: 290, elevation: 4.0, dir: 'h'});
 let _trussCfg = _trussDef();
 
 function openTrussConfig(id, e) {
@@ -7278,13 +7273,11 @@ function _adjTrussF(key, delta) {
 
 function _updateTrussUI() {
   const tc = _trussCfg;
-  const span = tc.sections * tc.sectionLen + tc.connectors * 0.2;
+  const span = parseFloat((tc.sections * tc.sectionLen).toFixed(2));
   const sectEl = document.getElementById('tSectionsVal');
-  const connEl = document.getElementById('tConnectorsVal');
   const elevEl = document.getElementById('tElevVal');
   const spanEl = document.getElementById('tTotalSpan');
   if (sectEl) sectEl.textContent = tc.sections;
-  if (connEl) connEl.textContent = tc.connectors;
   if (elevEl) elevEl.textContent = tc.elevation.toFixed(1);
   if (spanEl) spanEl.textContent = span.toFixed(2) + 'm';
   [0.5, 1, 1.5, 2].forEach(v => {
@@ -7300,7 +7293,7 @@ function _updateTrussUI() {
 
 function daeApplyTrussConfig() {
   const tc = _trussCfg;
-  const span = parseFloat((tc.sections * tc.sectionLen + tc.connectors * 0.2).toFixed(3));
+  const span = parseFloat((tc.sections * tc.sectionLen).toFixed(3));
   const p = daePlacements.find(pl => pl.id === _trussCfgId);
   if (p) p.truss = {...tc, span};
   closeTrussCfg();
