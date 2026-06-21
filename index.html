@@ -8214,17 +8214,19 @@ async function _embedDaeModel(url, prefix) {
       return m ? m[1].trim() : '';
     }
 
-    const geoms = extractLib('library_geometries');
-    const mats  = extractLib('library_materials');
-    const effs  = extractLib('library_effects');
-    const imgs  = extractLib('library_images');
+    const geoms    = extractLib('library_geometries');
+    const mats     = extractLib('library_materials');
+    const effs     = extractLib('library_effects');
+    const imgs     = extractLib('library_images');
+    const libNodes = extractLib('library_nodes');
     // visual_scene 안의 최상위 <node> 자식들 추출
     const vsRaw = extractLib('visual_scene');
     const nodeM = vsRaw.match(/^<node[^>]*>([\s\S]*)<\/node>\s*$/i);
     const sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
 
-    if (!geoms && !sceneNodes) return null;
-    return { geoms, mats, effs, imgs, sceneNodes };
+    console.log('[embed]', prefix, { geoms: geoms.length, mats: mats.length, effs: effs.length, imgs: imgs.length, libNodes: libNodes.length, sceneNodes: sceneNodes.length });
+    if (!geoms && !sceneNodes && !libNodes) return null;
+    return { geoms, mats, effs, imgs, libNodes, sceneNodes };
   } catch(e) {
     console.warn('embed failed:', e);
     return null;
@@ -8290,8 +8292,9 @@ async function daeGenerate({ w, d, h, stair, memo }) {
 </mesh></geometry>`;
   }
 
-  let geoms = boxGeom('geom-stage', w, d, h);
-  let imgs  = '';
+  let geoms    = boxGeom('geom-stage', w, d, h);
+  let imgs     = '';
+  let libNodes = '';
   let mats  = `<material id="mat-geom-stage"><instance_effect url="#eff-stage"/></material>`;
   let effs  = `<effect id="eff-stage"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.55 0.38 0.18 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
   let nodes = `<node id="Stage" name="Stage_${w.toFixed(1)}x${d.toFixed(1)}m_H${h}m" type="NODE">
@@ -8335,10 +8338,11 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       const prefix = `mdl${i}_`;
       const embedded = await _embedDaeModel(realModel.url, prefix);
       if (embedded) {
-        geoms += embedded.geoms;
-        imgs  += embedded.imgs || '';
-        mats  += embedded.mats;
-        effs  += embedded.effs;
+        geoms    += embedded.geoms;
+        imgs     += embedded.imgs || '';
+        libNodes += embedded.libNodes || '';
+        mats     += embedded.mats;
+        effs     += embedded.effs;
         nodes += `<node id="Item${i}" name="${name}" type="NODE">
           <translate>${cx} ${cy} ${iz}</translate>
           ${embedded.sceneNodes}
@@ -8364,6 +8368,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
   <asset><created>${new Date().toISOString()}</created><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset>
   ${imgs ? `<library_images>${imgs}</library_images>` : ''}
+  ${libNodes ? `<library_nodes>${libNodes}</library_nodes>` : ''}
   <library_materials>${mats}</library_materials>
   <library_effects>${effs}</library_effects>
   <library_geometries>${geoms}</library_geometries>
