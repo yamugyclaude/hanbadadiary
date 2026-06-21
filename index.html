@@ -586,13 +586,15 @@ border-radius: 16px 16px 0 0;
 padding: 20px;
 padding-bottom: calc(20px + var(--safe-bot));
 width: 100%; max-width: 640px;
+max-height: 85vh;
+overflow-y: auto;
 transform: translateY(40px); transition: transform 0.25s;
 }
 .theme-modal-overlay.show .theme-modal-sheet { transform: translateY(0); }
 .theme-grid {
 display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 10px;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
 margin-top: 14px;
 }
 .theme-card {
@@ -1464,7 +1466,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-9</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-10</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -7128,6 +7130,129 @@ accent2: '#0891b2', accent2Dim: 'rgba(8,145,178,0.12)', accent2Sel: 'rgba(8,145,
 gold: '#92400e', goldDim: 'rgba(146,64,14,0.12)',
 text: '#431407', text2: '#9a3412', textMuted: '#fdba74',
 swatches: ['#fff7f0','#ea580c','#0891b2','#92400e']
+},
+// ── 사이버 / 네온 계열 ──
+{
+id: 'cyber-purple',
+name: '⚡ 사이버 퍼플',
+bg: '#0d0a1a', surface: '#120e26', surface2: '#1a1438', surface3: '#221a4a',
+border: 'rgba(168,85,247,0.18)', border2: 'rgba(168,85,247,0.35)',
+accent: '#a855f7', accentDim: 'rgba(168,85,247,0.15)', accentSel: 'rgba(168,85,247,0.25)',
+accent2: '#22d3ee', accent2Dim: 'rgba(34,211,238,0.14)', accent2Sel: 'rgba(34,211,238,0.24)',
+gold: '#fbbf24', goldDim: 'rgba(251,191,36,0.14)',
+text: '#f0e8ff', text2: '#c4b5fd', textMuted: '#7c6da8',
+swatches: ['#0d0a1a','#a855f7','#22d3ee','#fbbf24']
+},
+{
+id: 'dark-emerald',
+name: '💎 다크 에메랄드',
+bg: '#071510', surface: '#0c1f18', surface2: '#112a20', surface3: '#16362a',
+border: 'rgba(52,211,153,0.18)', border2: 'rgba(52,211,153,0.32)',
+accent: '#34d399', accentDim: 'rgba(52,211,153,0.14)', accentSel: 'rgba(52,211,153,0.24)',
+accent2: '#f59e0b', accent2Dim: 'rgba(245,158,11,0.14)', accent2Sel: 'rgba(245,158,11,0.24)',
+gold: '#fcd34d', goldDim: 'rgba(252,211,77,0.14)',
+text: '#ecfdf5', text2: '#6ee7b7', textMuted: '#4a8a72',
+swatches: ['#071510','#34d399','#f59e0b','#fcd34d']
+},
+{
+id: 'ocean-deep',
+name: '🌊 오션 딥',
+bg: '#050e1a', surface: '#081626', surface2: '#0e2040', surface3: '#142a55',
+border: 'rgba(56,189,248,0.18)', border2: 'rgba(56,189,248,0.32)',
+accent: '#38bdf8', accentDim: 'rgba(56,189,248,0.14)', accentSel: 'rgba(56,189,248,0.24)',
+accent2: '#34d399', accent2Dim: 'rgba(52,211,153,0.14)', accent2Sel: 'rgba(52,211,153,0.24)',
+gold: '#fbbf24', goldDim: 'rgba(251,191,36,0.14)',
+text: '#e0f2fe', text2: '#7dd3fc', textMuted: '#3b6e8a',
+swatches: ['#050e1a','#38bdf8','#34d399','#fbbf24']
+},
+{
+id: 'carbon-orange',
+name: '🔥 카본 오렌지',
+bg: '#0c0c0c', surface: '#141414', surface2: '#1c1c1c', surface3: '#242424',
+border: 'rgba(249,115,22,0.2)', border2: 'rgba(249,115,22,0.38)',
+accent: '#f97316', accentDim: 'rgba(249,115,22,0.14)', accentSel: 'rgba(249,115,22,0.25)',
+accent2: '#facc15', accent2Dim: 'rgba(250,204,21,0.14)', accent2Sel: 'rgba(250,204,21,0.24)',
+gold: '#fb923c', goldDim: 'rgba(251,146,60,0.14)',
+text: '#fafafa', text2: '#a3a3a3', textMuted: '#6b6b6b',
+swatches: ['#0c0c0c','#f97316','#facc15','#fb923c']
+},
+{
+id: 'dracula',
+name: '🧛 드라큘라',
+bg: '#1e1e2e', surface: '#252535', surface2: '#2d2d45', surface3: '#363654',
+border: 'rgba(189,147,249,0.2)', border2: 'rgba(189,147,249,0.38)',
+accent: '#bd93f9', accentDim: 'rgba(189,147,249,0.15)', accentSel: 'rgba(189,147,249,0.28)',
+accent2: '#ff5555', accent2Dim: 'rgba(255,85,85,0.14)', accent2Sel: 'rgba(255,85,85,0.24)',
+gold: '#f1fa8c', goldDim: 'rgba(241,250,140,0.14)',
+text: '#f8f8f2', text2: '#cdd6f4', textMuted: '#7070a0',
+swatches: ['#1e1e2e','#bd93f9','#ff5555','#f1fa8c']
+},
+{
+id: 'sunset-dark',
+name: '🌅 선셋 다크',
+bg: '#130a10', surface: '#1e1018', surface2: '#2a1522', surface3: '#381c2e',
+border: 'rgba(244,114,182,0.18)', border2: 'rgba(244,114,182,0.35)',
+accent: '#f472b6', accentDim: 'rgba(244,114,182,0.14)', accentSel: 'rgba(244,114,182,0.25)',
+accent2: '#fb923c', accent2Dim: 'rgba(251,146,60,0.14)', accent2Sel: 'rgba(251,146,60,0.24)',
+gold: '#fcd34d', goldDim: 'rgba(252,211,77,0.14)',
+text: '#fff1f6', text2: '#f9a8d4', textMuted: '#8a4a65',
+swatches: ['#130a10','#f472b6','#fb923c','#fcd34d']
+},
+{
+id: 'ice-cyan',
+name: '🧊 아이스 사이언',
+bg: '#050d14', surface: '#081622', surface2: '#0d2035', surface3: '#122a48',
+border: 'rgba(34,211,238,0.18)', border2: 'rgba(34,211,238,0.34)',
+accent: '#22d3ee', accentDim: 'rgba(34,211,238,0.14)', accentSel: 'rgba(34,211,238,0.26)',
+accent2: '#a78bfa', accent2Dim: 'rgba(167,139,250,0.14)', accent2Sel: 'rgba(167,139,250,0.24)',
+gold: '#fbbf24', goldDim: 'rgba(251,191,36,0.14)',
+text: '#ecfeff', text2: '#67e8f9', textMuted: '#3d7a8a',
+swatches: ['#050d14','#22d3ee','#a78bfa','#fbbf24']
+},
+{
+id: 'dark-crimson',
+name: '🩸 다크 크림슨',
+bg: '#12080c', surface: '#1c0e14', surface2: '#261420', surface3: '#321a2c',
+border: 'rgba(248,113,113,0.18)', border2: 'rgba(248,113,113,0.34)',
+accent: '#f87171', accentDim: 'rgba(248,113,113,0.14)', accentSel: 'rgba(248,113,113,0.25)',
+accent2: '#fbbf24', accent2Dim: 'rgba(251,191,36,0.14)', accent2Sel: 'rgba(251,191,36,0.24)',
+gold: '#fb923c', goldDim: 'rgba(251,146,60,0.14)',
+text: '#fff1f2', text2: '#fca5a5', textMuted: '#8a4a55',
+swatches: ['#12080c','#f87171','#fbbf24','#fb923c']
+},
+// ── 모던 라이트 계열 ──
+{
+id: 'light-modern',
+name: '✨ 모던 라이트',
+bg: '#f8fafc', surface: '#ffffff', surface2: '#f1f5f9', surface3: '#e8eef5',
+border: '#e2e8f0', border2: '#c8d5e0',
+accent: '#6366f1', accentDim: 'rgba(99,102,241,0.1)', accentSel: 'rgba(99,102,241,0.18)',
+accent2: '#ec4899', accent2Dim: 'rgba(236,72,153,0.1)', accent2Sel: 'rgba(236,72,153,0.18)',
+gold: '#d97706', goldDim: 'rgba(217,119,6,0.1)',
+text: '#0f172a', text2: '#475569', textMuted: '#94a3b8',
+swatches: ['#f8fafc','#6366f1','#ec4899','#d97706']
+},
+{
+id: 'light-teal',
+name: '🌊 라이트 틸',
+bg: '#f0fdfb', surface: '#ffffff', surface2: '#e6f9f6', surface3: '#d0f2ec',
+border: '#b2e0d8', border2: '#8ecdc3',
+accent: '#0f766e', accentDim: 'rgba(15,118,110,0.1)', accentSel: 'rgba(15,118,110,0.18)',
+accent2: '#7c3aed', accent2Dim: 'rgba(124,58,237,0.1)', accent2Sel: 'rgba(124,58,237,0.18)',
+gold: '#b45309', goldDim: 'rgba(180,83,9,0.1)',
+text: '#042f2e', text2: '#115e59', textMuted: '#5eada5',
+swatches: ['#f0fdfb','#0f766e','#7c3aed','#b45309']
+},
+{
+id: 'light-slate',
+name: '🗂 라이트 슬레이트',
+bg: '#f1f5f9', surface: '#ffffff', surface2: '#e8eef5', surface3: '#dce5ee',
+border: '#cbd5e1', border2: '#b0bec5',
+accent: '#334155', accentDim: 'rgba(51,65,85,0.1)', accentSel: 'rgba(51,65,85,0.18)',
+accent2: '#0ea5e9', accent2Dim: 'rgba(14,165,233,0.1)', accent2Sel: 'rgba(14,165,233,0.18)',
+gold: '#b45309', goldDim: 'rgba(180,83,9,0.1)',
+text: '#0f172a', text2: '#334155', textMuted: '#94a3b8',
+swatches: ['#f1f5f9','#334155','#0ea5e9','#b45309']
 },
 ];
 
