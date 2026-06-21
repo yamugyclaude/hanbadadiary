@@ -7341,10 +7341,19 @@ function daeRemovePlacement(id) {
 }
 
 // ── 트러스 재고 ──
-let trussInventory = {'0.5': 0, '1': 0, '1.5': 0, '2': 0, corner: 0};
+let trussInventory = JSON.parse(localStorage.getItem('trussInventory') || '{"0.5":0,"1":0,"1.5":0,"2":0,"corner":0}');
+
+function _daeInitInventoryUI() {
+  ['0.5','1','1.5','2','corner'].forEach(t => {
+    const el = document.getElementById(`tinv-${t}`);
+    if (el) el.textContent = trussInventory[t] || 0;
+  });
+  _updateInvRemainders();
+}
 
 function _adjInv(type, delta) {
   trussInventory[type] = Math.max(0, (trussInventory[type] || 0) + delta);
+  localStorage.setItem('trussInventory', JSON.stringify(trussInventory));
   const el = document.getElementById(`tinv-${type}`);
   if (el) el.textContent = trussInventory[type];
   _updateInvRemainders();
@@ -7617,7 +7626,7 @@ function scSwitchTab(tab) {
     document.getElementById('sc-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('sc-page-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); }
+  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); _daeInitInventoryUI(); }
 }
 
 function daeLocTab(loc) {
