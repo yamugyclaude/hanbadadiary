@@ -2014,6 +2014,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
         <!-- 내보내기 -->
         <button class="dae-export-btn" id="daeExportBtn" onclick="daeExport()">📥 SketchUp 파일 (.dae) 내보내기</button>
+        <button onclick="daePreviewXML()" style="width:100%;margin-top:6px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text-muted);font-size:12px;cursor:pointer">🔍 XML 미리보기 (디버그)</button>
         <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;margin-bottom:20px">SketchUp에서 파일 → 가져오기 → .dae 선택 / 등록된 3D 모델은 자동 적용됩니다</div>
 
       </div><!-- /sc-page-3d -->
@@ -8230,9 +8231,20 @@ async function _embedDaeModel(url, prefix) {
   }
 }
 
+async function daePreviewXML() {
+  const {w, d} = daeGetDims();
+  const h = parseFloat(document.getElementById('dae-h')?.value) || 1.0;
+  const stair = document.getElementById('dae-stair')?.value || 'none';
+  const memo = document.getElementById('dae-memo')?.value || '';
+  showToast('⏳ XML 생성 중...');
+  const dae = await daeGenerate({ w, d, h, stair, memo });
+  const win = window.open('', '_blank');
+  win.document.write(`<pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;background:#111;color:#0f0;padding:12px">${dae.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`);
+  win.document.close();
+}
+
 async function daeExport() {
-  const w = parseFloat(document.getElementById('dae-w')?.value) || (scM * 1.8);
-  const d = parseFloat(document.getElementById('dae-d')?.value) || (scN * 0.9);
+  const {w, d} = daeGetDims();
   const h = parseFloat(document.getElementById('dae-h')?.value) || 1.0;
   const stair = document.getElementById('dae-stair')?.value || 'none';
   const memo = document.getElementById('dae-memo')?.value || '';
@@ -8264,22 +8276,18 @@ async function daeGenerate({ w, d, h, stair, memo }) {
   }
 
   function boxGeom(gid, bw, bd, bh) {
-    const bx = bw/2, by = bd/2;
+    const bx = (bw/2).toFixed(4), by = (bd/2).toFixed(4), bz = parseFloat(bh).toFixed(4);
+    const v = `-${bx} -${by} 0 ${bx} -${by} 0 ${bx} ${by} 0 -${bx} ${by} 0 -${bx} -${by} ${bz} ${bx} -${by} ${bz} ${bx} ${by} ${bz} -${bx} ${by} ${bz}`;
     return `<geometry id="${gid}" name="${gid}"><mesh>
-      <source id="${gid}-p"><float_array id="${gid}-a" count="24">
-        ${-bx} ${-by} 0  ${bx} ${-by} 0  ${bx} ${by} 0  ${-bx} ${by} 0
-        ${-bx} ${-by} ${bh}  ${bx} ${-by} ${bh}  ${bx} ${by} ${bh}  ${-bx} ${by} ${bh}
-      </float_array>
-      <technique_common><accessor source="#${gid}-a" count="8" stride="3">
-        <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
-      </accessor></technique_common></source>
-      <vertices id="${gid}-v"><input semantic="POSITION" source="#${gid}-p"/></vertices>
-      <polylist material="mat-${gid}" count="6">
-        <input semantic="VERTEX" source="#${gid}-v" offset="0"/>
-        <vcount>4 4 4 4 4 4</vcount>
-        <p>0 1 2 3  4 7 6 5  0 4 5 1  1 5 6 2  2 6 7 3  3 7 4 0</p>
-      </polylist>
-    </mesh></geometry>`;
+<source id="${gid}-pos"><float_array id="${gid}-arr" count="24">${v}</float_array>
+<technique_common><accessor source="#${gid}-arr" count="8" stride="3">
+<param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+</accessor></technique_common></source>
+<vertices id="${gid}-vtx"><input semantic="POSITION" source="#${gid}-pos"/></vertices>
+<triangles material="mat-${gid}" count="12"><input semantic="VERTEX" source="#${gid}-vtx" offset="0"/>
+<p>0 1 2 0 2 3 4 6 5 4 7 6 0 5 1 0 4 5 1 6 2 1 5 6 2 7 3 2 6 7 3 4 0 3 7 4</p>
+</triangles>
+</mesh></geometry>`;
   }
 
   let geoms = boxGeom('geom-stage', w, d, h);
