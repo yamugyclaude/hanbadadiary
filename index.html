@@ -5981,7 +5981,7 @@ el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 // ── Supabase 설정 ──
-const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
+const SB_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
 const PHOTO_BUCKET = 'event-photos'; // Supabase Storage 버킷명 (public, Dashboard에서 생성 필요)
 
@@ -6377,7 +6377,7 @@ showToast(`☁️ 업무 ${rows.length}개 불러오기 완료`);
 
 // ── Supabase Realtime ──
 function initRealtime() {
-  const wsUrl = `wss://nifmnigvrjfctdimgmda.supabase.co/realtime/v1/websocket?apikey=${SB_KEY}&vsn=1.0.0`;
+  const wsUrl = `${SB_URL.replace('https://', 'wss://')}/realtime/v1/websocket?apikey=${SB_KEY}&vsn=1.0.0`;
   let ws;
   function connect() {
     try { ws = new WebSocket(wsUrl); } catch(e) { setTimeout(connect, 5000); return; }
