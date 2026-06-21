@@ -1252,6 +1252,25 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .dae-info-box-val { font-weight:700; color:var(--text); }
 .dae-export-btn { width:100%; padding:14px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:4px; }
 .dae-export-btn:active { opacity:.85; }
+/* ─── 3D 모델 라이브러리 ─── */
+.lib3d-type-bar { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.lib3d-type-sel { flex:1; padding:9px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:9px; color:var(--text); font-size:13px; font-family:inherit; }
+.lib3d-upload-btn { display:inline-flex; align-items:center; gap:5px; padding:9px 14px; background:var(--surface2); border:1.5px solid var(--accent); border-radius:9px; color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.lib3d-upload-btn:hover { background:rgba(var(--accent-rgb,79,131,243),0.1); }
+.lib3d-empty { font-size:12px; color:var(--text-muted); text-align:center; padding:18px 0; }
+.lib3d-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; }
+.lib3d-item.active { border-color:var(--accent); }
+.lib3d-item-ico { width:36px; height:36px; border-radius:8px; background:#1e3a5f; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.lib3d-item-info { flex:1; min-width:0; }
+.lib3d-item-name { font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lib3d-item-meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.lib3d-item-tag { display:inline-block; font-size:10px; padding:2px 7px; border-radius:10px; background:rgba(var(--accent-rgb,79,131,243),0.15); color:var(--accent); font-weight:600; margin-top:3px; }
+.lib3d-item-tag.active { background:var(--accent); color:#fff; }
+.lib3d-item-btns { display:flex; flex-direction:column; gap:5px; flex-shrink:0; }
+.lib3d-item-btns button { padding:4px 10px; border-radius:7px; border:1px solid var(--border2); background:var(--surface); color:var(--text-muted); font-size:11px; cursor:pointer; font-family:inherit; }
+.lib3d-item-btns button.set-btn { border-color:var(--accent); color:var(--accent); }
+.lib3d-item-btns button.set-btn.on { background:var(--accent); color:#fff; }
+.lib3d-warn-box { font-size:11px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:10px 12px; color:#f87171; margin-top:8px; line-height:1.7; }
 .dae-location-tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
 .dae-loc-tab { flex:1; min-width:80px; padding:8px 6px; text-align:center; font-size:12px; font-weight:600; border:1.5px solid var(--border2); border-radius:8px; cursor:pointer; color:var(--text-muted); background:var(--surface2); }
 .dae-loc-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(99,102,241,.08); }
@@ -1900,6 +1919,37 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
         </div>
 
+        <!-- 3D 모델 라이브러리 -->
+        <div class="dae-section">
+          <div class="dae-section-label">🗂️ 3D 모델 라이브러리 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 장비 타입별 실제 .dae 모델 등록</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+            장비 타입 선택 후 <b>.dae 파일</b>을 업로드하면 내보내기 시 박스 대신 실제 3D 형상으로 포함됩니다.<br>
+            <span style="color:#f59e0b">.skp → app.sketchup.com 열기 → 파일 → 다운로드 → Collada(.dae)</span>
+          </div>
+          <div class="lib3d-type-bar">
+            <select id="lib3d-type-sel" class="lib3d-type-sel">
+              <option value="speaker">메인스피커</option>
+              <option value="sub">서브우퍼</option>
+              <option value="monitor" selected>모니터</option>
+              <option value="console">콘솔</option>
+              <option value="light">조명/LED</option>
+              <option value="stair">계단</option>
+              <option value="tent">텐트</option>
+              <option value="power">전기</option>
+              <option value="mic">마이크스탠드</option>
+            </select>
+            <label class="lib3d-upload-btn">
+              ＋ .dae 업로드
+              <input type="file" id="lib3d-file-input" accept=".dae,.DAE" style="display:none" onchange="lib3dUpload(this)">
+            </label>
+          </div>
+          <div id="lib3d-list"><div class="lib3d-empty">등록된 3D 모델이 없습니다</div></div>
+          <div id="lib3d-bucket-warn" class="lib3d-warn-box" style="display:none">
+            ⚠ Supabase Storage 'skp-library' 버킷이 없거나 업로드 권한이 없습니다.<br>
+            대시보드 → Storage → New Bucket → Name: <b>skp-library</b> / Public: <b>ON</b>
+          </div>
+        </div>
+
         <!-- 메모 -->
         <div class="dae-section">
           <div class="dae-section-label">📝 배치 메모</div>
@@ -1963,8 +2013,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         </div>
 
         <!-- 내보내기 -->
-        <button class="dae-export-btn" onclick="daeExport()">📥 SketchUp 파일 (.dae) 내보내기</button>
-        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;margin-bottom:20px">SketchUp에서 파일 → 가져오기 → .dae 선택</div>
+        <button class="dae-export-btn" id="daeExportBtn" onclick="daeExport()">📥 SketchUp 파일 (.dae) 내보내기</button>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;margin-bottom:20px">SketchUp에서 파일 → 가져오기 → .dae 선택 / 등록된 3D 모델은 자동 적용됩니다</div>
 
       </div><!-- /sc-page-3d -->
 
@@ -7937,7 +7987,7 @@ function scSwitchTab(tab) {
     document.getElementById('sc-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('sc-page-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); _daeInitInventoryUI(); }
+  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); _daeInitInventoryUI(); lib3dRender(); lib3dLoadCloud(); }
 }
 
 function daeLocTab(loc) {
@@ -7965,24 +8015,238 @@ function daePhotoSelected(input) {
   document.getElementById('dae-photo-name').textContent = '✅ ' + f.name;
 }
 
-function daeExport() {
+// ═══════════════════════════════════════════════
+// 🗂️ 3D 모델 라이브러리
+// ═══════════════════════════════════════════════
+
+const LIB3D_BUCKET = 'skp-library';
+const LIB3D_TYPES = {
+  speaker:'메인스피커', sub:'서브우퍼', monitor:'모니터', console:'콘솔',
+  light:'조명/LED', stair:'계단', tent:'텐트', power:'전기', mic:'마이크스탠드'
+};
+
+let lib3dModels = JSON.parse(localStorage.getItem('lib3dModels') || '[]');
+
+async function lib3dLoadCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.3dmodels&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (rows.length && rows[0].v15) {
+      lib3dModels = rows[0].v15;
+      localStorage.setItem('lib3dModels', JSON.stringify(lib3dModels));
+      lib3dRender();
+    }
+  } catch(e) {}
+}
+
+async function lib3dSaveCloud() {
+  localStorage.setItem('lib3dModels', JSON.stringify(lib3dModels));
+  const payload = { id: '3dmodels', v15: lib3dModels, v35: [] };
+  try {
+    let res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.3dmodels`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload)
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+  } catch(e) {}
+}
+
+async function lib3dUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const type = document.getElementById('lib3d-type-sel')?.value || 'speaker';
+  const typeName = LIB3D_TYPES[type] || type;
+  const warn = document.getElementById('lib3d-bucket-warn');
+
+  const id = `${type}_${Date.now()}`;
+  const path = `models/${id}.dae`;
+  showToast('⏳ 업로드 중...');
+
+  try {
+    const res = await fetch(`${SB_URL}/storage/v1/object/${LIB3D_BUCKET}/${path}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'model/vnd.collada+xml',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+    if (!res.ok) {
+      if (warn) warn.style.display = 'block';
+      showToast('❌ 업로드 실패 — 버킷 설정 확인');
+      input.value = '';
+      return;
+    }
+    if (warn) warn.style.display = 'none';
+    const url = `${SB_URL}/storage/v1/object/public/${LIB3D_BUCKET}/${path}`;
+    lib3dModels.push({
+      id, type, typeName, name: file.name.replace(/\.dae$/i, ''),
+      url, path, size: file.size, uploaded: new Date().toISOString().slice(0,10), active: false
+    });
+    await lib3dSaveCloud();
+    lib3dRender();
+    showToast(`✅ ${file.name} 업로드 완료`);
+  } catch(e) {
+    if (warn) warn.style.display = 'block';
+    showToast('❌ 업로드 실패');
+  }
+  input.value = '';
+}
+
+function lib3dSetActive(id) {
+  const m = lib3dModels.find(x => x.id === id);
+  if (!m) return;
+  // 같은 타입은 active 해제
+  lib3dModels.forEach(x => { if (x.type === m.type) x.active = false; });
+  m.active = !lib3dModels.find(x => x.id === id)?.active ?? true;
+  // toggle: 현재 false면 true로
+  m.active = true;
+  lib3dSaveCloud();
+  lib3dRender();
+}
+
+function lib3dDeactivate(type) {
+  lib3dModels.forEach(x => { if (x.type === type) x.active = false; });
+  lib3dSaveCloud();
+  lib3dRender();
+}
+
+async function lib3dDelete(id) {
+  const m = lib3dModels.find(x => x.id === id);
+  if (!m) return;
+  try {
+    await fetch(`${SB_URL}/storage/v1/object/${LIB3D_BUCKET}/${m.path}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+  } catch(e) {}
+  lib3dModels = lib3dModels.filter(x => x.id !== id);
+  await lib3dSaveCloud();
+  lib3dRender();
+  showToast('🗑️ 모델 삭제됨');
+}
+
+function lib3dGetActive(type) {
+  return lib3dModels.find(m => m.type === type && m.active) || null;
+}
+
+function lib3dRender() {
+  const el = document.getElementById('lib3d-list');
+  if (!el) return;
+  if (lib3dModels.length === 0) {
+    el.innerHTML = '<div class="lib3d-empty">등록된 3D 모델이 없습니다</div>';
+    return;
+  }
+  const EQ_ICONS = {speaker:'🔊',sub:'📦',monitor:'🎛️',console:'🎚️',light:'💡',stair:'🪜',tent:'⛺',power:'⚡',mic:'🎤'};
+  el.innerHTML = lib3dModels.map(m => {
+    const ico = EQ_ICONS[m.type] || '📐';
+    const kb = (m.size / 1024).toFixed(0);
+    const isOn = m.active;
+    return `<div class="lib3d-item${isOn?' active':''}">
+      <div class="lib3d-item-ico">${ico}</div>
+      <div class="lib3d-item-info">
+        <div class="lib3d-item-name">${m.name}</div>
+        <div class="lib3d-item-meta">${m.typeName} · ${kb}KB · ${m.uploaded}</div>
+        <span class="lib3d-item-tag${isOn?' active':''}">${isOn?'✓ 내보내기 적용':'미적용'}</span>
+      </div>
+      <div class="lib3d-item-btns">
+        <button class="set-btn${isOn?' on':''}" onclick="lib3dToggleActive('${m.id}')">${isOn?'적용중':'적용'}</button>
+        <button onclick="lib3dDelete('${m.id}')">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function lib3dToggleActive(id) {
+  const m = lib3dModels.find(x => x.id === id);
+  if (!m) return;
+  const wasActive = m.active;
+  // 같은 타입 전부 해제
+  lib3dModels.forEach(x => { if (x.type === m.type) x.active = false; });
+  // 토글
+  m.active = !wasActive;
+  lib3dSaveCloud();
+  lib3dRender();
+  showToast(m.active ? `✓ ${m.name} 내보내기에 적용됨` : `${m.name} 적용 해제`);
+}
+
+// .dae 파싱 & 임베드 (비동기)
+async function _embedDaeModel(url, prefix) {
+  try {
+    const text = await fetch(url).then(r => r.text());
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/xml');
+    if (doc.querySelector('parsererror')) return null;
+
+    // 모든 id 수집 후 prefix 추가 (충돌 방지)
+    const xmlStr0 = new XMLSerializer().serializeToString(doc);
+    const ids = [];
+    xmlStr0.replace(/\sid="([^"]+)"/g, (_, id) => { if (!ids.includes(id)) ids.push(id); });
+    let xmlStr = xmlStr0;
+    ids.forEach(id => {
+      const pid = prefix + id;
+      xmlStr = xmlStr.split(`id="${id}"`).join(`id="${pid}"`);
+      xmlStr = xmlStr.split(`url="#${id}"`).join(`url="#${pid}"`);
+      xmlStr = xmlStr.split(`source="#${id}"`).join(`source="#${pid}"`);
+      xmlStr = xmlStr.split(`target="#${pid}"`).join(`target="#${prefix}${id}"`); // 이미 변경된 것 방지
+      xmlStr = xmlStr.split(`symbol="${id}"`).join(`symbol="${pid}"`);
+    });
+
+    const doc2 = parser.parseFromString(xmlStr, 'text/xml');
+    const ser = new XMLSerializer();
+    const innerXML = el => el ? Array.from(el.children).map(c => ser.serializeToString(c)).join('') : '';
+
+    const geoms = innerXML(doc2.querySelector('library_geometries'));
+    const mats  = innerXML(doc2.querySelector('library_materials'));
+    const effs  = innerXML(doc2.querySelector('library_effects'));
+    const sceneNodes = innerXML(doc2.querySelector('library_visual_scenes visual_scene'));
+
+    return { geoms, mats, effs, sceneNodes };
+  } catch(e) {
+    console.warn('embed failed:', e);
+    return null;
+  }
+}
+
+async function daeExport() {
   const w = parseFloat(document.getElementById('dae-w')?.value) || (scM * 1.8);
   const d = parseFloat(document.getElementById('dae-d')?.value) || (scN * 0.9);
   const h = parseFloat(document.getElementById('dae-h')?.value) || 1.0;
   const stair = document.getElementById('dae-stair')?.value || 'none';
   const memo = document.getElementById('dae-memo')?.value || '';
-  const dae = daeGenerate({ w, d, h, stair, memo });
-  const blob = new Blob([dae], { type: 'model/vnd.collada+xml' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `stage_${w}x${d}m.dae`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('📥 .dae 파일 다운로드 완료');
+
+  const btn = document.getElementById('daeExportBtn');
+  if (btn) { btn.textContent = '⏳ 생성 중...'; btn.disabled = true; }
+
+  try {
+    const dae = await daeGenerate({ w, d, h, stair, memo });
+    const blob = new Blob([dae], { type: 'model/vnd.collada+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stage_${w}x${d}m.dae`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📥 .dae 파일 다운로드 완료');
+  } finally {
+    if (btn) { btn.textContent = '📥 SketchUp 파일 (.dae) 내보내기'; btn.disabled = false; }
+  }
 }
 
-function daeGenerate({ w, d, h, stair, memo }) {
+async function daeGenerate({ w, d, h, stair, memo }) {
   const hw = w / 2, hd = d / 2;
 
   function hexRgb(hex) {
@@ -8018,28 +8282,54 @@ function daeGenerate({ w, d, h, stair, memo }) {
       </instance_geometry>
     </node>`;
 
-  daePlacements.forEach((p, i) => {
+  for (let i = 0; i < daePlacements.length; i++) {
+    const p = daePlacements[i];
     const it = DAE_ITEMS[p.type] || {label: p.type};
     const baseSz = DAE_SIZES[p.type] || {rw:0.6, rd:0.6, rh:0.6, color:'#888888'};
     let rw = baseSz.rw, rd = baseSz.rd, rh = baseSz.rh, iColor = baseSz.color;
-    let itemElev = null; // null = default (stage h or 0)
+    let itemElev = null;
 
+    // 트러스 — 새 포맷(hSections/vSections) 우선, 구 포맷 폴백
     if (p.type === 'truss' && p.truss) {
-      const {span, spec, dir, elevation} = p.truss;
-      const specM = spec / 1000;
-      if (dir === 'v') { rw = specM; rd = span; }
-      else             { rw = span; rd = specM; }
+      const t = p.truss;
+      const specM = (t.spec || 220) / 1000;
+      if ((t.hTotalSpan || 0) > 0.01 || (t.vTotalSpan || 0) > 0.01) {
+        rw = t.hTotalSpan || specM;
+        rd = t.vTotalSpan || specM;
+      } else {
+        const disp = t.totalSpan ?? ((t.span||0) + ((t.cubesLeft??1)+(t.cubesRight??1))*0.22);
+        if (t.dir === 'v') { rw = specM; rd = disp; } else { rw = disp; rd = specM; }
+      }
       rh = specM;
-      itemElev = elevation;
+      itemElev = t.elevation ?? 4.0;
     }
 
-    const gid = `geom-i${i}`;
-    // SVG venue 좌표 → SketchUp 중심 좌표 (stage center = 0,0, Z_UP)
+    // SVG venue 좌표 → SketchUp 중심 좌표 (stage center = 0,0)
     const cx = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
-    const cy = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3)); // Y 반전 (FRONT = -Y)
+    const cy = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3));
     const onStage = p.x >= DAE_MARGIN && p.x <= DAE_MARGIN + w && p.y >= DAE_MARGIN && p.y <= DAE_MARGIN + d;
     const iz = itemElev !== null ? itemElev : (onStage ? h : 0);
     const name = `${it.label.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_${i+1}`;
+
+    // ── 실제 3D 모델 있으면 임베드 ──
+    const realModel = lib3dGetActive(p.type);
+    if (realModel) {
+      const prefix = `mdl${i}_`;
+      const embedded = await _embedDaeModel(realModel.url, prefix);
+      if (embedded) {
+        geoms += embedded.geoms;
+        mats  += embedded.mats;
+        effs  += embedded.effs;
+        nodes += `<node id="Item${i}" name="${name}" type="NODE">
+          <translate>${cx} ${cy} ${iz}</translate>
+          ${embedded.sceneNodes}
+        </node>`;
+        continue;
+      }
+    }
+
+    // ── 폴백: 박스 ──
+    const gid = `geom-i${i}`;
     geoms += boxGeom(gid, rw, rd, rh);
     mats  += `<material id="mat-${gid}"><instance_effect url="#eff-i${i}"/></material>`;
     effs  += `<effect id="eff-i${i}"><profile_COMMON><technique sid="common"><phong><diffuse><color>${hexRgb(iColor)}</color></diffuse></phong></technique></profile_COMMON></effect>`;
@@ -8049,7 +8339,7 @@ function daeGenerate({ w, d, h, stair, memo }) {
         <bind_material><technique_common><instance_material symbol="mat-${gid}" target="#mat-${gid}"/></technique_common></bind_material>
       </instance_geometry>
     </node>`;
-  });
+  }
 
   return `<?xml version="1.0" encoding="utf-8"?>
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
