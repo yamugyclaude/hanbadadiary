@@ -1256,6 +1256,29 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .dae-loc-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(99,102,241,.08); }
 .dae-loc-content { display:none; }
 .dae-loc-content.active { display:block; }
+/* ─── 배치 그리드 ─── */
+.dae-grid-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; }
+.dae-grid-table { border-collapse:collapse; font-size:11px; user-select:none; -webkit-user-select:none; }
+.dae-grid-table th { width:28px; min-width:28px; height:22px; text-align:center; color:var(--text-muted); font-weight:700; background:var(--surface2); border:1px solid var(--border); font-size:10px; }
+.dae-grid-table td { width:44px; min-width:44px; height:44px; text-align:center; vertical-align:middle; border:1px solid var(--border2); cursor:pointer; position:relative; font-size:18px; transition:background .1s; }
+.dae-grid-table td.cell-stage { background:rgba(160,100,40,0.13); border-color:rgba(160,100,40,0.3); }
+.dae-grid-table td.cell-outside { background:var(--surface2); }
+.dae-grid-table td.cell-selected { outline:2px solid var(--accent); outline-offset:-2px; }
+.dae-grid-table td:active { background:rgba(99,102,241,0.15); }
+.dae-cell-label { position:absolute; bottom:1px; right:3px; font-size:8px; color:var(--text-muted); line-height:1; }
+/* 배치 팝업 */
+.dae-place-popup { display:none; position:fixed; z-index:3000; background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:10px; box-shadow:0 8px 32px rgba(0,0,0,0.3); width:220px; }
+.dae-place-popup.show { display:block; }
+.dae-place-popup-title { font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:8px; text-align:center; }
+.dae-place-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.dae-place-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; border-radius:10px; cursor:pointer; border:1.5px solid var(--border); background:var(--surface2); }
+.dae-place-item:active { background:var(--accent); color:#fff; }
+.dae-place-item span:first-child { font-size:20px; }
+.dae-place-item span:last-child { font-size:9px; color:var(--text-muted); text-align:center; line-height:1.2; }
+.dae-place-item.del { border-color:rgba(224,123,84,.4); }
+.dae-placed-list { margin-top:10px; }
+.dae-placed-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.dae-placed-row:last-child { border-bottom:none; }
 .stagecalc-wrap { max-width:560px; width:100%; margin:0 auto; padding:16px 14px env(safe-area-inset-bottom,60px); }
 .stagecalc-hdr { display:flex; align-items:center; gap:12px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid var(--border); }
 .stagecalc-logo { width:40px; height:40px; border-radius:11px; background:#d97706; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
@@ -1788,6 +1811,23 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
         </div>
 
+        <!-- 배치 그리드 -->
+        <div class="dae-section">
+          <div class="dae-section-label">🗺️ 배치 그리드 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 셀 클릭 → 장비/구조물 선택</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
+            <span style="display:inline-block;width:12px;height:12px;background:rgba(160,100,40,0.3);border:1px solid rgba(160,100,40,0.5);border-radius:2px;vertical-align:middle;margin-right:4px"></span>무대
+            <span style="display:inline-block;width:12px;height:12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;vertical-align:middle;margin:0 4px 0 10px"></span>외부 공간
+          </div>
+          <div class="dae-grid-wrap">
+            <table class="dae-grid-table" id="daeGrid"></table>
+          </div>
+          <!-- 배치 목록 -->
+          <div id="daePlacedList" class="dae-placed-list" style="display:none">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:12px 0 6px">배치된 항목</div>
+            <div id="daePlacedItems"></div>
+          </div>
+        </div>
+
         <!-- 행사장 위치 -->
         <div class="dae-section">
           <div class="dae-section-label">📍 행사장 위치</div>
@@ -2279,6 +2319,25 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 </div>
 
 <!-- 사진 라이트박스 -->
+<!-- 배치 팝업 -->
+<div class="dae-place-popup" id="daePlacePopup">
+  <div class="dae-place-popup-title" id="daePlacePopupTitle">셀 선택</div>
+  <div class="dae-place-grid">
+    <div class="dae-place-item" onclick="daePlaceItem('speaker')"><span>🔊</span><span>메인스피커</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('sub')"><span>📦</span><span>서브우퍼</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('monitor')"><span>🎛️</span><span>모니터</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('console')"><span>🎚️</span><span>콘솔</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('truss')"><span>⬛</span><span>트러스</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('light')"><span>💡</span><span>조명/LED</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('stair')"><span>🪜</span><span>계단</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('tent')"><span>⛺</span><span>텐트</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('power')"><span>⚡</span><span>전기</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('person')"><span>👥</span><span>관객석</span></div>
+    <div class="dae-place-item" onclick="daePlaceItem('mic')"><span>🎤</span><span>마이크스탠드</span></div>
+    <div class="dae-place-item del" onclick="daePlaceItem(null)"><span>🗑️</span><span>지우기</span></div>
+  </div>
+</div>
+
 <div id="photoLightbox" onclick="closeLightbox()">
   <button id="photoLightboxClose" onclick="closeLightbox()">✕</button>
   <img id="photoLightboxImg" src="" alt="">
@@ -6849,6 +6908,105 @@ async function autoLoadAll() {
 // 🏗️ 3D 도면
 // ═══════════════════════════════════════════════
 
+// ─── 배치 그리드 ───
+const DAE_ITEMS = {
+  speaker: {icon:'🔊', label:'메인스피커'},
+  sub:     {icon:'📦', label:'서브우퍼'},
+  monitor: {icon:'🎛️', label:'모니터'},
+  console: {icon:'🎚️', label:'콘솔'},
+  truss:   {icon:'⬛', label:'트러스'},
+  light:   {icon:'💡', label:'조명/LED'},
+  stair:   {icon:'🪜', label:'계단'},
+  tent:    {icon:'⛺', label:'텐트'},
+  power:   {icon:'⚡', label:'전기'},
+  person:  {icon:'👥', label:'관객석'},
+  mic:     {icon:'🎤', label:'마이크스탠드'},
+};
+let daePlacements = {}; // key: "B3", value: type string
+let daeSelectedCell = null;
+const DAE_PAD = 3; // 무대 바깥 여백 칸수
+
+function daeColLabel(c) {
+  let s = '';
+  c++;
+  while (c > 0) { s = String.fromCharCode(64 + (c % 26 || 26)) + s; c = Math.floor((c-1)/26); }
+  return s;
+}
+
+function daeRenderGrid() {
+  const stageW = parseInt(document.getElementById('dae-w')?.value / 1.8) || scM;
+  const stageD = parseInt(document.getElementById('dae-d')?.value / 0.9) || scN;
+  const cols = stageW + DAE_PAD * 2;
+  const rows = stageD + DAE_PAD * 2;
+  let html = '<tr><th></th>';
+  for (let c = 0; c < cols; c++) html += `<th>${daeColLabel(c)}</th>`;
+  html += '</tr>';
+  for (let r = 0; r < rows; r++) {
+    html += `<tr><th>${r+1}</th>`;
+    for (let c = 0; c < cols; c++) {
+      const isStage = c >= DAE_PAD && c < DAE_PAD + stageW && r >= DAE_PAD && r < DAE_PAD + stageD;
+      const ref = daeColLabel(c) + (r+1);
+      const item = daePlacements[ref];
+      const cls = `${isStage?'cell-stage':'cell-outside'}${daeSelectedCell===ref?' cell-selected':''}`;
+      html += `<td class="${cls}" onclick="daeCellClick('${ref}',event)">`;
+      if (item) html += `<span style="font-size:20px">${DAE_ITEMS[item]?.icon||''}</span>`;
+      html += `<span class="dae-cell-label">${ref}</span></td>`;
+    }
+    html += '</tr>';
+  }
+  const grid = document.getElementById('daeGrid');
+  if (grid) grid.innerHTML = html;
+  daeRenderPlacedList();
+}
+
+function daeCellClick(ref, e) {
+  e.stopPropagation();
+  daeSelectedCell = ref;
+  daeRenderGrid();
+  const popup = document.getElementById('daePlacePopup');
+  document.getElementById('daePlacePopupTitle').textContent = `📍 ${ref} 에 배치`;
+  const rect = e.target.closest('td').getBoundingClientRect();
+  const pw = 220, ph = 200;
+  let top = rect.bottom + 6;
+  let left = rect.left;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+  popup.style.top = top + 'px';
+  popup.style.left = Math.max(8, left) + 'px';
+  popup.classList.add('show');
+}
+
+function daePlaceItem(type) {
+  if (!daeSelectedCell) return;
+  if (type === null) delete daePlacements[daeSelectedCell];
+  else daePlacements[daeSelectedCell] = type;
+  daeSelectedCell = null;
+  document.getElementById('daePlacePopup').classList.remove('show');
+  daeRenderGrid();
+}
+
+function daeRenderPlacedList() {
+  const keys = Object.keys(daePlacements);
+  const listEl = document.getElementById('daePlacedList');
+  const itemsEl = document.getElementById('daePlacedItems');
+  if (!listEl || !itemsEl) return;
+  if (!keys.length) { listEl.style.display='none'; return; }
+  listEl.style.display='block';
+  itemsEl.innerHTML = keys.sort().map(ref => {
+    const t = daePlacements[ref];
+    const it = DAE_ITEMS[t];
+    return `<div class="dae-placed-row">
+      <span>${it?.icon} ${it?.label}</span>
+      <span style="font-weight:700;color:var(--accent)">${ref}</span>
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('daePlacePopup')?.classList.remove('show');
+  daeSelectedCell = null;
+});
+
 function scLinkTo3D() {
   const w = (scM * 1.8).toFixed(1);
   const d = (scN * 0.9).toFixed(1);
@@ -6863,7 +7021,7 @@ function scSwitchTab(tab) {
     document.getElementById('sc-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('sc-page-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === '3d') daeUpdateInfo();
+  if (tab === '3d') { daeUpdateInfo(); daeRenderGrid(); }
 }
 
 function daeLocTab(loc) {
@@ -6882,6 +7040,7 @@ function daeUpdateInfo() {
   const areaEl = document.getElementById('dae-calc-area');
   if (sizeEl) sizeEl.textContent = `${w.toFixed(1)}m × ${d.toFixed(1)}m`;
   if (areaEl) areaEl.textContent = `${py.toFixed(1)}평 (${m2.toFixed(2)}m²)`;
+  daeRenderGrid();
 }
 
 function daePhotoSelected(input) {
