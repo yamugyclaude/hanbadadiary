@@ -1502,7 +1502,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-15</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-16</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -4066,18 +4066,18 @@ async function uploadPhotoToStorage(logId, type, idx, base64) {
     for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
     const blob = new Blob([ab], { type: 'image/jpeg' });
     const path = `soundlogs/${logId}/${type}_${idx}.jpg`;
-    const res = await fetch(`${SB_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+    const res = await fetch(`${STORAGE_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
       method: 'POST',
       headers: {
-        'apikey': SB_KEY,
-        'Authorization': `Bearer ${SB_KEY}`,
+        'apikey': STORAGE_KEY,
+        'Authorization': `Bearer ${STORAGE_KEY}`,
         'Content-Type': 'image/jpeg',
         'x-upsert': 'true'
       },
       body: blob
     });
     if (!res.ok) return null;
-    return `${SB_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
+    return `${STORAGE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
   } catch(e) { return null; }
 }
 
@@ -4089,9 +4089,9 @@ async function deletePhotosFromStorage(log) {
       const marker = `/storage/v1/object/public/${PHOTO_BUCKET}/`;
       const path = url.split(marker)[1];
       if (!path) continue;
-      await fetch(`${SB_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+      await fetch(`${STORAGE_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
         method: 'DELETE',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+        headers: { 'apikey': STORAGE_KEY, 'Authorization': `Bearer ${STORAGE_KEY}` }
       });
     } catch(e) {}
   }
@@ -6555,8 +6555,12 @@ el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 // ── Supabase 설정 ──
-const SB_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk';
+// DB (soundlogs, tasks, vehicle_data 등 텍스트 데이터)
+const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
+// Storage (사진·3D 파일 — 별도 프로젝트, 용량 분리)
+const STORAGE_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
+const STORAGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk';
 const PHOTO_BUCKET = 'event-photos'; // Supabase Storage 버킷명 (public, Dashboard에서 생성 필요)
 
 // 일지 하나를 Supabase에 저장 (개별 upsert)
@@ -8405,11 +8409,11 @@ async function lib3dUpload(input) {
   showToast('⏳ 업로드 중...');
 
   try {
-    const res = await fetch(`${SB_URL}/storage/v1/object/${LIB3D_BUCKET}/${path}`, {
+    const res = await fetch(`${STORAGE_URL}/storage/v1/object/${LIB3D_BUCKET}/${path}`, {
       method: 'POST',
       headers: {
-        'apikey': SB_KEY,
-        'Authorization': `Bearer ${SB_KEY}`,
+        'apikey': STORAGE_KEY,
+        'Authorization': `Bearer ${STORAGE_KEY}`,
         'Content-Type': 'application/octet-stream',
         'x-upsert': 'true'
       },
@@ -8424,7 +8428,7 @@ async function lib3dUpload(input) {
       return;
     }
     if (warn) warn.style.display = 'none';
-    const url = `${SB_URL}/storage/v1/object/public/${LIB3D_BUCKET}/${path}`;
+    const url = `${STORAGE_URL}/storage/v1/object/public/${LIB3D_BUCKET}/${path}`;
     lib3dModels.push({
       id, type, typeName, name: file.name.replace(/\.dae$/i, ''),
       url, path, size: file.size, uploaded: new Date().toISOString().slice(0,10), active: false
@@ -8461,9 +8465,9 @@ async function lib3dDelete(id) {
   const m = lib3dModels.find(x => x.id === id);
   if (!m) return;
   try {
-    await fetch(`${SB_URL}/storage/v1/object/${LIB3D_BUCKET}/${m.path}`, {
+    await fetch(`${STORAGE_URL}/storage/v1/object/${LIB3D_BUCKET}/${m.path}`, {
       method: 'DELETE',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+      headers: { 'apikey': STORAGE_KEY, 'Authorization': `Bearer ${STORAGE_KEY}` }
     });
   } catch(e) {}
   lib3dModels = lib3dModels.filter(x => x.id !== id);
