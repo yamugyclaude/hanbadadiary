@@ -1691,6 +1691,14 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div class="stagecalc-result-val" id="sc-r-clamp-total">—</div>
             <div class="stagecalc-result-sub">1개+2개+4개짜리</div>
           </div>
+          <div class="stagecalc-result-item" style="grid-column:1/-1">
+            <div class="stagecalc-result-label">무대 면적</div>
+            <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+              <div><span class="stagecalc-result-val sc-blue" id="sc-r-pyeong">—</span><span style="font-size:13px;color:var(--text-muted);margin-left:4px">평</span></div>
+              <div><span class="stagecalc-result-val" style="font-size:20px" id="sc-r-m2">—</span><span style="font-size:13px;color:var(--text-muted);margin-left:4px">m²</span></div>
+            </div>
+            <div class="stagecalc-result-sub" id="sc-r-area-sub"></div>
+          </div>
         </div>
       </div>
 
@@ -6825,7 +6833,14 @@ function scUpdate() {
   const c4      = (scM - 1) * (scN - 1);
   const cTotal  = c1 + c2 + c4;
 
-  el('sc-configLabel').textContent    = `${scM}판 × ${scN}줄 (${(scM*1.8).toFixed(1)}m × ${(scN*0.9).toFixed(1)}m)`;
+  const scW   = scM * 1.8;
+  const scD   = scN * 0.9;
+  const scM2  = scW * scD;
+  const scPy  = scM2 / 3.3058;
+  el('sc-r-pyeong').textContent  = scPy.toFixed(1);
+  el('sc-r-m2').textContent      = scM2.toFixed(2);
+  el('sc-r-area-sub').textContent = `${scW.toFixed(1)}m × ${scD.toFixed(1)}m`;
+  el('sc-configLabel').textContent = `${scM}판 × ${scN}줄 (${scW.toFixed(1)}m × ${scD.toFixed(1)}m / ${scPy.toFixed(1)}평)`;
   el('sc-r-panel').textContent        = panel;
   el('sc-r-panel-sub').textContent    = `${scM}판 × ${scN}줄`;
   el('sc-r-leg').textContent          = jijidae;
