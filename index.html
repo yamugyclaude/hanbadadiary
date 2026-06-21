@@ -1503,7 +1503,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="logo">한바다<span>일지</span></div>
     <span id="headerUserBadge" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(61,186,150,0.3);border-radius:20px;padding:3px 10px;flex-shrink:0;white-space:nowrap;"></span>
     <span style="flex:1;"></span>
-    <span style="font-size:10px;color:var(--text-muted);opacity:0.5;flex-shrink:0">v0621-5</span>
+    <span style="font-size:10px;color:var(--text-muted);opacity:0.5;flex-shrink:0">v0621-6</span>
     <button onclick="location.reload(true)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">↺</button>
     <button onclick="openThemeModal()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">🎨</button>
     <button onclick="openUserMgmt()" id="adminBtn" style="display:none;background:none;border:1px solid var(--accent2);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👥 관리</button>
@@ -8159,12 +8159,18 @@ function lib3dRender() {
     const ico = EQ_ICONS[m.type] || '📐';
     const kb = (m.size / 1024).toFixed(0);
     const isOn = m.active;
+    const sc = m.scale || 1.0;
     return `<div class="lib3d-item${isOn?' active':''}">
       <div class="lib3d-item-ico">${ico}</div>
       <div class="lib3d-item-info">
         <div class="lib3d-item-name">${m.name}</div>
         <div class="lib3d-item-meta">${m.typeName} · ${kb}KB · ${m.uploaded}</div>
         <span class="lib3d-item-tag${isOn?' active':''}">${isOn?'✓ 내보내기 적용':'미적용'}</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+          <span style="font-size:11px;color:var(--text-muted)">배율</span>
+          <input type="number" step="0.01" min="0.001" value="${sc}" style="width:70px;padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px" onchange="lib3dSetScale('${m.id}',this.value)">
+          <span style="font-size:10px;color:var(--text-muted)">× (자동감지됨)</span>
+        </div>
       </div>
       <div class="lib3d-item-btns">
         <button class="set-btn${isOn?' on':''}" onclick="lib3dToggleActive('${m.id}')">${isOn?'적용중':'적용'}</button>
@@ -8172,6 +8178,14 @@ function lib3dRender() {
       </div>
     </div>`;
   }).join('');
+}
+
+function lib3dSetScale(id, val) {
+  const m = lib3dModels.find(x => x.id === id);
+  if (!m) return;
+  m.scale = parseFloat(val) || 1.0;
+  lib3dSaveCloud();
+  showToast('배율 저장됨');
 }
 
 function lib3dToggleActive(id) {
@@ -8225,9 +8239,13 @@ async function _embedDaeModel(url, prefix) {
     const nodeM = vsRaw.match(/^<node[^>]*>([\s\S]*)<\/node>\s*$/i);
     const sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
 
-    console.log('[embed]', prefix, { geoms: geoms.length, mats: mats.length, effs: effs.length, imgs: imgs.length, libNodes: libNodes.length, sceneNodes: sceneNodes.length });
+    // 소스 단위 스케일 자동 감지 (SketchUp 인치=0.0254, mm=0.001 등)
+    const unitM = text.match(/<unit[^>]+meter="([^"]+)"/i);
+    const unitScale = unitM ? parseFloat(unitM[1]) : 1.0;
+
+    console.log('[embed]', prefix, { geoms: geoms.length, libNodes: libNodes.length, sceneNodes: sceneNodes.length, unitScale });
     if (!geoms && !sceneNodes && !libNodes) return null;
-    return { geoms, mats, effs, imgs, libNodes, sceneNodes };
+    return { geoms, mats, effs, imgs, libNodes, sceneNodes, unitScale };
   } catch(e) {
     console.warn('embed failed:', e);
     return null;
@@ -8344,8 +8362,14 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         libNodes += embedded.libNodes || '';
         mats     += embedded.mats;
         effs     += embedded.effs;
+        const us = embedded.unitScale || 1.0;
+        const userScale = parseFloat(realModel.scale || 1.0);
+        const finalScale = us * userScale;
+        const scaleTag = Math.abs(finalScale - 1.0) > 0.00001
+          ? `<scale>${finalScale} ${finalScale} ${finalScale}</scale>` : '';
         nodes += `<node id="Item${i}" name="${name}" type="NODE">
           <translate>${cx} ${cy} ${iz}</translate>
+          ${scaleTag}
           ${embedded.sceneNodes}
         </node>`;
         continue;
