@@ -11,23 +11,23 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
---bg: #080a0e;
---surface: #0f1218;
---surface2: #141820;
---surface3: #1a2030;
---border: #1e2636;
---border2: #253248;
---accent: #3dba96;
---accent-dim: rgba(61,186,150,0.15);
---accent-selected: rgba(61,186,150,0.22);
---accent2: #d97248;
---accent2-dim: rgba(217,114,72,0.13);
---accent2-selected: rgba(217,114,72,0.22);
---gold: #c9a84c;
---gold-dim: rgba(201,168,76,0.12);
---text: #e2e8f4;
---text2: #9aaac0;
---text-muted: #4a5568;
+--bg: #080c18;
+--surface: #0e1628;
+--surface2: #141f38;
+--surface3: #1b2a4a;
+--border: rgba(99,130,200,0.18);
+--border2: rgba(99,130,200,0.32);
+--accent: #818cf8;
+--accent-dim: rgba(129,140,248,0.15);
+--accent-selected: rgba(129,140,248,0.25);
+--accent2: #f472b6;
+--accent2-dim: rgba(244,114,182,0.14);
+--accent2-selected: rgba(244,114,182,0.24);
+--gold: #fbbf24;
+--gold-dim: rgba(251,191,36,0.14);
+--text: #f1f5f9;
+--text2: #94a3b8;
+--text-muted: #64748b;
 --unselected-bg: #0d1018;
 --unselected-border: #1e2636;
 --safe-top: env(safe-area-inset-top, 0px);
@@ -57,7 +57,7 @@ margin: 0 auto;
 
 /* ─── HEADER ─── */
 header {
-background: var(--surface);
+background: linear-gradient(180deg, var(--surface2) 0%, var(--surface) 100%);
 border-bottom: 1px solid var(--border);
 padding: 13px 18px;
 padding-top: calc(13px + var(--safe-top));
@@ -65,14 +65,16 @@ display: flex;
 align-items: center;
 justify-content: space-between;
 flex-shrink: 0;
+gap: 8px;
 }
-.logo { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: 3px; }
+.logo { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: 3px; flex-shrink: 0; }
 .logo span { color: var(--accent2); }
 
 /* ─── NAV TABS ─── */
 .nav-tabs-wrap {
 position: relative;
 flex-shrink: 0;
+background: var(--surface);
 }
 .nav-fade-right, .nav-fade-left {
 position: absolute; top: 0; bottom: 0; width: 48px;
@@ -110,16 +112,22 @@ flex: 0 0 auto;
 padding: 12px 18px;
 text-align: center;
 font-size: 13px;
-font-weight: 700;
-color: var(--text-muted);
+font-weight: 600;
+color: var(--text2);
 cursor: pointer;
 border-bottom: 2.5px solid transparent;
 margin-bottom: -2px;
-transition: all 0.15s;
+transition: all 0.18s;
 user-select: none;
 white-space: nowrap;
+letter-spacing: 0.01em;
 }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-dim); }
+.nav-tab.active {
+color: var(--accent);
+border-bottom-color: var(--accent);
+background: var(--accent-dim);
+text-shadow: 0 0 20px var(--accent-dim);
+}
 .nav-tab:active { opacity: 0.7; }
 
 /* ─── PAGES ─── */
@@ -135,9 +143,11 @@ border: 1px solid var(--border);
 border-radius: var(--radius);
 padding: 14px 16px;
 cursor: pointer;
-transition: border-color 0.15s;
+transition: border-color 0.18s, box-shadow 0.18s;
+box-shadow: 0 2px 16px rgba(0,0,0,0.25);
 }
 .log-card:active { border-color: var(--accent); opacity: 0.85; }
+.log-card:hover { border-color: var(--border2); box-shadow: 0 4px 24px rgba(0,0,0,0.35); }
 .log-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 .log-card-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); }
 .log-card-type { font-size: 11px; background: var(--accent-dim); border: 1px solid rgba(79,195,161,0.25); color: var(--accent); padding: 2px 9px; border-radius: 20px; }
@@ -1454,7 +1464,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-8</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-9</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -7008,6 +7018,17 @@ function initRealtime() {
 const THEMES = [
 // ── 다크 계열 ──
 {
+id: 'modern-navy',
+name: '🚀 모던 네이비',
+bg: '#080c18', surface: '#0e1628', surface2: '#141f38', surface3: '#1b2a4a',
+border: 'rgba(99,130,200,0.18)', border2: 'rgba(99,130,200,0.32)',
+accent: '#818cf8', accentDim: 'rgba(129,140,248,0.15)', accentSel: 'rgba(129,140,248,0.25)',
+accent2: '#f472b6', accent2Dim: 'rgba(244,114,182,0.14)', accent2Sel: 'rgba(244,114,182,0.24)',
+gold: '#fbbf24', goldDim: 'rgba(251,191,36,0.14)',
+text: '#f1f5f9', text2: '#94a3b8', textMuted: '#64748b',
+swatches: ['#080c18','#818cf8','#f472b6','#fbbf24']
+},
+{
 id: 'dark-green',
 name: '🌲 다크 그린',
 bg: '#080a0e', surface: '#0f1218', surface2: '#141820', surface3: '#1a2030',
@@ -7015,7 +7036,7 @@ border: '#1e2636', border2: '#253248',
 accent: '#3dba96', accentDim: 'rgba(61,186,150,0.15)', accentSel: 'rgba(61,186,150,0.22)',
 accent2: '#d97248', accent2Dim: 'rgba(217,114,72,0.13)', accent2Sel: 'rgba(217,114,72,0.22)',
 gold: '#c9a84c', goldDim: 'rgba(201,168,76,0.12)',
-text: '#e2e8f4', text2: '#9aaac0', textMuted: '#4a5568',
+text: '#e2e8f4', text2: '#9aaac0', textMuted: '#7a8fa8',
 swatches: ['#080a0e','#3dba96','#d97248','#c9a84c']
 },
 {
@@ -7026,7 +7047,7 @@ border: '#222222', border2: '#333333',
 accent: '#00ff88', accentDim: 'rgba(0,255,136,0.12)', accentSel: 'rgba(0,255,136,0.2)',
 accent2: '#ff4444', accent2Dim: 'rgba(255,68,68,0.12)', accent2Sel: 'rgba(255,68,68,0.2)',
 gold: '#ffcc00', goldDim: 'rgba(255,204,0,0.12)',
-text: '#ffffff', text2: '#aaaaaa', textMuted: '#555555',
+text: '#ffffff', text2: '#b0b8c8', textMuted: '#808a99',
 swatches: ['#000000','#00ff88','#ff4444','#ffcc00']
 },
 // ── 밝은 계열 ──
@@ -7110,7 +7131,7 @@ swatches: ['#fff7f0','#ea580c','#0891b2','#92400e']
 },
 ];
 
-let currentTheme = localStorage.getItem('soundTheme') || 'dark-green';
+let currentTheme = localStorage.getItem('soundTheme') || 'modern-navy';
 
 function applyTheme(id) {
 const t = THEMES.find(t => t.id === id);
