@@ -1454,6 +1454,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-8</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1503,7 +1504,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="logo">한바다<span>일지</span></div>
     <span id="headerUserBadge" style="font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(61,186,150,0.3);border-radius:20px;padding:3px 10px;flex-shrink:0;white-space:nowrap;"></span>
     <span style="flex:1;"></span>
-    <span style="font-size:10px;color:var(--text-muted);opacity:0.5;flex-shrink:0">v0621-7</span>
     <button onclick="location.reload(true)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">↺</button>
     <button onclick="openThemeModal()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);font-size:13px;padding:5px 9px;cursor:pointer;">🎨</button>
     <button onclick="openUserMgmt()" id="adminBtn" style="display:none;background:none;border:1px solid var(--accent2);border-radius:6px;color:var(--accent2);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👥 관리</button>
@@ -7438,12 +7438,23 @@ function daeRenderSVG() {
     const nameFS = Math.max(minD * 0.155, 0.11).toFixed(3);
     const col = baseSz.color;
     const acH = Math.min(pd * 0.22, 0.17);
-    s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">`;
+    const rot = p.rotation || 0;
+    const pcx = p.x.toFixed(3), pcy = p.y.toFixed(3);
+    s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none" transform="rotate(${rot},${pcx},${pcy})">`;
     s += `<rect x="${(p.x-hw+0.05).toFixed(3)}" y="${(p.y-hd+0.05).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="rgba(0,0,0,0.45)" rx="0.09"/>`;
     s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.9" stroke="rgba(255,255,255,0.28)" stroke-width="0.038" rx="0.09"/>`;
     s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${acH.toFixed(3)}" fill="rgba(255,255,255,0.13)" rx="0.09"/>`;
-    s += `<text x="${p.x.toFixed(3)}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${codeFS}" font-weight="800">${code}</text>`;
-    s += `<text x="${p.x.toFixed(3)}" y="${(p.y+hd*0.63).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.58)" font-size="${nameFS}">${it.label}</text>`;
+    s += `<text x="${pcx}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${codeFS}" font-weight="800">${code}</text>`;
+    s += `<text x="${pcx}" y="${(p.y+hd*0.63).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.58)" font-size="${nameFS}">${it.label}</text>`;
+    // 방향 화살표 (위쪽 = 전면)
+    const aw = minD * 0.18;
+    const aTip = p.y - hd + aw * 0.5;
+    s += `<polygon points="${pcx},${aTip.toFixed(3)} ${(p.x-aw*0.7).toFixed(3)},${(aTip+aw).toFixed(3)} ${(p.x+aw*0.7).toFixed(3)},${(aTip+aw).toFixed(3)}" fill="rgba(255,235,60,0.95)" stroke="rgba(0,0,0,0.3)" stroke-width="0.012"/>`;
+    // 회전 버튼 (우상단)
+    const br = minD * 0.15;
+    const bx = p.x + hw - br * 1.3, by = p.y - hd + br * 1.3;
+    s += `<circle cx="${bx.toFixed(3)}" cy="${by.toFixed(3)}" r="${br.toFixed(3)}" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.4)" stroke-width="0.018" onpointerdown="event.stopPropagation();daeRotatePlacement(${p.id})" style="cursor:pointer"/>`;
+    s += `<text x="${bx.toFixed(3)}" y="${by.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${(br*1.4).toFixed(3)}" onpointerdown="event.stopPropagation();daeRotatePlacement(${p.id})" style="cursor:pointer">↻</text>`;
     s += `</g>`;
   });
 
@@ -7589,6 +7600,13 @@ function daeRefreshPopupCurrentItems() {
         <button onclick="daeRemovePlacement(${p.id})" style="background:none;border:none;color:#f66;cursor:pointer;font-size:14px;padding:0 2px">✕</button>
       </div>`;
     }).join('');
+}
+
+function daeRotatePlacement(id) {
+  const p = daePlacements.find(x => x.id === id);
+  if (!p) return;
+  p.rotation = (((p.rotation || 0) + 90) % 360);
+  daeRenderSVG();
 }
 
 function daeRemovePlacement(id) {
@@ -7932,13 +7950,13 @@ function daePlaceItem(type) {
     daeRenderSVG();
   } else if (type === 'truss') {
     const id = daeNextId++;
-    daePlacements.push({id, type, x: daeSelectedPos.x, y: daeSelectedPos.y});
+    daePlacements.push({id, type, x: daeSelectedPos.x, y: daeSelectedPos.y, rotation: 0});
     document.getElementById('daePlacePopup').classList.remove('show');
     daeSelectedPos = null;
     daeRenderSVG();
     openTrussConfig(id, null);
   } else {
-    daePlacements.push({id: daeNextId++, type, x: daeSelectedPos.x, y: daeSelectedPos.y});
+    daePlacements.push({id: daeNextId++, type, x: daeSelectedPos.x, y: daeSelectedPos.y, rotation: 0});
     daeRefreshPopupCurrentItems();
     daeRenderSVG();
   }
@@ -8368,16 +8386,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         const scaleTag = Math.abs(finalScale - 1.0) > 0.00001
           ? `<scale>${finalScale} ${finalScale} ${finalScale}</scale>` : '';
 
-        // 무대 중심(0,0) 기준으로 모니터가 어느 방향인지 계산 → Z축 회전
-        let rotZ = 0;
-        if (p.type === 'monitor' || p.type === 'speaker' || p.type === 'sub') {
-          const dx = cx, dy = cy;
-          if (Math.abs(dy) >= Math.abs(dx)) {
-            rotZ = dy < 0 ? 0 : 180;   // 앞(south) → 0°, 뒤(north) → 180°
-          } else {
-            rotZ = dx > 0 ? -90 : 90;  // 우(east) → -90°, 좌(west) → 90°
-          }
-        }
+        // 평면도 회전값 → DAE Z축 회전 (SVG CW → DAE CCW)
+        const rotZ = -((p.rotation || 0));
         const rotTag = rotZ !== 0 ? `<rotate>0 0 1 ${rotZ}</rotate>` : '';
 
         nodes += `<node id="Item${i}" name="${name}" type="NODE">
@@ -8395,8 +8405,11 @@ async function daeGenerate({ w, d, h, stair, memo }) {
     geoms += boxGeom(gid, rw, rd, rh);
     mats  += `<material id="mat-${gid}"><instance_effect url="#eff-i${i}"/></material>`;
     effs  += `<effect id="eff-i${i}"><profile_COMMON><technique sid="common"><phong><diffuse><color>${hexRgb(iColor)}</color></diffuse></phong></technique></profile_COMMON></effect>`;
+    const boxRotZ = -((p.rotation || 0));
+    const boxRotTag = boxRotZ !== 0 ? `<rotate>0 0 1 ${boxRotZ}</rotate>` : '';
     nodes += `<node id="Item${i}" name="${name}" type="NODE">
       <translate>${cx} ${cy} ${iz}</translate>
+      ${boxRotTag}
       <instance_geometry url="#${gid}">
         <bind_material><technique_common><instance_material symbol="mat-${gid}" target="#mat-${gid}"/></technique_common></bind_material>
       </instance_geometry>
