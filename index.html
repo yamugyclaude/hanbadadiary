@@ -2322,6 +2322,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <!-- 배치 팝업 -->
 <div class="dae-place-popup" id="daePlacePopup">
   <div class="dae-place-popup-title" id="daePlacePopupTitle">셀 선택</div>
+  <div id="daeCellCurrentItems" style="display:none;padding:4px 6px;margin-bottom:6px;border-bottom:1px solid #444;font-size:12px"></div>
   <div class="dae-place-grid">
     <div class="dae-place-item" onclick="daePlaceItem('speaker')"><span>🔊</span><span>메인스피커</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('sub')"><span>📦</span><span>서브우퍼</span></div>
@@ -2334,7 +2335,10 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="dae-place-item" onclick="daePlaceItem('power')"><span>⚡</span><span>전기</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('person')"><span>👥</span><span>관객석</span></div>
     <div class="dae-place-item" onclick="daePlaceItem('mic')"><span>🎤</span><span>마이크스탠드</span></div>
-    <div class="dae-place-item del" onclick="daePlaceItem(null)"><span>🗑️</span><span>지우기</span></div>
+    <div class="dae-place-item del" onclick="daePlaceItem(null)"><span>🗑️</span><span>전체삭제</span></div>
+  </div>
+  <div style="text-align:right;padding:4px 6px 0">
+    <button onclick="document.getElementById('daePlacePopup').classList.remove('show');daeSelectedCell=null;" style="font-size:11px;padding:3px 10px;background:#555;border:none;color:#fff;border-radius:4px;cursor:pointer">완료</button>
   </div>
 </div>
 
@@ -6922,7 +6926,7 @@ const DAE_ITEMS = {
   person:  {icon:'👥', label:'관객석'},
   mic:     {icon:'🎤', label:'마이크스탠드'},
 };
-let daePlacements = {}; // key: "B3", value: type string
+let daePlacements = {}; // key: "B3", value: string[] (array of types)
 let daeSelectedCell = null;
 const DAE_PAD = 3; // 무대 바깥 여백 칸수
 
@@ -6946,10 +6950,15 @@ function daeRenderGrid() {
     for (let c = 0; c < cols; c++) {
       const isStage = c >= DAE_PAD && c < DAE_PAD + stageW && r >= DAE_PAD && r < DAE_PAD + stageD;
       const ref = daeColLabel(c) + (r+1);
-      const item = daePlacements[ref];
+      const items = daePlacements[ref] || [];
       const cls = `${isStage?'cell-stage':'cell-outside'}${daeSelectedCell===ref?' cell-selected':''}`;
       html += `<td class="${cls}" onclick="daeCellClick('${ref}',event)">`;
-      if (item) html += `<span style="font-size:20px">${DAE_ITEMS[item]?.icon||''}</span>`;
+      if (items.length === 1) {
+        html += `<span style="font-size:20px">${DAE_ITEMS[items[0]]?.icon||''}</span>`;
+      } else if (items.length > 1) {
+        html += `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1px;line-height:1">` +
+          items.map(t => `<span style="font-size:12px">${DAE_ITEMS[t]?.icon||''}</span>`).join('') + `</div>`;
+      }
       html += `<span class="dae-cell-label">${ref}</span></td>`;
     }
     html += '</tr>';
@@ -6959,14 +6968,39 @@ function daeRenderGrid() {
   daeRenderPlacedList();
 }
 
+function daeRefreshPopupCurrentItems() {
+  const el = document.getElementById('daeCellCurrentItems');
+  if (!el) return;
+  const items = daeSelectedCell ? (daePlacements[daeSelectedCell] || []) : [];
+  if (!items.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = `<div style="color:#aaa;margin-bottom:3px">현재 배치:</div>` +
+    items.map((t, i) => {
+      const it = DAE_ITEMS[t];
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">
+        <span>${it?.icon} ${it?.label}</span>
+        <button onclick="daeRemoveCellItem(${i})" style="background:none;border:none;color:#f66;cursor:pointer;font-size:14px;padding:0 2px">✕</button>
+      </div>`;
+    }).join('');
+}
+
+function daeRemoveCellItem(idx) {
+  if (!daeSelectedCell || !daePlacements[daeSelectedCell]) return;
+  daePlacements[daeSelectedCell].splice(idx, 1);
+  if (!daePlacements[daeSelectedCell].length) delete daePlacements[daeSelectedCell];
+  daeRefreshPopupCurrentItems();
+  daeRenderGrid();
+}
+
 function daeCellClick(ref, e) {
   e.stopPropagation();
   daeSelectedCell = ref;
   daeRenderGrid();
   const popup = document.getElementById('daePlacePopup');
   document.getElementById('daePlacePopupTitle').textContent = `📍 ${ref} 에 배치`;
+  daeRefreshPopupCurrentItems();
   const rect = e.target.closest('td').getBoundingClientRect();
-  const pw = 220, ph = 200;
+  const pw = 220, ph = 280;
   let top = rect.bottom + 6;
   let left = rect.left;
   if (top + ph > window.innerHeight) top = rect.top - ph - 6;
@@ -6978,10 +7012,13 @@ function daeCellClick(ref, e) {
 
 function daePlaceItem(type) {
   if (!daeSelectedCell) return;
-  if (type === null) delete daePlacements[daeSelectedCell];
-  else daePlacements[daeSelectedCell] = type;
-  daeSelectedCell = null;
-  document.getElementById('daePlacePopup').classList.remove('show');
+  if (type === null) {
+    delete daePlacements[daeSelectedCell];
+  } else {
+    if (!daePlacements[daeSelectedCell]) daePlacements[daeSelectedCell] = [];
+    daePlacements[daeSelectedCell].push(type);
+  }
+  daeRefreshPopupCurrentItems();
   daeRenderGrid();
 }
 
@@ -6993,12 +7030,14 @@ function daeRenderPlacedList() {
   if (!keys.length) { listEl.style.display='none'; return; }
   listEl.style.display='block';
   itemsEl.innerHTML = keys.sort().map(ref => {
-    const t = daePlacements[ref];
-    const it = DAE_ITEMS[t];
-    return `<div class="dae-placed-row">
-      <span>${it?.icon} ${it?.label}</span>
-      <span style="font-weight:700;color:var(--accent)">${ref}</span>
-    </div>`;
+    const types = daePlacements[ref];
+    return types.map(t => {
+      const it = DAE_ITEMS[t];
+      return `<div class="dae-placed-row">
+        <span>${it?.icon} ${it?.label}</span>
+        <span style="font-weight:700;color:var(--accent)">${ref}</span>
+      </div>`;
+    }).join('');
   }).join('');
 }
 
