@@ -1412,6 +1412,78 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .stagecalc-leg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
 .stagecalc-leg-box { width:14px; height:5px; border-radius:2px; }
 .stagecalc-reset-btn { width:100%; padding:11px; border:1px solid var(--border2); border-radius:10px; background:transparent; color:var(--text-muted); font-size:13px; cursor:pointer; margin-top:4px; font-family:'Noto Sans KR',sans-serif; }
+
+/* ===== AI 채팅 ===== */
+#aiBtnFloat {
+  position:fixed; right:16px; bottom:80px; z-index:3000;
+  width:52px; height:52px; border-radius:50%;
+  background:var(--accent); color:#fff; border:none;
+  font-size:22px; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.35);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .2s, box-shadow .2s;
+}
+#aiBtnFloat:hover { transform:scale(1.08); box-shadow:0 6px 20px rgba(0,0,0,.45); }
+#aiChatPanel {
+  position:fixed; z-index:3100; display:none; flex-direction:column;
+  background:var(--surface); border:1px solid var(--border);
+  box-shadow:0 8px 32px rgba(0,0,0,.4); overflow:hidden;
+  /* PC */
+  right:16px; bottom:148px; width:400px; height:560px; border-radius:16px;
+}
+@media(max-width:600px){
+  #aiChatPanel {
+    right:0; bottom:0; left:0; top:auto;
+    width:100%; height:82vh; border-radius:16px 16px 0 0;
+    border-bottom:none;
+  }
+}
+#aiChatPanel.open { display:flex; }
+#aiChatHeader {
+  display:flex; align-items:center; gap:8px; padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2); flex-shrink:0;
+}
+#aiChatHeader span.ai-title { flex:1; font-weight:700; font-size:15px; }
+#aiChatHeader button {
+  background:none; border:none; color:var(--text-muted);
+  font-size:18px; cursor:pointer; padding:2px 6px; border-radius:6px;
+}
+#aiChatHeader button:hover { background:var(--border); color:var(--text); }
+#aiChatMsgs {
+  flex:1; overflow-y:auto; padding:12px; display:flex;
+  flex-direction:column; gap:10px;
+}
+.ai-msg { max-width:88%; padding:10px 13px; border-radius:14px; font-size:14px; line-height:1.55; word-break:break-word; white-space:pre-wrap; }
+.ai-msg.user { background:var(--accent); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+.ai-msg.assistant { background:var(--surface2); color:var(--text); align-self:flex-start; border-bottom-left-radius:4px; }
+.ai-msg.system-msg { background:transparent; color:var(--text-muted); font-size:12px; align-self:center; text-align:center; }
+#aiKeyRow {
+  padding:10px 14px; border-top:1px solid var(--border);
+  background:var(--surface2); display:none; gap:6px; flex-shrink:0;
+}
+#aiKeyRow input {
+  flex:1; padding:8px 10px; border:1px solid var(--border2); border-radius:8px;
+  background:var(--bg); color:var(--text); font-size:13px; font-family:'Noto Sans KR',sans-serif;
+}
+#aiKeyRow button { padding:8px 14px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-size:13px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+#aiChatInput {
+  display:flex; align-items:flex-end; gap:6px;
+  padding:10px 12px; border-top:1px solid var(--border);
+  background:var(--surface2); flex-shrink:0;
+}
+#aiChatText {
+  flex:1; resize:none; padding:10px 12px; border:1px solid var(--border2);
+  border-radius:12px; background:var(--bg); color:var(--text);
+  font-size:14px; font-family:'Noto Sans KR',sans-serif;
+  max-height:120px; min-height:42px; overflow-y:auto; line-height:1.5;
+}
+#aiChatText:focus { outline:none; border-color:var(--accent); }
+#aiSendBtn {
+  width:40px; height:40px; border-radius:50%; border:none;
+  background:var(--accent); color:#fff; font-size:18px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+#aiSendBtn:disabled { opacity:.4; cursor:not-allowed; }
 </style>
 
 </head>
@@ -1502,7 +1574,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-17</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-18</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9046,7 +9118,182 @@ function scDrawDiagram(M, N, spans, rowSpans) {
 }
 
 function scReset() { scM = 1; scN = 1; scUpdate(); }
+
+/* ===== AI 채팅 ===== */
+let GROK_KEY = localStorage.getItem('grokApiKey') || '';
+let aiHistory = [];
+let aiStreaming = false;
+
+function toggleAiChat() {
+  const panel = document.getElementById('aiChatPanel');
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+  } else {
+    panel.classList.add('open');
+    if (!GROK_KEY) showAiKeyRow(true);
+    if (aiHistory.length === 0) appendAiMsg('system-msg', '안녕하세요! 한바다 음향팀 AI 비서입니다 🤖\n행사 일정, 업무, 장비 등 무엇이든 물어보세요.');
+    document.getElementById('aiChatText').focus();
+  }
+}
+
+function showAiKeyRow(show) {
+  const row = document.getElementById('aiKeyRow');
+  if (row) row.style.display = show ? 'flex' : 'none';
+}
+
+function saveAiKey() {
+  const inp = document.getElementById('aiKeyInput');
+  if (!inp) return;
+  const k = inp.value.trim();
+  if (!k) { showToast('API 키를 입력하세요.'); return; }
+  GROK_KEY = k;
+  localStorage.setItem('grokApiKey', k);
+  showAiKeyRow(false);
+  showToast('API 키가 저장되었습니다.');
+  inp.value = '';
+}
+
+function buildSystemPrompt() {
+  const today = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  const logsJson = JSON.stringify((logs || []).slice(0, 80).map(l => ({
+    date: l.date, name: l.eventName, venue: l.venue,
+    console: l.console, speakers: l.speakers,
+    issue: l.issue, weather: l.weather
+  })));
+  const allTasks = [
+    ...(warehouseTasks || []).map(t => ({ ...t, type:'창고' })),
+    ...(officeTasks || []).map(t => ({ ...t, type:'사무실' })),
+    ...(directiveTasks || []).map(t => ({ ...t, type:'대표지시' }))
+  ];
+  const tasksJson = JSON.stringify(allTasks.slice(0, 60));
+  const equipSummary = equipmentData ? Object.entries(equipmentData).map(([cat, items]) => `${cat}:${(items||[]).length}종`).join(', ') : '미로드';
+  const albaSummary = albaData && albaData.workers ? `알바 ${albaData.workers.length}명 등록` : '미로드';
+  return `당신은 한바다 음향팀의 전담 업무 비서입니다. 오늘: ${today}
+[행사일지 최근 80건] ${logsJson}
+[업무 목록] ${tasksJson}
+[장비 현황] ${equipSummary}
+[알바 현황] ${albaSummary}
+모든 답변은 한국어로, 간결하고 실용적으로 하세요. 데이터를 바탕으로 구체적인 수치나 날짜를 포함하여 답변하세요.`;
+}
+
+function appendAiMsg(role, text) {
+  const msgs = document.getElementById('aiChatMsgs');
+  if (!msgs) return null;
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function aiSend() {
+  if (aiStreaming) return;
+  const textarea = document.getElementById('aiChatText');
+  const sendBtn = document.getElementById('aiSendBtn');
+  if (!textarea) return;
+  const text = textarea.value.trim();
+  if (!text) return;
+  if (!GROK_KEY) {
+    showAiKeyRow(true);
+    showToast('Grok API 키를 먼저 입력하세요.');
+    return;
+  }
+  textarea.value = '';
+  textarea.style.height = '';
+  aiHistory.push({ role: 'user', content: text });
+  appendAiMsg('user', text);
+  if (sendBtn) sendBtn.disabled = true;
+  aiStreaming = true;
+  const assistantDiv = appendAiMsg('assistant', '');
+  let accumulated = '';
+  try {
+    const res = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROK_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'grok-3-mini',
+        messages: [{ role: 'system', content: buildSystemPrompt() }, ...aiHistory],
+        stream: true
+      })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`API 오류 ${res.status}: ${err}`);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) {
+            accumulated += delta;
+            if (assistantDiv) {
+              assistantDiv.textContent = accumulated;
+              document.getElementById('aiChatMsgs').scrollTop = document.getElementById('aiChatMsgs').scrollHeight;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+    aiHistory.push({ role: 'assistant', content: accumulated });
+  } catch (e) {
+    if (assistantDiv) assistantDiv.textContent = '오류: ' + e.message;
+    aiHistory.pop();
+  } finally {
+    aiStreaming = false;
+    if (sendBtn) sendBtn.disabled = false;
+    textarea.focus();
+  }
+}
+
+function aiClearHistory() {
+  aiHistory = [];
+  const msgs = document.getElementById('aiChatMsgs');
+  if (msgs) {
+    msgs.innerHTML = '';
+    appendAiMsg('system-msg', '대화 이력이 초기화되었습니다.');
+  }
+}
 </script>
+
+<!-- AI 채팅 플로팅 버튼 -->
+<button id="aiBtnFloat" onclick="toggleAiChat()" title="AI 비서">🤖</button>
+
+<!-- AI 채팅 패널 -->
+<div id="aiChatPanel">
+  <div id="aiChatHeader">
+    <span class="ai-title">🤖 AI 비서</span>
+    <button onclick="const r=document.getElementById('aiKeyRow');showAiKeyRow(r.style.display!=='flex')" title="API 키 설정">⚙️</button>
+    <button onclick="aiClearHistory()" title="대화 초기화">🗑️</button>
+    <button onclick="toggleAiChat()" title="닫기">✕</button>
+  </div>
+  <div id="aiKeyRow" style="display:none;">
+    <input id="aiKeyInput" type="password" placeholder="Grok API 키 입력 (xai-...)" onkeydown="if(event.key==='Enter')saveAiKey()">
+    <button onclick="saveAiKey()">저장</button>
+  </div>
+  <div id="aiChatMsgs"></div>
+  <div id="aiChatInput">
+    <textarea id="aiChatText" placeholder="질문하세요…" rows="1"
+      oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiSend();}"></textarea>
+    <button id="aiSendBtn" onclick="aiSend()">↑</button>
+  </div>
+</div>
 
 </body>
 </html>
