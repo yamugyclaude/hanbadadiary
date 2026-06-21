@@ -7002,7 +7002,7 @@ function daeRenderSVG() {
     const hw = sz.pw/2, hd = sz.pd/2;
     const iconFS = (Math.min(sz.pw, sz.pd) * 0.5).toFixed(3);
     const lblFS  = (Math.min(sz.pw, sz.pd) * 0.22).toFixed(3);
-    s += `<g onclick="daeItemClick(${p.id},event)" style="cursor:pointer">
+    s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">
       <rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${sz.pw}" height="${sz.pd}"
         fill="${sz.color}" fill-opacity="0.92" stroke="rgba(255,255,255,0.55)" stroke-width="0.055" rx="0.1"/>
       <text x="${p.x.toFixed(3)}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" font-size="${iconFS}">${it.icon}</text>
@@ -7036,7 +7036,7 @@ function _daeShowPopup(cx, cy) {
 }
 
 function daeSVGClick(e) {
-  // 장비 아이템 클릭은 daeItemClick이 처리 (stopPropagation)
+  if (daeDragWasMoved) { daeDragWasMoved = false; return; }
   e.stopPropagation();
   const svg = document.getElementById('daeStageSVG');
   if (!svg) return;
@@ -7056,15 +7056,72 @@ function daeSVGClick(e) {
   _daeShowPopup(e.clientX, e.clientY);
 }
 
-function daeItemClick(id, e) {
+// ─── 드래그 ───
+let daeDragState = null;
+let daeDragWasMoved = false;
+
+function daeItemPointerDown(id, e) {
   e.stopPropagation();
+  e.preventDefault();
+  const svg = document.getElementById('daeStageSVG');
+  if (!svg) return;
+  const r = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
   const p = daePlacements.find(pl => pl.id === id);
   if (!p) return;
-  daeSelectedPos = {x: p.x, y: p.y};
-  const it = DAE_ITEMS[p.type];
-  document.getElementById('daePlacePopupTitle').textContent = `${it?.icon} ${it?.label} 선택됨`;
-  daeRefreshPopupCurrentItems();
-  _daeShowPopup(e.clientX, e.clientY);
+  daeDragState = {id, cx: e.clientX, cy: e.clientY, origX: p.x, origY: p.y,
+    r, vbW: vb.width, vbH: vb.height, moved: false};
+  document.addEventListener('pointermove', _daeDragMove, {passive: false});
+  document.addEventListener('pointerup',   _daeDragEnd,  {once: true});
+  document.addEventListener('pointercancel', _daeDragEnd, {once: true});
+}
+
+function _daeDragMove(e) {
+  if (!daeDragState) return;
+  e.preventDefault();
+  const {cx, cy, origX, origY, r, vbW, vbH, id} = daeDragState;
+  const dx = e.clientX - cx, dy = e.clientY - cy;
+  if (!daeDragState.moved && Math.hypot(dx, dy) > 8) {
+    daeDragState.moved = true;
+    document.getElementById('daePlacePopup')?.classList.remove('show');
+  }
+  if (!daeDragState.moved) return;
+  const sx = vbW / r.width, sy = vbH / r.height;
+  const svg = document.getElementById('daeStageSVG');
+  const g = svg?.querySelector(`g[data-id="${id}"]`);
+  if (g) g.setAttribute('transform', `translate(${(dx*sx).toFixed(3)},${(dy*sy).toFixed(3)})`);
+}
+
+function _daeDragEnd(e) {
+  document.removeEventListener('pointermove', _daeDragMove);
+  if (!daeDragState) return;
+  const {cx, cy, origX, origY, r, vbW, vbH, id, moved} = daeDragState;
+  daeDragState = null;
+  if (e.type === 'pointercancel') { daeRenderSVG(); return; }
+  if (!moved) {
+    // 짧은 탭 → 팝업 표시
+    const p = daePlacements.find(pl => pl.id === id);
+    if (p) {
+      daeSelectedPos = {x: p.x, y: p.y};
+      const it = DAE_ITEMS[p.type];
+      document.getElementById('daePlacePopupTitle').textContent = `${it?.icon} ${it?.label} 선택됨`;
+      daeRefreshPopupCurrentItems();
+      _daeShowPopup(e.clientX, e.clientY);
+    }
+    return;
+  }
+  // 드래그 완료 → 스냅 후 저장
+  daeDragWasMoved = true;
+  setTimeout(() => { daeDragWasMoved = false; }, 150);
+  const dx = e.clientX - cx, dy = e.clientY - cy;
+  const sx = vbW / r.width, sy = vbH / r.height;
+  const snap = 0.5;
+  const p = daePlacements.find(pl => pl.id === id);
+  if (p) {
+    p.x = parseFloat((Math.round((origX + dx*sx) / snap) * snap).toFixed(2));
+    p.y = parseFloat((Math.round((origY + dy*sy) / snap) * snap).toFixed(2));
+  }
+  daeRenderSVG();
 }
 
 function daeRefreshPopupCurrentItems() {
