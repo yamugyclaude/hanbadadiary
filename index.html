@@ -1256,16 +1256,12 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .dae-loc-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(99,102,241,.08); }
 .dae-loc-content { display:none; }
 .dae-loc-content.active { display:block; }
-/* ─── 배치 그리드 ─── */
-.dae-grid-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; }
-.dae-grid-table { border-collapse:collapse; font-size:11px; user-select:none; -webkit-user-select:none; }
-.dae-grid-table th { width:28px; min-width:28px; height:22px; text-align:center; color:var(--text-muted); font-weight:700; background:var(--surface2); border:1px solid var(--border); font-size:10px; }
-.dae-grid-table td { width:44px; min-width:44px; height:44px; text-align:center; vertical-align:middle; border:1px solid var(--border2); cursor:pointer; position:relative; font-size:18px; transition:background .1s; }
-.dae-grid-table td.cell-stage { background:rgba(160,100,40,0.13); border-color:rgba(160,100,40,0.3); }
-.dae-grid-table td.cell-outside { background:var(--surface2); }
-.dae-grid-table td.cell-selected { outline:2px solid var(--accent); outline-offset:-2px; }
-.dae-grid-table td:active { background:rgba(99,102,241,0.15); }
-.dae-cell-label { position:absolute; bottom:1px; right:3px; font-size:8px; color:var(--text-muted); line-height:1; }
+/* ─── SVG 무대 평면도 ─── */
+#daeSVGWrap { width:100%; overflow:hidden; border-radius:10px; }
+#daeSVGWrap svg { display:block; width:100%; touch-action:manipulation; }
+.dae-svg-legend { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.dae-leg-box { font-size:11px; padding:3px 9px; border-radius:5px; color:rgba(255,255,255,0.9); font-weight:600; }
+.dae-leg-clear { font-size:11px; padding:3px 9px; border-radius:5px; border:1px solid var(--border2); background:none; color:var(--text-muted); cursor:pointer; margin-left:auto; }
 /* 배치 팝업 */
 .dae-place-popup { display:none; position:fixed; z-index:3000; background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:10px; box-shadow:0 8px 32px rgba(0,0,0,0.3); width:220px; }
 .dae-place-popup.show { display:block; }
@@ -1811,16 +1807,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
         </div>
 
-        <!-- 배치 그리드 -->
+        <!-- 무대 평면도 -->
         <div class="dae-section">
-          <div class="dae-section-label">🗺️ 배치 그리드 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 셀 클릭 → 장비/구조물 선택</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
-            <span style="display:inline-block;width:12px;height:12px;background:rgba(160,100,40,0.3);border:1px solid rgba(160,100,40,0.5);border-radius:2px;vertical-align:middle;margin-right:4px"></span>무대
-            <span style="display:inline-block;width:12px;height:12px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;vertical-align:middle;margin:0 4px 0 10px"></span>외부 공간
+          <div class="dae-section-label">🗺️ 무대 평면도 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 빈 곳 클릭 → 장비 배치 / 장비 클릭 → 삭제</span></div>
+          <div class="dae-svg-legend">
+            <span class="dae-leg-box" style="background:#5c3a1e">무대</span>
+            <span class="dae-leg-box" style="background:#0d2a42">관객석</span>
+            <button class="dae-leg-clear" onclick="daePlacements=[];daeNextId=1;daeRenderSVG();showToast('배치 초기화')">🗑️ 초기화</button>
           </div>
-          <div class="dae-grid-wrap">
-            <table class="dae-grid-table" id="daeGrid"></table>
-          </div>
+          <div id="daeSVGWrap"></div>
           <!-- 배치 목록 -->
           <div id="daePlacedList" class="dae-placed-list" style="display:none">
             <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:12px 0 6px">배치된 항목</div>
@@ -2338,7 +2333,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div class="dae-place-item del" onclick="daePlaceItem(null)"><span>🗑️</span><span>전체삭제</span></div>
   </div>
   <div style="text-align:right;padding:4px 6px 0">
-    <button onclick="document.getElementById('daePlacePopup').classList.remove('show');daeSelectedCell=null;" style="font-size:11px;padding:3px 10px;background:#555;border:none;color:#fff;border-radius:4px;cursor:pointer">완료</button>
+    <button onclick="document.getElementById('daePlacePopup').classList.remove('show');daeSelectedPos=null;" style="font-size:11px;padding:3px 10px;background:#555;border:none;color:#fff;border-radius:4px;cursor:pointer">완료</button>
   </div>
 </div>
 
@@ -6909,10 +6904,9 @@ async function autoLoadAll() {
 }
 
 // ═══════════════════════════════════════════════
-// 🏗️ 3D 도면
+// 🏗️ 3D 도면 — SVG 무대 평면도
 // ═══════════════════════════════════════════════
 
-// ─── 배치 그리드 ───
 const DAE_ITEMS = {
   speaker: {icon:'🔊', label:'메인스피커'},
   sub:     {icon:'📦', label:'서브우퍼'},
@@ -6926,124 +6920,210 @@ const DAE_ITEMS = {
   person:  {icon:'👥', label:'관객석'},
   mic:     {icon:'🎤', label:'마이크스탠드'},
 };
-let daePlacements = {}; // key: "B3", value: string[] (array of types)
-let daeSelectedCell = null;
-const DAE_PAD = 3; // 무대 바깥 여백 칸수
 
-function daeColLabel(c) {
-  let s = '';
-  c++;
-  while (c > 0) { s = String.fromCharCode(64 + (c % 26 || 26)) + s; c = Math.floor((c-1)/26); }
-  return s;
+// pw/pd: 평면도 표시 크기(m) / rw/rd/rh: .dae 실제 크기(m)
+const DAE_SIZES = {
+  speaker: {pw:1.1, pd:0.9, rw:0.8, rd:0.6, rh:1.2, color:'#e74c3c'},
+  sub:     {pw:0.9, pd:0.9, rw:0.7, rd:0.7, rh:0.7, color:'#c0392b'},
+  monitor: {pw:0.9, pd:0.6, rw:0.5, rd:0.3, rh:0.4, color:'#e67e22'},
+  console: {pw:1.5, pd:1.2, rw:1.2, rd:0.9, rh:1.1, color:'#8e44ad'},
+  truss:   {pw:2.8, pd:0.4, rw:2.4, rd:0.2, rh:2.0, color:'#546e7a'},
+  light:   {pw:0.9, pd:0.9, rw:0.5, rd:0.5, rh:0.8, color:'#f39c12'},
+  stair:   {pw:1.0, pd:1.0, rw:0.9, rd:0.9, rh:0.5, color:'#78909c'},
+  tent:    {pw:2.5, pd:2.5, rw:3.0, rd:3.0, rh:3.0, color:'#2e7d32'},
+  power:   {pw:0.7, pd:0.7, rw:0.5, rd:0.5, rh:0.9, color:'#b71c1c'},
+  person:  {pw:3.0, pd:1.8, rw:4.0, rd:2.0, rh:1.8, color:'#1565c0'},
+  mic:     {pw:0.5, pd:0.5, rw:0.2, rd:0.2, rh:1.8, color:'#00695c'},
+};
+
+let daePlacements = []; // [{id, type, x, y}] — x,y: 미터 (venue 좌상단 기준)
+let daeNextId = 1;
+let daeSelectedPos = null; // {x, y}
+const DAE_MARGIN = 4; // 무대 주변 여백(m)
+
+function daeGetDims() {
+  const w = parseFloat(document.getElementById('dae-w')?.value) || (typeof scM !== 'undefined' ? scM * 1.8 : 5.4);
+  const d = parseFloat(document.getElementById('dae-d')?.value) || (typeof scN !== 'undefined' ? scN * 0.9 : 2.7);
+  return {w: Math.max(w, 1.8), d: Math.max(d, 0.9)};
 }
 
-function daeRenderGrid() {
-  const stageW = parseInt(document.getElementById('dae-w')?.value / 1.8) || scM;
-  const stageD = parseInt(document.getElementById('dae-d')?.value / 0.9) || scN;
-  const cols = stageW + DAE_PAD * 2;
-  const rows = stageD + DAE_PAD * 2;
-  let html = '<tr><th></th>';
-  for (let c = 0; c < cols; c++) html += `<th>${daeColLabel(c)}</th>`;
-  html += '</tr>';
-  for (let r = 0; r < rows; r++) {
-    html += `<tr><th>${r+1}</th>`;
-    for (let c = 0; c < cols; c++) {
-      const isStage = c >= DAE_PAD && c < DAE_PAD + stageW && r >= DAE_PAD && r < DAE_PAD + stageD;
-      const ref = daeColLabel(c) + (r+1);
-      const items = daePlacements[ref] || [];
-      const cls = `${isStage?'cell-stage':'cell-outside'}${daeSelectedCell===ref?' cell-selected':''}`;
-      html += `<td class="${cls}" onclick="daeCellClick('${ref}',event)">`;
-      if (items.length === 1) {
-        html += `<span style="font-size:20px">${DAE_ITEMS[items[0]]?.icon||''}</span>`;
-      } else if (items.length > 1) {
-        html += `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1px;line-height:1">` +
-          items.map(t => `<span style="font-size:12px">${DAE_ITEMS[t]?.icon||''}</span>`).join('') + `</div>`;
-      }
-      html += `<span class="dae-cell-label">${ref}</span></td>`;
-    }
-    html += '</tr>';
+function daeRenderSVG() {
+  const {w, d} = daeGetDims();
+  const mg = DAE_MARGIN;
+  const audH = 3.5;
+  const vW = w + mg * 2;
+  const vH = d + mg * 2 + audH;
+  const stX = mg, stY = mg;
+
+  let s = `<svg id="daeStageSVG" viewBox="0 0 ${vW.toFixed(2)} ${vH.toFixed(2)}"
+    style="display:block;width:100%;background:#0f0f1a;border-radius:10px;touch-action:manipulation"
+    onclick="daeSVGClick(event)">`;
+
+  // 무대 판 그리드 선 (1.8m × 0.9m)
+  for (let x = stX; x <= stX + w + 0.01; x += 1.8) {
+    const px = Math.min(x, stX + w).toFixed(3);
+    s += `<line x1="${px}" y1="${stY.toFixed(3)}" x2="${px}" y2="${(stY+d).toFixed(3)}" stroke="#9a7030" stroke-width="0.03" opacity="0.4"/>`;
   }
-  const grid = document.getElementById('daeGrid');
-  if (grid) grid.innerHTML = html;
+  for (let y = stY; y <= stY + d + 0.01; y += 0.9) {
+    const py = Math.min(y, stY + d).toFixed(3);
+    s += `<line x1="${stX.toFixed(3)}" y1="${py}" x2="${(stX+w).toFixed(3)}" y2="${py}" stroke="#9a7030" stroke-width="0.03" opacity="0.4"/>`;
+  }
+
+  // 무대 바닥
+  s += `<rect x="${stX}" y="${stY}" width="${w.toFixed(3)}" height="${d.toFixed(3)}" fill="#5c3a1e" fill-opacity="0.92" stroke="#c4912a" stroke-width="0.07"/>`;
+
+  // 치수선 (가로)
+  const dl = vW * 0.028;
+  s += `<line x1="${stX}" y1="${(stY-0.45).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(stY-0.45).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
+  s += `<line x1="${stX}" y1="${(stY-0.62).toFixed(3)}" x2="${stX}" y2="${(stY-0.28).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
+  s += `<line x1="${(stX+w).toFixed(3)}" y1="${(stY-0.62).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(stY-0.28).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
+  s += `<text x="${(stX+w/2).toFixed(3)}" y="${(stY-0.56).toFixed(3)}" text-anchor="middle" fill="#f39c12" font-size="${dl.toFixed(3)}">${w.toFixed(1)}m</text>`;
+
+  // 치수선 (세로)
+  s += `<line x1="${(stX-0.45).toFixed(3)}" y1="${stY}" x2="${(stX-0.45).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
+  s += `<line x1="${(stX-0.62).toFixed(3)}" y1="${stY}" x2="${(stX-0.28).toFixed(3)}" y2="${stY}" stroke="#f39c12" stroke-width="0.04"/>`;
+  s += `<line x1="${(stX-0.62).toFixed(3)}" y1="${(stY+d).toFixed(3)}" x2="${(stX-0.28).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
+  const midDY = stY + d / 2, rotX = stX - 0.6;
+  s += `<text x="${rotX.toFixed(3)}" y="${midDY.toFixed(3)}" text-anchor="middle" fill="#f39c12" font-size="${dl.toFixed(3)}" transform="rotate(-90,${rotX.toFixed(3)},${midDY.toFixed(3)})">${d.toFixed(1)}m</text>`;
+
+  // FRONT 라벨
+  const fl = (vW * 0.042).toFixed(3);
+  s += `<text x="${(stX+w/2).toFixed(3)}" y="${(stY+d-0.2).toFixed(3)}" text-anchor="middle" fill="#f39c12" font-size="${fl}" font-weight="800" letter-spacing="0.02">▼ FRONT</text>`;
+
+  // 관객석 영역
+  const audY = stY + d + 0.6;
+  s += `<rect x="${(stX-0.5).toFixed(3)}" y="${audY.toFixed(3)}" width="${(w+1).toFixed(3)}" height="${(audH-0.8).toFixed(3)}" fill="#0d2a42" fill-opacity="0.7" stroke="#2471a3" stroke-width="0.05" rx="0.3"/>`;
+  s += `<text x="${(stX+w/2).toFixed(3)}" y="${(audY+(audH-0.8)/2).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="#5dade2" font-size="${(vW*0.05).toFixed(3)}">👥 관객석</text>`;
+
+  // 장비 항목
+  daePlacements.forEach(p => {
+    const it = DAE_ITEMS[p.type] || {icon:'?', label:p.type};
+    const sz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
+    const hw = sz.pw/2, hd = sz.pd/2;
+    const iconFS = (Math.min(sz.pw, sz.pd) * 0.5).toFixed(3);
+    const lblFS  = (Math.min(sz.pw, sz.pd) * 0.22).toFixed(3);
+    s += `<g onclick="daeItemClick(${p.id},event)" style="cursor:pointer">
+      <rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${sz.pw}" height="${sz.pd}"
+        fill="${sz.color}" fill-opacity="0.92" stroke="rgba(255,255,255,0.55)" stroke-width="0.055" rx="0.1"/>
+      <text x="${p.x.toFixed(3)}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" font-size="${iconFS}">${it.icon}</text>
+      <text x="${p.x.toFixed(3)}" y="${(p.y+hd*0.72).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${lblFS}" font-weight="700">${it.label}</text>
+    </g>`;
+  });
+
+  // 스케일 바
+  const sbX = vW - mg * 0.7, sbY = vH - 0.4;
+  const sbFS = (vW * 0.028).toFixed(3);
+  s += `<line x1="${(sbX-1).toFixed(3)}" y1="${sbY}" x2="${sbX.toFixed(3)}" y2="${sbY}" stroke="#555" stroke-width="0.06"/>`;
+  s += `<line x1="${(sbX-1).toFixed(3)}" y1="${(sbY-0.13).toFixed(3)}" x2="${(sbX-1).toFixed(3)}" y2="${(sbY+0.13).toFixed(3)}" stroke="#555" stroke-width="0.06"/>`;
+  s += `<line x1="${sbX.toFixed(3)}" y1="${(sbY-0.13).toFixed(3)}" x2="${sbX.toFixed(3)}" y2="${(sbY+0.13).toFixed(3)}" stroke="#555" stroke-width="0.06"/>`;
+  s += `<text x="${(sbX-0.5).toFixed(3)}" y="${(sbY-0.2).toFixed(3)}" text-anchor="middle" fill="#555" font-size="${sbFS}">1m</text>`;
+
+  s += `</svg>`;
+  const wrap = document.getElementById('daeSVGWrap');
+  if (wrap) wrap.innerHTML = s;
   daeRenderPlacedList();
+}
+
+function _daeShowPopup(cx, cy) {
+  const popup = document.getElementById('daePlacePopup');
+  const ph = 320, pw = 230;
+  let top = cy + 10, left = cx + 10;
+  if (top + ph > window.innerHeight) top = cy - ph - 10;
+  if (left + pw > window.innerWidth) left = cx - pw - 10;
+  popup.style.top = Math.max(8, top) + 'px';
+  popup.style.left = Math.max(8, left) + 'px';
+  popup.classList.add('show');
+}
+
+function daeSVGClick(e) {
+  // 장비 아이템 클릭은 daeItemClick이 처리 (stopPropagation)
+  e.stopPropagation();
+  const svg = document.getElementById('daeStageSVG');
+  if (!svg) return;
+  const r = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
+  const mx = (e.clientX - r.left) / r.width * vb.width;
+  const my = (e.clientY - r.top) / r.height * vb.height;
+  const snap = 0.5;
+  const sx = parseFloat((Math.round(mx / snap) * snap).toFixed(2));
+  const sy = parseFloat((Math.round(my / snap) * snap).toFixed(2));
+  daeSelectedPos = {x: sx, y: sy};
+  const {w, d} = daeGetDims();
+  const onStage = sx >= DAE_MARGIN && sx <= DAE_MARGIN + w && sy >= DAE_MARGIN && sy <= DAE_MARGIN + d;
+  const relX = (sx - DAE_MARGIN).toFixed(1), relY = (sy - DAE_MARGIN).toFixed(1);
+  document.getElementById('daePlacePopupTitle').textContent = `📍 ${onStage ? '무대 위' : '외부'} (${relX}, ${relY})m`;
+  daeRefreshPopupCurrentItems();
+  _daeShowPopup(e.clientX, e.clientY);
+}
+
+function daeItemClick(id, e) {
+  e.stopPropagation();
+  const p = daePlacements.find(pl => pl.id === id);
+  if (!p) return;
+  daeSelectedPos = {x: p.x, y: p.y};
+  const it = DAE_ITEMS[p.type];
+  document.getElementById('daePlacePopupTitle').textContent = `${it?.icon} ${it?.label} 선택됨`;
+  daeRefreshPopupCurrentItems();
+  _daeShowPopup(e.clientX, e.clientY);
 }
 
 function daeRefreshPopupCurrentItems() {
   const el = document.getElementById('daeCellCurrentItems');
   if (!el) return;
-  const items = daeSelectedCell ? (daePlacements[daeSelectedCell] || []) : [];
-  if (!items.length) { el.style.display = 'none'; return; }
+  if (!daeSelectedPos) { el.style.display = 'none'; return; }
+  const nearby = daePlacements.filter(p =>
+    Math.abs(p.x - daeSelectedPos.x) < 0.8 && Math.abs(p.y - daeSelectedPos.y) < 0.8
+  );
+  if (!nearby.length) { el.style.display = 'none'; return; }
   el.style.display = 'block';
-  el.innerHTML = `<div style="color:#aaa;margin-bottom:3px">현재 배치:</div>` +
-    items.map((t, i) => {
-      const it = DAE_ITEMS[t];
+  el.innerHTML = `<div style="color:#aaa;margin-bottom:3px">이 위치:</div>` +
+    nearby.map(p => {
+      const it = DAE_ITEMS[p.type];
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">
         <span>${it?.icon} ${it?.label}</span>
-        <button onclick="daeRemoveCellItem(${i})" style="background:none;border:none;color:#f66;cursor:pointer;font-size:14px;padding:0 2px">✕</button>
+        <button onclick="daeRemovePlacement(${p.id})" style="background:none;border:none;color:#f66;cursor:pointer;font-size:14px;padding:0 2px">✕</button>
       </div>`;
     }).join('');
 }
 
-function daeRemoveCellItem(idx) {
-  if (!daeSelectedCell || !daePlacements[daeSelectedCell]) return;
-  daePlacements[daeSelectedCell].splice(idx, 1);
-  if (!daePlacements[daeSelectedCell].length) delete daePlacements[daeSelectedCell];
+function daeRemovePlacement(id) {
+  daePlacements = daePlacements.filter(p => p.id !== id);
   daeRefreshPopupCurrentItems();
-  daeRenderGrid();
-}
-
-function daeCellClick(ref, e) {
-  e.stopPropagation();
-  daeSelectedCell = ref;
-  daeRenderGrid();
-  const popup = document.getElementById('daePlacePopup');
-  document.getElementById('daePlacePopupTitle').textContent = `📍 ${ref} 에 배치`;
-  daeRefreshPopupCurrentItems();
-  const rect = e.target.closest('td').getBoundingClientRect();
-  const pw = 220, ph = 280;
-  let top = rect.bottom + 6;
-  let left = rect.left;
-  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
-  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
-  popup.style.top = top + 'px';
-  popup.style.left = Math.max(8, left) + 'px';
-  popup.classList.add('show');
+  daeRenderSVG();
 }
 
 function daePlaceItem(type) {
-  if (!daeSelectedCell) return;
+  if (!daeSelectedPos) return;
   if (type === null) {
-    delete daePlacements[daeSelectedCell];
+    daePlacements = daePlacements.filter(p =>
+      !(Math.abs(p.x - daeSelectedPos.x) < 0.8 && Math.abs(p.y - daeSelectedPos.y) < 0.8)
+    );
   } else {
-    if (!daePlacements[daeSelectedCell]) daePlacements[daeSelectedCell] = [];
-    daePlacements[daeSelectedCell].push(type);
+    daePlacements.push({id: daeNextId++, type, x: daeSelectedPos.x, y: daeSelectedPos.y});
   }
   daeRefreshPopupCurrentItems();
-  daeRenderGrid();
+  daeRenderSVG();
 }
 
 function daeRenderPlacedList() {
-  const keys = Object.keys(daePlacements);
   const listEl = document.getElementById('daePlacedList');
   const itemsEl = document.getElementById('daePlacedItems');
   if (!listEl || !itemsEl) return;
-  if (!keys.length) { listEl.style.display='none'; return; }
-  listEl.style.display='block';
-  itemsEl.innerHTML = keys.sort().map(ref => {
-    const types = daePlacements[ref];
-    return types.map(t => {
-      const it = DAE_ITEMS[t];
-      return `<div class="dae-placed-row">
-        <span>${it?.icon} ${it?.label}</span>
-        <span style="font-weight:700;color:var(--accent)">${ref}</span>
-      </div>`;
-    }).join('');
+  if (!daePlacements.length) { listEl.style.display = 'none'; return; }
+  listEl.style.display = 'block';
+  itemsEl.innerHTML = daePlacements.map(p => {
+    const it = DAE_ITEMS[p.type];
+    const rx = (p.x - DAE_MARGIN).toFixed(1), ry = (p.y - DAE_MARGIN).toFixed(1);
+    return `<div class="dae-placed-row">
+      <span>${it?.icon} ${it?.label}</span>
+      <span style="font-weight:700;color:var(--accent)">(${rx}, ${ry})m</span>
+    </div>`;
   }).join('');
 }
 
 document.addEventListener('click', () => {
   document.getElementById('daePlacePopup')?.classList.remove('show');
-  daeSelectedCell = null;
+  daeSelectedPos = null;
 });
 
 function scLinkTo3D() {
@@ -7060,7 +7140,7 @@ function scSwitchTab(tab) {
     document.getElementById('sc-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('sc-page-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === '3d') { daeUpdateInfo(); daeRenderGrid(); }
+  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); }
 }
 
 function daeLocTab(loc) {
@@ -7079,7 +7159,7 @@ function daeUpdateInfo() {
   const areaEl = document.getElementById('dae-calc-area');
   if (sizeEl) sizeEl.textContent = `${w.toFixed(1)}m × ${d.toFixed(1)}m`;
   if (areaEl) areaEl.textContent = `${py.toFixed(1)}평 (${m2.toFixed(2)}m²)`;
-  daeRenderGrid();
+  daeRenderSVG();
 }
 
 function daePhotoSelected(input) {
@@ -7106,66 +7186,69 @@ function daeExport() {
 }
 
 function daeGenerate({ w, d, h, stair, memo }) {
-  // 무대 바닥면 꼭짓점 (중심 기준)
   const hw = w / 2, hd = d / 2;
-  // Collada XML 생성
+
+  function hexRgb(hex) {
+    const n = parseInt((hex || '#888888').replace('#', ''), 16);
+    return `${((n>>16)/255).toFixed(3)} ${(((n>>8)&0xff)/255).toFixed(3)} ${((n&0xff)/255).toFixed(3)} 1`;
+  }
+
+  function boxGeom(gid, bw, bd, bh) {
+    const bx = bw/2, by = bd/2;
+    return `<geometry id="${gid}" name="${gid}"><mesh>
+      <source id="${gid}-p"><float_array id="${gid}-a" count="24">
+        ${-bx} ${-by} 0  ${bx} ${-by} 0  ${bx} ${by} 0  ${-bx} ${by} 0
+        ${-bx} ${-by} ${bh}  ${bx} ${-by} ${bh}  ${bx} ${by} ${bh}  ${-bx} ${by} ${bh}
+      </float_array>
+      <technique_common><accessor source="#${gid}-a" count="8" stride="3">
+        <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+      </accessor></technique_common></source>
+      <vertices id="${gid}-v"><input semantic="POSITION" source="#${gid}-p"/></vertices>
+      <polylist material="mat-${gid}" count="6">
+        <input semantic="VERTEX" source="#${gid}-v" offset="0"/>
+        <vcount>4 4 4 4 4 4</vcount>
+        <p>0 1 2 3  4 7 6 5  0 4 5 1  1 5 6 2  2 6 7 3  3 7 4 0</p>
+      </polylist>
+    </mesh></geometry>`;
+  }
+
+  let geoms = boxGeom('geom-stage', w, d, h);
+  let mats  = `<material id="mat-geom-stage"><instance_effect url="#eff-stage"/></material>`;
+  let effs  = `<effect id="eff-stage"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.55 0.38 0.18 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
+  let nodes = `<node id="Stage" name="Stage_${w.toFixed(1)}x${d.toFixed(1)}m_H${h}m" type="NODE">
+      <instance_geometry url="#geom-stage">
+        <bind_material><technique_common><instance_material symbol="mat-geom-stage" target="#mat-geom-stage"/></technique_common></bind_material>
+      </instance_geometry>
+    </node>`;
+
+  daePlacements.forEach((p, i) => {
+    const it = DAE_ITEMS[p.type] || {label: p.type};
+    const sz = DAE_SIZES[p.type] || {rw:0.6, rd:0.6, rh:0.6, color:'#888888'};
+    const gid = `geom-i${i}`;
+    // SVG venue 좌표 → SketchUp 중심 좌표 (stage center = 0,0, Z_UP)
+    const cx = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
+    const cy = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3)); // Y 반전 (FRONT = -Y)
+    const onStage = p.x >= DAE_MARGIN && p.x <= DAE_MARGIN + w && p.y >= DAE_MARGIN && p.y <= DAE_MARGIN + d;
+    const iz = onStage ? h : 0;
+    const name = `${it.label.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_${i+1}`;
+    geoms += boxGeom(gid, sz.rw, sz.rd, sz.rh);
+    mats  += `<material id="mat-${gid}"><instance_effect url="#eff-i${i}"/></material>`;
+    effs  += `<effect id="eff-i${i}"><profile_COMMON><technique sid="common"><phong><diffuse><color>${hexRgb(sz.color)}</color></diffuse></phong></technique></profile_COMMON></effect>`;
+    nodes += `<node id="Item${i}" name="${name}" type="NODE">
+      <translate>${cx} ${cy} ${iz}</translate>
+      <instance_geometry url="#${gid}">
+        <bind_material><technique_common><instance_material symbol="mat-${gid}" target="#mat-${gid}"/></technique_common></bind_material>
+      </instance_geometry>
+    </node>`;
+  });
+
   return `<?xml version="1.0" encoding="utf-8"?>
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
-  <asset>
-    <created>${new Date().toISOString()}</created>
-    <unit name="meter" meter="1"/>
-    <up_axis>Z_UP</up_axis>
-  </asset>
-  <library_materials>
-    <material id="mat-stage" name="Stage">
-      <instance_effect url="#eff-stage"/>
-    </material>
-  </library_materials>
-  <library_effects>
-    <effect id="eff-stage">
-      <profile_COMMON>
-        <technique sid="common">
-          <phong>
-            <diffuse><color>0.6 0.45 0.25 1</color></diffuse>
-          </phong>
-        </technique>
-      </profile_COMMON>
-    </effect>
-  </library_effects>
-  <library_geometries>
-    <geometry id="geom-stage" name="Stage">
-      <mesh>
-        <source id="pos-stage">
-          <float_array id="pos-stage-arr" count="24">
-            ${-hw} ${-hd} 0  ${hw} ${-hd} 0  ${hw} ${hd} 0  ${-hw} ${hd} 0
-            ${-hw} ${-hd} ${h}  ${hw} ${-hd} ${h}  ${hw} ${hd} ${h}  ${-hw} ${hd} ${h}
-          </float_array>
-          <technique_common>
-            <accessor source="#pos-stage-arr" count="8" stride="3">
-              <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
-            </accessor>
-          </technique_common>
-        </source>
-        <vertices id="verts-stage"><input semantic="POSITION" source="#pos-stage"/></vertices>
-        <polylist material="mat-stage" count="6">
-          <input semantic="VERTEX" source="#verts-stage" offset="0"/>
-          <vcount>4 4 4 4 4 4</vcount>
-          <p>0 1 2 3  4 7 6 5  0 4 5 1  1 5 6 2  2 6 7 3  3 7 4 0</p>
-        </polylist>
-      </mesh>
-    </geometry>
-  </library_geometries>
-  <library_visual_scenes>
-    <visual_scene id="Scene" name="Scene">
-      <node id="Stage" name="Stage_${w}x${d}m_H${h}m" type="NODE">
-        <instance_geometry url="#geom-stage">
-          <bind_material><technique_common>
-            <instance_material symbol="mat-stage" target="#mat-stage"/>
-          </technique_common></bind_material>
-        </instance_geometry>
-      </node>
-    </visual_scene>
-  </library_visual_scenes>
+  <asset><created>${new Date().toISOString()}</created><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset>
+  <library_materials>${mats}</library_materials>
+  <library_effects>${effs}</library_effects>
+  <library_geometries>${geoms}</library_geometries>
+  <library_visual_scenes><visual_scene id="Scene" name="Scene">${nodes}</visual_scene></library_visual_scenes>
   <scene><instance_visual_scene url="#Scene"/></scene>
 </COLLADA>`;
 }
