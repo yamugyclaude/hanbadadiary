@@ -1230,204 +1230,48 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   .alba-grid { grid-template-columns: repeat(5, 1fr) !important; }
 }
 
-/* ─── 무대설치 페이지 ─── */
-#pageStage { flex-direction: column; overflow: hidden; }
-.stage-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; flex-shrink:0; border-bottom:1px solid var(--border); }
-.stage-header-title { font-size:15px; font-weight:800; color:var(--text); }
-.stage-spec-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text-muted); font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
-.stage-spec-btn.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
-/* 자재규격 패널 */
-.specs-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 16px env(safe-area-inset-bottom,20px); }
-.specs-section { margin-bottom:20px; }
-.specs-section-title { font-size:13px; font-weight:800; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
-.specs-table { width:100%; border-collapse:collapse; }
-.specs-table th { font-size:10px; color:var(--text-muted); font-weight:700; text-align:left; padding:4px 6px; border-bottom:1px solid var(--border); }
-.specs-table td { padding:4px 4px; border-bottom:1px solid var(--border); vertical-align:middle; }
-.specs-table tr:last-child td { border-bottom:none; }
-.specs-input { background:var(--surface); border:1.5px solid var(--border2); border-radius:6px; color:var(--text); font-size:13px; padding:5px 7px; width:100%; outline:none; font-family:'Noto Sans KR',sans-serif; }
-.specs-input:focus { border-color:var(--accent); }
-.specs-name-input { width:90px; }
-.specs-num-input  { width:64px; }
-.specs-del-btn { background:none; border:none; color:#cc3333; font-size:16px; cursor:pointer; padding:2px 5px; }
-.specs-add-btn { background:var(--accent-dim); border:1.5px solid var(--accent); color:var(--accent); font-size:11px; font-weight:700; padding:5px 12px; border-radius:8px; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
-.specs-unit { font-size:10px; color:var(--text-muted); margin-left:2px; }
-.specs-hint { font-size:11px; color:var(--text-muted); background:var(--surface2); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.6; }
-.stage-subtab-wrap { display:flex; align-items:center; gap:0; padding:0 14px; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; scrollbar-width:none; }
-.stage-subtab-wrap::-webkit-scrollbar { display:none; }
-.stage-subtab { display:flex; align-items:center; gap:6px; padding:10px 14px; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; user-select:none; }
-.stage-subtab.active { color:var(--accent); border-bottom-color:var(--accent); }
-.stage-subtab-actions { display:flex; gap:4px; margin-left:2px; }
-.stage-subtab-action-btn { background:none; border:none; color:var(--text-muted); font-size:11px; cursor:pointer; padding:2px 4px; border-radius:4px; }
-.stage-subtab-action-btn:hover { background:var(--surface2); color:var(--text); }
-.stage-subtab-add { padding:10px 12px; font-size:18px; color:var(--accent); cursor:pointer; border-bottom:2px solid transparent; user-select:none; }
-.stage-3d-wrap canvas { width:100% !important; height:100% !important; display:block; }
-.stage-3d-views { position:absolute; top:8px; left:8px; display:flex; gap:4px; }
-.stage-3d-view-btn { background:var(--surface2); border:1px solid var(--border2); color:var(--text-muted); font-size:10px; font-weight:700; padding:4px 7px; border-radius:6px; cursor:pointer; }
-.stage-3d-view-btn.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
-/* 3D 창 ↔ 패널 리사이즈 핸들 */
-.stage-resize-handle {
-  flex-shrink:0; height:18px; background:var(--surface2);
-  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:center;
-  cursor:ns-resize; user-select:none; touch-action:none;
-}
-.stage-resize-handle::before {
-  content:''; display:block; width:36px; height:3px;
-  border-radius:2px; background:var(--border2);
-  box-shadow:0 -5px 0 var(--border2), 0 5px 0 var(--border2);
-}
-.stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; border-top:none; padding:14px 16px env(safe-area-inset-bottom,20px); }
-/* ══ 레고 조립 시스템 ══ */
-/* active일 때만 flex — display:none이 !important에 막히지 않도록 */
-#pageStage.active { display:flex; flex-direction:column; overflow:hidden; position:relative; }
-
-/* 3D 뷰 */
-.stage-3d-wrap { flex:0 0 0px; overflow:hidden; background:#0d1117; position:relative; transition:flex-basis .25s ease; }
-.stage-3d-wrap.visible { flex-basis:180px !important; overflow:visible; }
-.stage-3d-reset { position:absolute; bottom:6px; right:8px; background:rgba(0,0,0,.6); border:1px solid #555; color:#aaa; font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer; }
-.stage-3d-hint { position:absolute; bottom:6px; left:8px; font-size:10px; color:rgba(255,255,255,.25); pointer-events:none; }
-
-/* 조립 보드 */
-.lego-board-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid var(--border); }
-.lego-board-toolbar { display:flex; align-items:center; justify-content:space-between; padding:6px 12px; flex-shrink:0; background:var(--surface2); border-bottom:1px solid var(--border); }
-.lego-board-title { font-size:12px; font-weight:700; color:var(--accent); }
-.lego-clear-btn { background:none; border:1px solid #cc3333; color:#cc3333; font-size:11px; padding:3px 8px; border-radius:6px; cursor:pointer; }
-.lego-board-area { flex:1 1 auto; min-height:0; position:relative; overflow:hidden; background:#111820; }
-.lego-board-svg { width:100%; height:100%; display:block; }
-.lego-board-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:14px; color:var(--text-muted); line-height:2; pointer-events:none; }
-.lego-board-empty-arrow { font-size:28px; margin-top:8px; animation:lego-bounce .9s ease-in-out infinite alternate; }
-@keyframes lego-bounce { from{transform:translateY(-5px)} to{transform:translateY(5px)} }
-
-/* 부품 추가 버튼 (보드 우하단 고정) */
-.lego-add-fab { position:absolute; bottom:16px; right:16px; z-index:10;
-  width:52px; height:52px; border-radius:50%; border:none;
-  background:var(--accent); color:#fff; font-size:26px; cursor:pointer;
-  box-shadow:0 4px 16px rgba(61,186,150,.5); display:flex; align-items:center; justify-content:center;
-  transition:transform .15s; }
-.lego-add-fab:active { transform:scale(.92); }
-
-/* 부품 선택 시트 — #pageStage 기준 absolute, 다른 페이지 침범 없음 */
-.lego-sheet-overlay { position:absolute; inset:0; z-index:200; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .2s; }
-.lego-sheet-overlay.open { opacity:1; pointer-events:all; }
-.lego-sheet { position:absolute; left:0; right:0; bottom:0; z-index:201;
-  background:var(--surface2); border-radius:18px 18px 0 0;
-  border-top:2px solid var(--accent);
-  transform:translateY(100%); transition:transform .28s cubic-bezier(.4,0,.2,1);
-  max-height:55%; display:flex; flex-direction:column; }
-.lego-sheet.open { transform:translateY(0); }
-.lego-sheet-handle { width:36px; height:4px; border-radius:2px; background:var(--border2); margin:10px auto 4px; flex-shrink:0; }
-.lego-sheet-title { font-size:13px; font-weight:800; color:var(--accent); text-align:center; padding:2px 0 8px; flex-shrink:0; }
-.lego-sheet-close { position:absolute; top:8px; right:14px; background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer; padding:4px; line-height:1; }
-.lego-sheet-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:4px 14px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-
-/* 부품 카드 (시트 안) */
-.lego-part-card { display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 6px 8px; border-radius:14px; border:2px solid var(--border2); background:var(--surface); cursor:grab; user-select:none; touch-action:none; transition:transform .15s, border-color .15s; }
-.lego-part-card:hover { transform:scale(1.05); border-color:var(--accent); }
-.lego-part-card:active { opacity:.7; transform:scale(.95); }
-.lego-part-thumb { width:60px; height:50px; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:30px; }
-.lego-part-thumb img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
-.lego-part-name { font-size:11px; font-weight:700; text-align:center; line-height:1.3; }
-
-/* 드래그 고스트 */
-.lego-drag-ghost { position:fixed; pointer-events:none; z-index:9999; border-radius:10px; border:2px solid var(--accent); box-shadow:0 6px 24px rgba(61,186,150,.5); transform:translate(-50%,-50%) scale(1.12); display:flex; align-items:center; justify-content:center; background:#1a2030; }
-
-/* 보드 위 배치된 부품 */
-.lego-placed { cursor:grab; }
-.lego-placed:active { cursor:grabbing; }
-.lego-connector { transition:r .12s, opacity .12s; }
-.snap-indicator { pointer-events:none; }
-
-/* 자재규격 패널 */
-.stage-panel { flex:1 1 0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 16px env(safe-area-inset-bottom,20px); }
-
-/* 조립 도구 */
-.assembly-palette { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
-.assembly-part-btn { display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--accent); background:var(--accent-dim); color:var(--accent); font-size:11px; font-weight:700; cursor:pointer; min-width:60px; text-align:center; }
-.assembly-part-btn:active { opacity:0.7; }
-.assembly-part-btn .abt-icon { font-size:20px; }
-.assembly-block-list { display:flex; flex-direction:column; gap:10px; }
-.assembly-block-card { background:var(--surface2); border:1.5px solid var(--border2); border-radius:12px; padding:12px 14px; }
-.assembly-block-card.type-scaffold { border-color:var(--accent); }
-.assembly-block-card.type-truss_h { border-color:#d97248; }
-.assembly-block-card.type-truss_v { border-color:#c9a84c; }
-.assembly-block-card.type-led    { border-color:#5588dd; }
-.assembly-block-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.assembly-block-title { font-size:13px; font-weight:800; color:var(--text); }
-.assembly-block-remove { background:none; border:none; color:#cc3333; font-size:18px; cursor:pointer; padding:0 4px; line-height:1; }
-.assembly-block-fields { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.assembly-block-field { display:flex; flex-direction:column; gap:3px; }
-.assembly-block-field label { font-size:10px; color:var(--text-muted); font-weight:600; }
-.assembly-block-field input, .assembly-block-field select { background:var(--surface); border:1.5px solid var(--border2); border-radius:6px; color:var(--text); font-size:13px; padding:6px 8px; width:100%; outline:none; font-family:'Noto Sans KR',sans-serif; }
-.assembly-block-field input:focus, .assembly-block-field select:focus { border-color:var(--accent); }
-.assembly-block-tag { display:inline-block; font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:6px; }
-.assembly-block-tag.type-scaffold { background:var(--accent-dim); color:var(--accent); }
-.assembly-block-tag.type-truss_h  { background:rgba(217,114,72,.15); color:#d97248; }
-.assembly-block-tag.type-truss_v  { background:rgba(201,168,76,.15); color:#c9a84c; }
-.assembly-block-tag.type-led      { background:rgba(85,136,221,.15); color:#5588dd; }
-.assembly-empty { text-align:center; color:var(--text-muted); padding:30px 0; font-size:13px; }
-.assembly-qty-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-top:14px; }
-.assembly-qty-title { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px; }
-.assembly-qty-row { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); font-size:12px; }
-.assembly-qty-row:last-child { border:none; }
-.stage-section-title { font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
-.stage-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
-.stage-field { display:flex; flex-direction:column; gap:4px; }
-.stage-field label { font-size:11px; color:var(--text-muted); font-weight:600; }
-.stage-field input { background:var(--surface2); border:1.5px solid var(--border2); border-radius:8px; color:var(--text); font-size:14px; padding:8px 10px; outline:none; font-family:'Noto Sans KR',sans-serif; width:100%; }
-.stage-field input:focus { border-color:var(--accent); }
-.stage-field .stage-unit { font-size:11px; color:var(--text-muted); margin-top:-2px; }
-.stage-qty-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
-.stage-qty-title { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px; }
-.stage-qty-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px; }
-.stage-qty-row:last-child { border-bottom:none; }
-.stage-qty-label { color:var(--text2); }
-.stage-qty-val { font-weight:700; color:var(--text); font-family:'JetBrains Mono',monospace; }
-.scaffold-bay-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-.scaffold-bay-header-label { font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; }
-.scaffold-bay-header-btns { display:flex; gap:6px; }
-.scaffold-bay-add-btn { background:var(--accent); border:none; border-radius:6px; color:#0a0c10; font-size:13px; font-weight:700; padding:4px 10px; cursor:pointer; }
-.scaffold-bay-remove-btn { background:var(--surface2); border:1.5px solid var(--border2); border-radius:6px; color:var(--text-muted); font-size:13px; font-weight:700; padding:4px 10px; cursor:pointer; }
-.scaffold-bay-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
-.scaffold-bay-chip { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface2); cursor:pointer; min-width:46px; }
-.scaffold-bay-chip .chip-idx { font-size:9px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
-.scaffold-bay-chip .chip-val { font-size:13px; font-weight:700; font-family:'JetBrains Mono',monospace; }
-.scaffold-bay-chip.w183 { border-color:var(--accent); background:var(--accent-dim); }
-.scaffold-bay-chip.w183 .chip-val { color:var(--accent); }
-.scaffold-bay-chip.w150 { border-color:#d97248; background:rgba(217,114,72,0.13); }
-.scaffold-bay-chip.w150 .chip-val { color:#d97248; }
-.scaffold-bay-chip.w140 { border-color:#c9a84c; background:rgba(201,168,76,0.12); }
-.scaffold-bay-chip.w140 .chip-val { color:#c9a84c; }
-/* 베이별 단 수 칩 */
-.scaffold-tier-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
-.scaffold-tier-chip { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface2); cursor:pointer; min-width:46px; }
-.scaffold-tier-chip .chip-idx { font-size:9px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
-.scaffold-tier-chip .chip-val { font-size:13px; font-weight:700; font-family:'JetBrains Mono',monospace; }
-.scaffold-tier-chip.t1 { border-color:#888; background:rgba(136,136,136,0.1); }
-.scaffold-tier-chip.t1 .chip-val { color:#aaa; }
-.scaffold-tier-chip.t2 { border-color:var(--accent); background:var(--accent-dim); }
-.scaffold-tier-chip.t2 .chip-val { color:var(--accent); }
-.scaffold-tier-chip.t3 { border-color:#d97248; background:rgba(217,114,72,0.13); }
-.scaffold-tier-chip.t3 .chip-val { color:#d97248; }
-.scaffold-tier-chip.t4 { border-color:#c9a84c; background:rgba(201,168,76,0.12); }
-.scaffold-tier-chip.t4 .chip-val { color:#c9a84c; }
-.scaffold-bay-legend { display:flex; gap:10px; margin-bottom:10px; }
-.scaffold-bay-legend-item { display:flex; align-items:center; gap:4px; font-size:11px; }
-.scaffold-bay-legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
-.stage-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted); gap:10px; padding:40px; text-align:center; }
-/* 무대설치 모달 */
-.stage-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:3000; display:none; align-items:flex-end; justify-content:center; }
-.stage-modal-overlay.open { display:flex; }
-.stage-modal-sheet { background:var(--surface); border-radius:16px 16px 0 0; padding:20px; width:100%; max-width:640px; }
-.stage-modal-title { font-size:16px; font-weight:700; color:var(--text); margin-bottom:16px; }
-.stage-modal-input { width:100%; background:var(--surface2); border:1.5px solid var(--border2); border-radius:10px; color:var(--text); font-size:14px; padding:10px 14px; outline:none; margin-bottom:10px; font-family:'Noto Sans KR',sans-serif; }
-.stage-modal-input:focus { border-color:var(--accent); }
-.stage-modal-type-wrap { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
-.stage-modal-type-btn { padding:10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface2); color:var(--text-muted); font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
-.stage-modal-type-btn.selected { border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+/* ─── 무대계산기 페이지 ─── */
+#pageStage { flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+#pageStage.active { display:flex; }
+.stagecalc-wrap { max-width:560px; width:100%; margin:0 auto; padding:16px 14px env(safe-area-inset-bottom,60px); }
+.stagecalc-hdr { display:flex; align-items:center; gap:12px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid var(--border); }
+.stagecalc-logo { width:40px; height:40px; border-radius:11px; background:#d97706; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.stagecalc-title { font-size:17px; font-weight:700; color:var(--text); }
+.stagecalc-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.stagecalc-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:12px; }
+.stagecalc-sec-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:14px; }
+.stagecalc-input-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.stagecalc-field label { display:block; font-size:11px; color:var(--text-muted); margin-bottom:8px; font-weight:600; }
+.stagecalc-stepper { display:flex; align-items:stretch; border:1px solid var(--border2); border-radius:10px; overflow:hidden; }
+.stagecalc-step-btn { width:44px; flex-shrink:0; background:var(--surface2); border:none; cursor:pointer; font-size:22px; font-weight:300; color:var(--text); display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; }
+.stagecalc-step-btn:active { background:var(--border); }
+.stagecalc-step-mid { flex:1; text-align:center; padding:10px 4px; border-left:1px solid var(--border2); border-right:1px solid var(--border2); }
+.stagecalc-step-count { font-size:20px; font-weight:700; line-height:1; color:var(--text); }
+.stagecalc-step-meter { font-size:11px; color:var(--text-muted); margin-top:3px; }
+.stagecalc-result-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px; }
+.stagecalc-result-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+.stagecalc-result-label { font-size:11px; color:var(--text-muted); font-weight:600; margin-bottom:4px; }
+.stagecalc-result-val { font-size:26px; font-weight:700; color:var(--text); }
+.stagecalc-result-val.sc-green { color:#16a34a; }
+.stagecalc-result-val.sc-orange { color:#ea580c; }
+.stagecalc-result-val.sc-blue { color:#2563eb; }
+.stagecalc-result-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.stagecalc-clamp-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
+.stagecalc-clamp-row:last-child { border-bottom:none; }
+.stagecalc-clamp-label { font-size:13px; color:var(--text); }
+.stagecalc-clamp-val { font-size:16px; font-weight:700; color:var(--text); }
+.stagecalc-clamp-total { background:var(--text); color:var(--bg); border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.stagecalc-clamp-total-label { font-size:13px; font-weight:600; }
+.stagecalc-clamp-total-val { font-size:20px; font-weight:700; }
+#stagecalcCanvas { width:100%; display:block; border-radius:8px; background:var(--surface2); border:1px solid var(--border); }
+.stagecalc-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+.stagecalc-leg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
+.stagecalc-leg-box { width:14px; height:5px; border-radius:2px; }
+.stagecalc-reset-btn { width:100%; padding:11px; border:1px solid var(--border2); border-radius:10px; background:transparent; color:var(--text-muted); font-size:13px; cursor:pointer; margin-top:4px; font-family:'Noto Sans KR',sans-serif; }
 </style>
 
 </head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
 <body>
 
 <!-- ═══ 호버 미리보기 ═══ -->
@@ -1568,7 +1412,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <div class="nav-tab" id="tab-directive" onclick="toggleDirectiveMenu(event)">👔 대표지시 ▾</div>
       <div class="nav-tab" id="tab-vehicle" onclick="switchTab('vehicle')">🚛 차량관리</div>
       <div class="nav-tab" id="tab-equipment" onclick="switchTab('equipment')">🗂️ 장비관리</div>
-      <div class="nav-tab" id="tab-stage" onclick="switchTab('stage')">🏗️ 무대설치</div>
+      <div class="nav-tab" id="tab-stage" onclick="switchTab('stage')">🎭 무대계산기</div>
     </div>
     <div class="nav-fade-right" id="navFadeRight">›</div>
     <div class="nav-fade-left" id="navFadeLeft">‹</div>
@@ -1778,65 +1622,99 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
   <!-- STAGE PAGE -->
   <div class="page" id="pageStage">
-    <!-- 헤더 -->
-    <div class="stage-header">
-      <span class="stage-header-title">🏗️ 구조물 설계</span>
-      <div style="display:flex;gap:6px;">
-        <button class="stage-spec-btn" id="stageSpecBtn" onclick="toggleSpecsView()">📐 자재규격</button>
-        <button class="stage-spec-btn" id="stage3dToggleBtn" onclick="toggle3DView()">🎲 3D</button>
-      </div>
-    </div>
-    <!-- 3D 뷰 (접기/펴기 가능) -->
-    <div class="stage-3d-wrap" id="stage3dWrap">
-      <canvas id="stage3dCanvas"></canvas>
-      <div class="stage-3d-hint">드래그: 회전 · 스크롤: 확대축소</div>
-      <button class="stage-3d-reset" onclick="resetStage3DView()">⟳</button>
-    </div>
-    <!-- 조립 보드 -->
-    <div class="lego-board-wrap" id="legoBoardWrap">
-      <div class="lego-board-toolbar">
-        <span class="lego-board-title">🧱 조립 보드</span>
-        <button class="lego-clear-btn" onclick="legoClearAll()">🗑 전체 삭제</button>
-      </div>
-      <div class="lego-board-area" id="legoBoardArea">
-        <svg id="legoBoardSvg" class="lego-board-svg"></svg>
-        <div class="lego-board-empty" id="legoBoardEmpty">
-          ＋ 버튼을 눌러 부품을 추가하세요
-          <div class="lego-board-empty-arrow">👇</div>
+    <div class="stagecalc-wrap">
+      <div class="stagecalc-hdr">
+        <div class="stagecalc-logo">🎭</div>
+        <div>
+          <div class="stagecalc-title">무대 부속 계산기</div>
+          <div class="stagecalc-sub">지지대 · X대 · 클램프 자동 계산</div>
         </div>
-        <!-- 부품 추가 FAB -->
-        <button class="lego-add-fab" onclick="legoOpenSheet()" title="부품 추가">＋</button>
       </div>
-    </div>
-    <!-- 부품 선택 시트 (pageStage 안, position:absolute로 보드 위 덮음) -->
-    <div class="lego-sheet-overlay" id="legoSheetOverlay" onclick="legoCloseSheet()"></div>
-    <div class="lego-sheet" id="legoSheet">
-      <div class="lego-sheet-handle"></div>
-      <div class="lego-sheet-title">🧱 부품 선택 — 탭하면 보드에 추가</div>
-      <button class="lego-sheet-close" onclick="legoCloseSheet()">✕</button>
-      <div class="lego-sheet-grid" id="legoSheetGrid"></div>
-    </div>
-    <!-- 자재규격 패널 (숨겨진 상태) -->
-    <div class="stage-panel" id="stagePanel" style="display:none;"></div>
-  </div>
 
-  <!-- 무대설치 카테고리 추가/수정 모달 -->
-  <div class="stage-modal-overlay" id="stageCatModal">
-    <div class="stage-modal-sheet">
-      <div class="stage-modal-title" id="stageCatModalTitle">카테고리 추가</div>
-      <input class="stage-modal-input" id="stageCatNameInput" placeholder="카테고리 이름" maxlength="20">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">유형 선택</div>
-      <div class="stage-modal-type-wrap" id="stageCatTypeWrap">
-        <div class="stage-modal-type-btn" onclick="selectStageCatType('stage')">🎪<br>무대</div>
-        <div class="stage-modal-type-btn" onclick="selectStageCatType('scaffold')">🏗️<br>비계틀</div>
-        <div class="stage-modal-type-btn" onclick="selectStageCatType('truss')">⬡<br>트러스</div>
-        <div class="stage-modal-type-btn" onclick="selectStageCatType('event')">🏟️<br>이벤트</div>
-        <div class="stage-modal-type-btn" onclick="selectStageCatType('assembly')">🧱<br>조립</div>
+      <div class="stagecalc-card">
+        <div class="stagecalc-sec-label">무대 크기 (가로 1.8m × 세로 0.9m 기준)</div>
+        <div class="stagecalc-input-row">
+          <div class="stagecalc-field">
+            <label>가로</label>
+            <div class="stagecalc-stepper">
+              <button class="stagecalc-step-btn" onclick="scChangeM(-1)">−</button>
+              <div class="stagecalc-step-mid">
+                <div class="stagecalc-step-count" id="sc-disp-m">1판</div>
+                <div class="stagecalc-step-meter" id="sc-disp-mw">1.8m</div>
+              </div>
+              <button class="stagecalc-step-btn" onclick="scChangeM(1)">+</button>
+            </div>
+          </div>
+          <div class="stagecalc-field">
+            <label>세로</label>
+            <div class="stagecalc-stepper">
+              <button class="stagecalc-step-btn" onclick="scChangeN(-1)">−</button>
+              <div class="stagecalc-step-mid">
+                <div class="stagecalc-step-count" id="sc-disp-n">1줄</div>
+                <div class="stagecalc-step-meter" id="sc-disp-nl">0.9m</div>
+              </div>
+              <button class="stagecalc-step-btn" onclick="scChangeN(1)">+</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <button onclick="closeStageCatModal()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
-        <button onclick="confirmStageCat()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#0a0c10;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">확인</button>
+
+      <div class="stagecalc-card" id="sc-diagramCard">
+        <div class="stagecalc-sec-label">배치 다이어그램</div>
+        <canvas id="stagecalcCanvas"></canvas>
+        <div class="stagecalc-legend">
+          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#16a34a;height:6px"></span>지지대</span>
+          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#ea580c"></span>X대</span>
+        </div>
       </div>
+
+      <div class="stagecalc-card" id="sc-resultCard">
+        <div class="stagecalc-sec-label">계산 결과 — <span id="sc-configLabel"></span></div>
+        <div class="stagecalc-result-grid">
+          <div class="stagecalc-result-item">
+            <div class="stagecalc-result-label">상판</div>
+            <div class="stagecalc-result-val sc-blue" id="sc-r-panel">—</div>
+            <div class="stagecalc-result-sub" id="sc-r-panel-sub"></div>
+          </div>
+          <div class="stagecalc-result-item">
+            <div class="stagecalc-result-label">지지대</div>
+            <div class="stagecalc-result-val sc-green" id="sc-r-leg">—</div>
+            <div class="stagecalc-result-sub" id="sc-r-leg-sub"></div>
+          </div>
+          <div class="stagecalc-result-item">
+            <div class="stagecalc-result-label">X대</div>
+            <div class="stagecalc-result-val sc-orange" id="sc-r-x">—</div>
+            <div class="stagecalc-result-sub" id="sc-r-x-sub"></div>
+          </div>
+          <div class="stagecalc-result-item">
+            <div class="stagecalc-result-label">클램프 합계</div>
+            <div class="stagecalc-result-val" id="sc-r-clamp-total">—</div>
+            <div class="stagecalc-result-sub">1개+2개+4개짜리</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stagecalc-card" id="sc-clampCard">
+        <div class="stagecalc-sec-label">클램프 상세</div>
+        <div class="stagecalc-clamp-row">
+          <div class="stagecalc-clamp-label">1개짜리 (모서리)</div>
+          <div class="stagecalc-clamp-val" id="sc-c1">—</div>
+        </div>
+        <div class="stagecalc-clamp-row">
+          <div class="stagecalc-clamp-label">2개짜리 (가장자리)</div>
+          <div class="stagecalc-clamp-val" id="sc-c2">—</div>
+        </div>
+        <div class="stagecalc-clamp-row">
+          <div class="stagecalc-clamp-label">4개짜리 (내부 교차점)</div>
+          <div class="stagecalc-clamp-val" id="sc-c4">—</div>
+        </div>
+        <div class="stagecalc-clamp-total">
+          <span class="stagecalc-clamp-total-label">합계</span>
+          <span class="stagecalc-clamp-total-val" id="sc-c-total">—</span>
+        </div>
+      </div>
+
+      <button class="stagecalc-reset-btn" onclick="scReset()">초기화</button>
     </div>
   </div>
 
@@ -6220,7 +6098,7 @@ renderTasks('directive');
 } else if (tab === 'stage') {
 document.getElementById('tab-stage').classList.add('active');
 const p = document.getElementById('pageStage'); p.style.display='flex'; p.classList.add('active');
-setTimeout(initStageTab, 30);
+setTimeout(scUpdate, 30);
 }
 }
 
@@ -6841,2367 +6719,152 @@ function setupScrollTopBtn() {
 }
 setupScrollTopBtn();
 
+
 // ═══════════════════════════════════════════════
-// 🏗️ 무대설치 설계 시스템
+// 🎭 무대 부속 계산기
 // ═══════════════════════════════════════════════
 
-// 기본 카테고리 (수정·삭제 불가)
-const STAGE_DEFAULT_CATS = [
-  { id: 'cat_assembly', name: '조립 도구', type: 'assembly', locked: true, params: { blocks: [] } },
-];
+let scM = 1, scN = 1;
 
-let stageCats = [];        // 전체 카테고리 목록
-let stageCurrentCat = null; // 현재 선택된 카테고리 id
-let _stageScene, _stageCamera, _stageRenderer;
-let _stageMouse = { down: false, x: 0, y: 0, touches: null };
-let _stageRot = { x: 0.45, y: 0.6 };
-let _stageZoom = 12;
-let _stageCenterY = 0; // 구조물 높이 중심 (lookAt Y)
-let _stageViewMode = '3d'; // '3d' | 'front' | 'side' | 'top'
-let _stageCatModalMode = 'add'; // 'add' | 'edit'
-let _stageCatEditId = null;
-let _stageCatTypeSelected = 'stage';
+function scChangeM(d) { scM = Math.max(1, scM + d); scUpdate(); }
+function scChangeN(d) { scN = Math.max(1, scN + d); scUpdate(); }
 
-/* ══════════════════════════════════════════════
-   📐 자재 규격 (Specs) 시스템
-   ══════════════════════════════════════════════ */
-
-const DEFAULT_STAGE_SPECS = {
-  hframe: [
-    { id:'hf1', name:'H프레임 A', w:1829, h:1829 },
-    { id:'hf2', name:'H프레임 B', w:1524, h:1829 },
-    { id:'hf3', name:'H프레임 C', w:914,  h:1829 },
-  ],
-  xbrace: [
-    { id:'xb1', name:'X대 A', w:2134, h:1219 },
-  ],
-  hbar: [
-    { id:'hb1', name:'가로봉 A', len:2000 },
-    { id:'hb2', name:'가로봉 B', len:1500 },
-  ],
-  truss: [
-    { id:'tr1', name:'트러스 빔 A', len:2000, sec:390 },
-  ],
-  ledframe: [
-    { id:'lf1', name:'LED 프레임 A', w:3419, h:4399, sec:290 },
-  ],
-  deck: [
-    { id:'dk1', name:'발판 A (좁은)', w:193,  len:1864 },
-    { id:'dk2', name:'발판 B (넓은)', w:310,  len:1796 },
-  ],
-};
-
-const SPEC_META = {
-  hframe:   { label:'🏗️ H프레임 (비계틀)', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'폭',type:'num',unit:'mm'},{k:'h',lbl:'높이',type:'num',unit:'mm'}] },
-  xbrace:   { label:'✕ X대 (크로스 브레이스)', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'가로',type:'num',unit:'mm'},{k:'h',lbl:'세로',type:'num',unit:'mm'}] },
-  hbar:     { label:'━ 수평 연결봉', cols:[{k:'name',lbl:'이름',type:'text'},{k:'len',lbl:'길이',type:'num',unit:'mm'}] },
-  truss:    { label:'⬡ 트러스 빔', cols:[{k:'name',lbl:'이름',type:'text'},{k:'len',lbl:'길이',type:'num',unit:'mm'},{k:'sec',lbl:'단면',type:'num',unit:'mm'}] },
-  ledframe: { label:'📺 LED 프레임', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'가로',type:'num',unit:'mm'},{k:'h',lbl:'세로',type:'num',unit:'mm'},{k:'sec',lbl:'트러스단면',type:'num',unit:'mm'}] },
-  deck:     { label:'▬ 발판 (데크)', cols:[{k:'name',lbl:'이름',type:'text'},{k:'w',lbl:'폭',type:'num',unit:'mm'},{k:'len',lbl:'길이',type:'num',unit:'mm'}] },
-};
-
-let stageSpecs = {};
-let _stageSpecsMode = false; // true면 자재규격 뷰
-
-function loadStageSpecs() {
-  const saved = localStorage.getItem('stageSpecs');
-  if (saved) { try { stageSpecs = JSON.parse(saved); } catch(e) { stageSpecs = {}; } }
-  // 기본값 채우기
-  Object.entries(DEFAULT_STAGE_SPECS).forEach(([k, v]) => {
-    if (!stageSpecs[k]) stageSpecs[k] = JSON.parse(JSON.stringify(v));
-  });
+function scGetSpanStarts(k) {
+  const s = [];
+  for (let i = 0; i < k; i += 2) s.push(i);
+  if (k % 2 === 0) s.push(k - 1);
+  return s;
 }
 
-function saveStageSpecs() {
-  localStorage.setItem('stageSpecs', JSON.stringify(stageSpecs));
+function scUpdate() {
+  const el = id => document.getElementById(id);
+  if (!el('sc-disp-m')) return;
+
+  el('sc-disp-m').textContent  = scM + '판';
+  el('sc-disp-mw').textContent = (scM * 1.8).toFixed(1) + 'm';
+  el('sc-disp-n').textContent  = scN + '줄';
+  el('sc-disp-nl').textContent = (scN * 0.9).toFixed(1) + 'm';
+
+  const spans    = scGetSpanStarts(scM);
+  const rowSpans = scGetSpanStarts(scN);
+
+  const panel   = scM * scN;
+  const jijidae = (scM + 1) * rowSpans.length;
+  const xdae    = spans.length * (scN + 1);
+  const c1      = 4;
+  const c2      = (scM - 1) * 2 + (scN - 1) * 2;
+  const c4      = (scM - 1) * (scN - 1);
+  const cTotal  = c1 + c2 + c4;
+
+  el('sc-configLabel').textContent    = `${scM}판 × ${scN}줄 (${(scM*1.8).toFixed(1)}m × ${(scN*0.9).toFixed(1)}m)`;
+  el('sc-r-panel').textContent        = panel;
+  el('sc-r-panel-sub').textContent    = `${scM}판 × ${scN}줄`;
+  el('sc-r-leg').textContent          = jijidae;
+  el('sc-r-leg-sub').textContent      = `${scM+1}열경계 × ${rowSpans.length}홀수줄`;
+  el('sc-r-x').textContent            = xdae;
+  el('sc-r-x-sub').textContent        = `${spans.length}스팬 × ${scN+1}행경계`;
+  el('sc-r-clamp-total').textContent  = cTotal;
+  el('sc-c1').textContent  = c1;
+  el('sc-c2').textContent  = c2;
+  el('sc-c4').textContent  = c4;
+  el('sc-c-total').textContent = cTotal;
+
+  scDrawDiagram(scM, scN, spans, rowSpans);
 }
 
-function toggleSpecsView() {
-  _stageSpecsMode = !_stageSpecsMode;
-  const btn = document.getElementById('stageSpecBtn');
-  if (btn) btn.classList.toggle('active', _stageSpecsMode);
-  // 서브탭/3D/패널 표시 제어
-  const subtabWrap = document.getElementById('stageSubtabWrap');
-  const wrap3d     = document.getElementById('stage3dWrap');
-  const handle     = document.getElementById('stageResizeHandle');
-  const panel      = document.getElementById('stagePanel');
-  if (_stageSpecsMode) {
-    if (subtabWrap) subtabWrap.style.display = 'none';
-    if (wrap3d)     wrap3d.style.display     = 'none';
-    if (handle)     handle.style.display     = 'none';
-    // specs 패널 표시
-    if (panel) { panel.innerHTML = renderSpecsPanel(); }
-  } else {
-    if (subtabWrap) subtabWrap.style.display = '';
-    if (wrap3d)     wrap3d.style.display     = '';
-    if (handle)     handle.style.display     = '';
-    renderStagePanel();
-    buildAndRender3D();
-  }
-}
+function scDrawDiagram(M, N, spans, rowSpans) {
+  const cv  = document.getElementById('stagecalcCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
 
-function renderSpecsPanel() {
-  let html = `
-  <div class="specs-hint">
-    📏 현장에서 자재를 직접 재고 아래 수치를 입력하세요.<br>
-    입력한 치수가 3D 모델과 조립 도구에 자동 반영됩니다.
-  </div>`;
+  const cssW = cv.parentElement.clientWidth - 2;
+  const PL = 28, PR = 18, PT = 22, PB = 24;
+  const usW = cssW - PL - PR;
+  const maxCellH = 36;
+  let cellW = usW / M, cellH = cellW * 0.5;
+  if (cellH > maxCellH) { cellH = maxCellH; cellW = cellH / 0.5; }
+  const totalW = cellW * M;
+  const cssH   = PT + cellH * N + PB;
 
-  Object.entries(SPEC_META).forEach(([type, meta]) => {
-    const rows = stageSpecs[type] || [];
-    const thHtml = meta.cols.map(c =>
-      `<th>${c.lbl}${c.unit?`<span class="specs-unit">(${c.unit})</span>`:''}</th>`
-    ).join('') + '<th></th>';
+  cv.width  = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  cv.style.width  = cssW + 'px';
+  cv.style.height = cssH + 'px';
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
 
-    const rowsHtml = rows.map((row, i) => {
-      const cells = meta.cols.map(c => {
-        if (c.type === 'text') {
-          return `<td><input class="specs-input specs-name-input" value="${row[c.k]||''}" oninput="updateSpec('${type}',${i},'${c.k}',this.value)"></td>`;
-        } else {
-          return `<td><input class="specs-input specs-num-input" type="number" value="${row[c.k]||0}" min="1" step="1" oninput="updateSpec('${type}',${i},'${c.k}',this.value)"></td>`;
-        }
-      }).join('');
-      return `<tr>${cells}<td><button class="specs-del-btn" onclick="deleteSpec('${type}',${i})">✕</button></td></tr>`;
-    }).join('');
+  const ox = PL + (usW - totalW) / 2, oy = PT;
 
-    html += `<div class="specs-section">
-      <div class="specs-section-title">
-        <span>${meta.label}</span>
-        <button class="specs-add-btn" onclick="addSpec('${type}')">＋ 추가</button>
-      </div>
-      <table class="specs-table">
-        <thead><tr>${thHtml}</tr></thead>
-        <tbody>${rowsHtml || `<tr><td colspan="${meta.cols.length+1}" style="text-align:center;color:var(--text-muted);padding:12px;font-size:12px;">아직 없음 — ＋ 추가로 입력하세요</td></tr>`}</tbody>
-      </table>
-    </div>`;
-  });
-
-  return html;
-}
-
-function updateSpec(type, idx, key, val) {
-  if (!stageSpecs[type] || !stageSpecs[type][idx]) return;
-  const meta = SPEC_META[type].cols.find(c => c.k === key);
-  stageSpecs[type][idx][key] = (meta && meta.type === 'num') ? (+val||0) : val;
-  saveStageSpecs();
-}
-
-function addSpec(type) {
-  if (!stageSpecs[type]) stageSpecs[type] = [];
-  const meta = SPEC_META[type];
-  const newRow = { id: 'spec_'+Date.now() };
-  meta.cols.forEach(c => { newRow[c.k] = c.type === 'text' ? '새 자재' : 0; });
-  stageSpecs[type].push(newRow);
-  saveStageSpecs();
-  const panel = document.getElementById('stagePanel');
-  if (panel) panel.innerHTML = renderSpecsPanel();
-}
-
-function deleteSpec(type, idx) {
-  if (!stageSpecs[type]) return;
-  stageSpecs[type].splice(idx, 1);
-  saveStageSpecs();
-  const panel = document.getElementById('stagePanel');
-  if (panel) panel.innerHTML = renderSpecsPanel();
-}
-
-/* 규격 조회 헬퍼 — 3D 렌더러에서 사용 */
-function getSpec(type, id) {
-  return (stageSpecs[type] || []).find(s => s.id === id) || null;
-}
-function getSpecs(type) {
-  return stageSpecs[type] || DEFAULT_STAGE_SPECS[type] || [];
-}
-/* 첫 번째 규격 반환 (기본값) */
-function getFirstSpec(type) {
-  const arr = getSpecs(type);
-  return arr.length ? arr[0] : null;
-}
-
-function loadStageCats() {
-  const saved = localStorage.getItem('stageCats');
-  if (saved) {
-    try { stageCats = JSON.parse(saved); } catch(e) { stageCats = []; }
-  } else { stageCats = []; }
-  // 구버전 카테고리 제거 (stage/scaffold/event → 더 이상 기본 카테고리 아님)
-  stageCats = stageCats.filter(c => !['cat_stage','cat_scaffold','cat_event'].includes(c.id));
-  // 기본 카테고리가 없으면 삽입
-  STAGE_DEFAULT_CATS.forEach(def => {
-    if (!stageCats.find(c => c.id === def.id)) stageCats.unshift({...def});
-  });
-  saveStageCats();
-}
-
-function saveStageCats() {
-  localStorage.setItem('stageCats', JSON.stringify(stageCats));
-}
-
-function initStageTab() {
-  loadStageSpecs();
-  loadStageCats();
-  if (!stageCurrentCat || !stageCats.find(c => c.id === stageCurrentCat)) {
-    stageCurrentCat = stageCats[0]?.id || null;
-  }
-  renderStageSubtabs();
-  initStage3D();
-  renderStagePanel();
-  buildAndRender3D();
-  initStageResizeHandle();
-  initLegoBoard();
-}
-
-/* ── 3D 창 높이 드래그 리사이즈 ── */
-function initStageResizeHandle() {
-  const handle = document.getElementById('stageResizeHandle');
-  const wrap   = document.getElementById('stage3dWrap');
-  if (!handle || !wrap) return;
-  // 중복 등록 방지
-  if (handle._resizeInited) return;
-  handle._resizeInited = true;
-
-  let dragging = false, startY = 0, startH = 0;
-  const MIN_H = 100, MAX_H = 600;
-
-  function onStart(e) {
-    dragging = true;
-    startY = e.touches ? e.touches[0].clientY : e.clientY;
-    startH = wrap.offsetHeight;
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-  }
-  function onMove(e) {
-    if (!dragging) return;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    const newH = Math.min(MAX_H, Math.max(MIN_H, startH + (cy - startY)));
-    wrap.style.height = newH + 'px';
-    resizeStage3D();
-    e.preventDefault();
-  }
-  function onEnd() {
-    if (!dragging) return;
-    dragging = false;
-    document.body.style.userSelect = '';
-  }
-
-  handle.addEventListener('mousedown',  onStart, { passive: false });
-  handle.addEventListener('touchstart', onStart, { passive: false });
-  document.addEventListener('mousemove',  onMove, { passive: false });
-  document.addEventListener('touchmove',  onMove, { passive: false });
-  document.addEventListener('mouseup',  onEnd);
-  document.addEventListener('touchend', onEnd);
-}
-
-/* ── 서브탭 렌더 ── */
-function renderStageSubtabs() {
-  const wrap = document.getElementById('stageSubtabWrap');
-  if (!wrap) return;
-  let html = '';
-  stageCats.forEach(cat => {
-    const active = cat.id === stageCurrentCat ? 'active' : '';
-    const emoji = cat.type === 'stage' ? '🎪' : cat.type === 'scaffold' ? '🏗️' : cat.type === 'truss' ? '⬡' : cat.type === 'event' ? '🏟️' : cat.type === 'assembly' ? '🧱' : '📐';
-    html += `<div class="stage-subtab ${active}" onclick="switchStageCat('${cat.id}')">${emoji} ${cat.name}`;
-    if (!cat.locked) {
-      html += `<span class="stage-subtab-actions">
-        <button class="stage-subtab-action-btn" onclick="event.stopPropagation();openEditStageCat('${cat.id}')" title="수정">✏️</button>
-        <button class="stage-subtab-action-btn" onclick="event.stopPropagation();deleteStageCat('${cat.id}')" title="삭제">🗑</button>
-      </span>`;
-    }
-    html += `</div>`;
-  });
-  html += `<div class="stage-subtab-add" onclick="openAddStageCat()" title="카테고리 추가">＋</div>`;
-  wrap.innerHTML = html;
-}
-
-function switchStageCat(id) {
-  stageCurrentCat = id;
-  renderStageSubtabs();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-/* ── 카테고리 추가/수정 모달 ── */
-function openAddStageCat() {
-  _stageCatModalMode = 'add';
-  _stageCatEditId = null;
-  _stageCatTypeSelected = 'stage';
-  document.getElementById('stageCatModalTitle').textContent = '카테고리 추가';
-  document.getElementById('stageCatNameInput').value = '';
-  updateStageCatTypeUI();
-  document.getElementById('stageCatModal').classList.add('open');
-  setTimeout(() => document.getElementById('stageCatNameInput').focus(), 100);
-}
-
-function openEditStageCat(id) {
-  const cat = stageCats.find(c => c.id === id);
-  if (!cat || cat.locked) return;
-  _stageCatModalMode = 'edit';
-  _stageCatEditId = id;
-  _stageCatTypeSelected = cat.type;
-  document.getElementById('stageCatModalTitle').textContent = '카테고리 수정';
-  document.getElementById('stageCatNameInput').value = cat.name;
-  updateStageCatTypeUI();
-  document.getElementById('stageCatModal').classList.add('open');
-}
-
-function selectStageCatType(type) {
-  _stageCatTypeSelected = type;
-  updateStageCatTypeUI();
-}
-
-function updateStageCatTypeUI() {
-  document.querySelectorAll('#stageCatTypeWrap .stage-modal-type-btn').forEach((btn, i) => {
-    const types = ['stage','scaffold','truss','event','assembly'];
-    btn.classList.toggle('selected', types[i] === _stageCatTypeSelected);
-  });
-}
-
-function closeStageCatModal() {
-  document.getElementById('stageCatModal').classList.remove('open');
-}
-
-function confirmStageCat() {
-  const name = document.getElementById('stageCatNameInput').value.trim();
-  if (!name) { alert('이름을 입력하세요.'); return; }
-  if (_stageCatModalMode === 'add') {
-    const defaultParams = _stageCatTypeSelected === 'stage'
-      ? { width:10, depth:8, height:0.6, tiers:1 }
-      : _stageCatTypeSelected === 'scaffold'
-      ? { bay_widths:[1.83,1.83,1.83,1.83,1.83,1.83], bay_tiers:[2,2,2,2,2,2], rows:2, row_depth:1.83, tier_h:1.83, xbrace:true }
-      : _stageCatTypeSelected === 'event'
-      ? { scaffold_bays:4, scaffold_tiers:2, scaffold_rows:2, row_depth:1.83, tier_h:1.83, screen_w:7.2, screen_h:4.5, truss_size:0.29, show_left_frame:true }
-      : _stageCatTypeSelected === 'assembly'
-      ? { blocks: [] }
-      : { width:10, height:5, depth:1, bays:5 };
-    const newCat = { id:'cat_'+Date.now(), name, type:_stageCatTypeSelected, locked:false, params:defaultParams };
-    stageCats.push(newCat);
-    stageCurrentCat = newCat.id;
-  } else {
-    const cat = stageCats.find(c => c.id === _stageCatEditId);
-    if (cat) { cat.name = name; cat.type = _stageCatTypeSelected; }
-  }
-  saveStageCats();
-  closeStageCatModal();
-  renderStageSubtabs();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-function deleteStageCat(id) {
-  const cat = stageCats.find(c => c.id === id);
-  if (!cat || cat.locked) return;
-  if (!confirm(`"${cat.name}" 카테고리를 삭제할까요?`)) return;
-  stageCats = stageCats.filter(c => c.id !== id);
-  if (stageCurrentCat === id) stageCurrentCat = stageCats[0]?.id || null;
-  saveStageCats();
-  renderStageSubtabs();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-/* ── 입력 패널 렌더 ── */
-function renderStagePanel() {
-  const el = document.getElementById('stagePanel');
-  if (!el) return;
-  const cat = stageCats.find(c => c.id === stageCurrentCat);
-  if (!cat) { el.innerHTML = '<div class="stage-empty">카테고리를 선택하거나 추가하세요.</div>'; return; }
-
-  if (cat.type === 'stage') {
-    el.innerHTML = `
-      <div class="stage-section-title">치수 입력</div>
-      <div class="stage-fields">
-        <div class="stage-field">
-          <label>가로 폭</label>
-          <input type="number" id="sp_width" value="${cat.params.width||10}" min="1" max="100" step="0.1" oninput="updateStageParam('width',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>세로 깊이</label>
-          <input type="number" id="sp_depth" value="${cat.params.depth||8}" min="1" max="100" step="0.1" oninput="updateStageParam('depth',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>단 높이</label>
-          <input type="number" id="sp_height" value="${cat.params.height||0.6}" min="0.1" max="5" step="0.05" oninput="updateStageParam('height',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>단 수</label>
-          <input type="number" id="sp_tiers" value="${cat.params.tiers||1}" min="1" max="10" step="1" oninput="updateStageParam('tiers',this.value)">
-          <span class="stage-unit">단</span>
-        </div>
-      </div>
-      ${renderStageQty(cat)}
-    `;
-  } else if (cat.type === 'scaffold') {
-    const bw = cat.params.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
-    const bt = cat.params.bay_tiers || bw.map(() => cat.params.tiers||2);
-    const chipClass = w => w===1.83?'w183':w===1.50?'w150':'w140';
-    const chipsHtml = bw.map((w,i) => `
-      <div class="scaffold-bay-chip ${chipClass(w)}" onclick="cycleScaffoldBay(${i})" title="탭하면 폭 변경">
-        <span class="chip-idx">B${i+1}</span>
-        <span class="chip-val">${w.toFixed(2)}</span>
-      </div>`).join('');
-    const tierChipsHtml = bt.map((t,i) => `
-      <div class="scaffold-tier-chip t${Math.min(t,4)}" onclick="cycleScaffoldTier(${i})" title="탭하면 단 수 변경">
-        <span class="chip-idx">B${i+1}</span>
-        <span class="chip-val">${t}단</span>
-      </div>`).join('');
-    el.innerHTML = `
-      <div class="scaffold-bay-header">
-        <span class="scaffold-bay-header-label">가로 베이 폭 (기둥 중심 간 거리)</span>
-        <div class="scaffold-bay-header-btns">
-          <button class="scaffold-bay-remove-btn" onclick="removeScaffoldBay()">－ 베이</button>
-          <button class="scaffold-bay-add-btn" onclick="addScaffoldBay()">＋ 베이</button>
-        </div>
-      </div>
-      <div class="scaffold-bay-legend">
-        <div class="scaffold-bay-legend-item"><div class="scaffold-bay-legend-dot" style="background:var(--accent)"></div><span style="color:var(--accent);font-weight:700">1.83m</span></div>
-        <div class="scaffold-bay-legend-item"><div class="scaffold-bay-legend-dot" style="background:#d97248"></div><span style="color:#d97248;font-weight:700">1.50m</span></div>
-        <div class="scaffold-bay-legend-item"><div class="scaffold-bay-legend-dot" style="background:#c9a84c"></div><span style="color:#c9a84c;font-weight:700">1.40m</span></div>
-        <span style="font-size:10px;color:var(--text-muted);margin-left:4px;">탭하면 변경</span>
-      </div>
-      <div class="scaffold-bay-chips" id="scaffoldBayChips">${chipsHtml}</div>
-      <div class="scaffold-bay-header" style="margin-top:4px;">
-        <span class="scaffold-bay-header-label">🏗 베이별 단 수 (탭하면 1→2→3→4 변경)</span>
-      </div>
-      <div class="scaffold-tier-chips" id="scaffoldTierChips">${tierChipsHtml}</div>
-      <div class="stage-fields" style="margin-top:4px;">
-        <div class="stage-field">
-          <label>단 수 (높이)</label>
-          <input type="number" id="sp_tiers" value="${cat.params.tiers||2}" min="1" max="10" step="1" oninput="updateScaffoldAllTiers(this.value)">
-          <span class="stage-unit">단 (일괄)</span>
-        </div>
-        <div class="stage-field">
-          <label>깊이 열 수</label>
-          <input type="number" id="sp_rows" value="${cat.params.rows||2}" min="1" max="10" step="1" oninput="updateStageParam('rows',this.value)">
-          <span class="stage-unit">열</span>
-        </div>
-        <div class="stage-field">
-          <label>열 간격 (깊이)</label>
-          <input type="number" id="sp_row_depth" value="${cat.params.row_depth||1.83}" min="0.5" max="5" step="0.01" oninput="updateStageParam('row_depth',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>단 높이</label>
-          <input type="number" id="sp_tier_h" value="${cat.params.tier_h||1.83}" min="0.5" max="5" step="0.01" oninput="updateStageParam('tier_h',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field" style="align-items:center;justify-content:center;gap:8px;flex-direction:row;padding-top:16px;">
-          <label style="margin:0;">X대 포함</label>
-          <input type="checkbox" id="sp_xbrace" ${cat.params.xbrace!==false?'checked':''} style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;" onchange="updateStageParam('xbrace',this.checked)">
-        </div>
-      </div>
-      ${renderStageQty(cat)}
-    `;
-  } else if (cat.type === 'event') {
-    el.innerHTML = `
-      <div class="stage-section-title">🏟️ 이벤트 구조물</div>
-      <div class="stage-section-title" style="font-size:11px;color:var(--text-muted);margin-top:-4px;">비계틀 + 사각 트러스 + LED 프레임</div>
-      <div class="stage-fields">
-        <div class="stage-field">
-          <label>비계 베이 수</label>
-          <input type="number" id="sp_scaffold_bays" value="${cat.params.scaffold_bays||4}" min="1" max="20" step="1" oninput="updateStageParam('scaffold_bays',this.value)">
-          <span class="stage-unit">베이</span>
-        </div>
-        <div class="stage-field">
-          <label>비계 단 수</label>
-          <input type="number" id="sp_scaffold_tiers" value="${cat.params.scaffold_tiers||2}" min="1" max="10" step="1" oninput="updateStageParam('scaffold_tiers',this.value)">
-          <span class="stage-unit">단</span>
-        </div>
-        <div class="stage-field">
-          <label>비계 열 수</label>
-          <input type="number" id="sp_scaffold_rows" value="${cat.params.scaffold_rows||2}" min="1" max="6" step="1" oninput="updateStageParam('scaffold_rows',this.value)">
-          <span class="stage-unit">열</span>
-        </div>
-        <div class="stage-field">
-          <label>단 높이</label>
-          <input type="number" id="sp_tier_h" value="${cat.params.tier_h||1.83}" min="0.5" max="5" step="0.01" oninput="updateStageParam('tier_h',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>LED 가로</label>
-          <input type="number" id="sp_screen_w" value="${cat.params.screen_w||7.2}" min="1" max="30" step="0.1" oninput="updateStageParam('screen_w',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>LED 높이</label>
-          <input type="number" id="sp_screen_h" value="${cat.params.screen_h||4.5}" min="1" max="20" step="0.1" oninput="updateStageParam('screen_h',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>트러스 단면</label>
-          <input type="number" id="sp_truss_size" value="${cat.params.truss_size||0.29}" min="0.1" max="1" step="0.01" oninput="updateStageParam('truss_size',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field" style="align-items:center;justify-content:center;gap:8px;flex-direction:row;padding-top:16px;">
-          <label style="margin:0;">좌측 프레임</label>
-          <input type="checkbox" id="sp_show_left_frame" ${cat.params.show_left_frame!==false?'checked':''} style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;" onchange="updateStageParam('show_left_frame',this.checked)">
-        </div>
-      </div>
-      ${renderStageQty(cat)}
-    `;
-  } else if (cat.type === 'assembly') {
-    el.innerHTML = renderAssemblyPanel(cat);
-  } else {
-    // 트러스/커스텀
-    el.innerHTML = `
-      <div class="stage-section-title">치수 입력</div>
-      <div class="stage-fields">
-        <div class="stage-field">
-          <label>가로</label>
-          <input type="number" id="sp_width" value="${cat.params.width||10}" min="1" max="100" step="0.1" oninput="updateStageParam('width',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>높이</label>
-          <input type="number" id="sp_height" value="${cat.params.height||5}" min="1" max="50" step="0.1" oninput="updateStageParam('height',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>깊이</label>
-          <input type="number" id="sp_depth" value="${cat.params.depth||1}" min="0.1" max="10" step="0.1" oninput="updateStageParam('depth',this.value)">
-          <span class="stage-unit">m</span>
-        </div>
-        <div class="stage-field">
-          <label>스팬 수</label>
-          <input type="number" id="sp_bays" value="${cat.params.bays||5}" min="1" max="30" step="1" oninput="updateStageParam('bays',this.value)">
-          <span class="stage-unit">개</span>
-        </div>
-      </div>
-      ${renderStageQty(cat)}
-    `;
-  }
-}
-
-function renderStageQty(cat) {
-  const p = cat.params;
-  let rows = [];
-  if (cat.type === 'stage') {
-    const w = +p.width||10, d = +p.depth||8, h = +p.height||0.6, t = +p.tiers||1;
-    const totalH = h * t;
-    const area = w * d;
-    const plywood = Math.ceil(area / 1.62); // 합판 0.9×1.8m
-    const frame = Math.ceil(w / 1.8) * Math.ceil(d / 1.8);
-    rows = [
-      ['전체 면적', `${area.toFixed(1)} ㎡`],
-      ['총 높이', `${totalH.toFixed(2)} m`],
-      ['합판 (0.9×1.8m)', `${plywood} 장`],
-      ['프레임 (1.8m 간격)', `${frame} 개`],
-    ];
-  } else if (cat.type === 'scaffold') {
-    const bw = p.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
-    const bays = bw.length;
-    const tiers = +p.tiers||2, rows2 = +p.rows||2;
-    const rd = +p.row_depth||1.83, th = +p.tier_h||1.83;
-    const totalW = bw.reduce((a,b)=>a+b, 0);
-    const totalH2 = tiers * th;
-    const totalD = (rows2-1) * rd;
-    const hFrames = (bays+1) * rows2;
-    const xbraces = bays * tiers * rows2 * (p.xbrace!==false ? 2 : 0); // X자이므로 2개
-    const horzBars = bays * (tiers+1) * rows2;
-    const depthBars = (bays+1) * (rows2-1) * (tiers+1);
-    // 폭 분포 카운트
-    const cnt183 = bw.filter(w=>w===1.83).length;
-    const cnt150 = bw.filter(w=>w===1.50).length;
-    const cnt140 = bw.filter(w=>w===1.40).length;
-    let distStr = [];
-    if (cnt183) distStr.push(`1.83×${cnt183}`);
-    if (cnt150) distStr.push(`1.50×${cnt150}`);
-    if (cnt140) distStr.push(`1.40×${cnt140}`);
-    rows = [
-      ['베이 구성', distStr.join(' + ') || `${bays}개`],
-      ['전체 가로', `${totalW.toFixed(2)} m`],
-      ['전체 높이', `${totalH2.toFixed(2)} m`],
-      ['전체 깊이', `${totalD.toFixed(2)} m`],
-      ['H프레임 (수직)', `${hFrames * rows2} 개`],
-      ['X대 (가새)', `${xbraces} 개`],
-      ['수평재 (가로)', `${horzBars} 개`],
-      ['연결재 (깊이)', `${depthBars} 개`],
-    ];
-  } else if (cat.type === 'event') {
-    const bays = +p.scaffold_bays||4, tiers = +p.scaffold_tiers||2, rowCnt = +p.scaffold_rows||2;
-    const rd = +p.row_depth||1.83, th = +p.tier_h||1.83;
-    const scaffoldW = bays * 1.83;
-    const scaffoldD = (rowCnt-1) * rd;
-    const scaffoldH = tiers * th;
-    const ts = +p.truss_size||0.29;
-    const sw = +p.screen_w||7.2, sh = +p.screen_h||4.5;
-    // truss lengths
-    const topBeamLen = scaffoldW;
-    const frameH = scaffoldH + 1.5;
-    const leftFrameBeamLen = scaffoldD;
-    rows = [
-      ['비계틀 가로', `${scaffoldW.toFixed(2)} m (${bays}베이)`],
-      ['비계틀 높이', `${scaffoldH.toFixed(2)} m (${tiers}단)`],
-      ['비계틀 깊이', `${scaffoldD.toFixed(2)} m (${rowCnt}열)`],
-      ['수평 트러스', `${topBeamLen.toFixed(2)} m`],
-      ['수직 트러스 높이', `${frameH.toFixed(2)} m`],
-      ['LED 화면', `${sw}m × ${sh}m`],
-      ['트러스 단면', `${(ts*100).toFixed(0)}cm × ${(ts*100).toFixed(0)}cm`],
-    ];
-  } else {
-    const w = +p.width||10, h2 = +p.height||5;
-    rows = [['가로', `${w} m`], ['높이', `${h2} m`]];
-  }
-  return `<div class="stage-qty-box">
-    <div class="stage-qty-title">📊 자재 수량</div>
-    ${rows.map(r => `<div class="stage-qty-row"><span class="stage-qty-label">${r[0]}</span><span class="stage-qty-val">${r[1]}</span></div>`).join('')}
-  </div>`;
-}
-
-function updateStageParam(key, val) {
-  const cat = stageCats.find(c => c.id === stageCurrentCat);
-  if (!cat) return;
-  if (key === 'xbrace' || key === 'show_left_frame') cat.params[key] = !!val;
-  else cat.params[key] = isNaN(+val) ? val : +val;
-  saveStageCats();
-  // 수량 박스만 갱신
-  const qtyEl = document.querySelector('#stagePanel .stage-qty-box');
-  if (qtyEl) qtyEl.outerHTML = renderStageQty(cat).replace(/^.*?<div class="stage-qty-box">/s,'<div class="stage-qty-box">');
-  // 양 업데이트
-  const panel = document.getElementById('stagePanel');
-  if (panel) {
-    const oldBox = panel.querySelector('.stage-qty-box');
-    if (oldBox) {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = renderStageQty(cat);
-      oldBox.replaceWith(tmp.firstElementChild);
-    }
-  }
-  buildAndRender3D();
-}
-
-/* ── 비계틀 베이 조작 ── */
-function _getScaffoldCat() {
-  return stageCats.find(c => c.id === stageCurrentCat && c.type === 'scaffold');
-}
-
-function _ensureBayWidths(cat) {
-  if (!Array.isArray(cat.params.bay_widths) || cat.params.bay_widths.length === 0) {
-    cat.params.bay_widths = [1.83,1.83,1.83,1.83,1.83,1.83];
-  }
-  // bay_tiers도 bay_widths 길이에 맞게 동기화
-  if (!Array.isArray(cat.params.bay_tiers)) {
-    cat.params.bay_tiers = cat.params.bay_widths.map(() => cat.params.tiers||2);
-  }
-  // 길이 일치
-  while (cat.params.bay_tiers.length < cat.params.bay_widths.length) {
-    cat.params.bay_tiers.push(cat.params.tiers||2);
-  }
-  cat.params.bay_tiers = cat.params.bay_tiers.slice(0, cat.params.bay_widths.length);
-}
-
-function addScaffoldBay() {
-  const cat = _getScaffoldCat(); if (!cat) return;
-  _ensureBayWidths(cat);
-  if (cat.params.bay_widths.length >= 30) return;
-  const last = cat.params.bay_widths[cat.params.bay_widths.length-1] || 1.83;
-  const lastT = cat.params.bay_tiers[cat.params.bay_tiers.length-1] || 2;
-  cat.params.bay_widths.push(last);
-  cat.params.bay_tiers.push(lastT);
-  saveStageCats();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-function removeScaffoldBay() {
-  const cat = _getScaffoldCat(); if (!cat) return;
-  _ensureBayWidths(cat);
-  if (cat.params.bay_widths.length <= 1) return;
-  cat.params.bay_widths.pop();
-  cat.params.bay_tiers.pop();
-  saveStageCats();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-function cycleScaffoldBay(idx) {
-  const cat = _getScaffoldCat(); if (!cat) return;
-  _ensureBayWidths(cat);
-  const cycle = [1.83, 1.50, 1.40];
-  const cur = cat.params.bay_widths[idx];
-  const ci = cycle.findIndex(v => Math.abs(v-cur)<0.01);
-  cat.params.bay_widths[idx] = cycle[(ci+1) % cycle.length];
-  saveStageCats();
-  // 칩만 업데이트
-  const chipsEl = document.getElementById('scaffoldBayChips');
-  if (chipsEl) {
-    const bw = cat.params.bay_widths;
-    const chipClass = w => w===1.83?'w183':w===1.50?'w150':'w140';
-    chipsEl.innerHTML = bw.map((w,i) => `
-      <div class="scaffold-bay-chip ${chipClass(w)}" onclick="cycleScaffoldBay(${i})" title="탭하면 폭 변경">
-        <span class="chip-idx">B${i+1}</span>
-        <span class="chip-val">${w.toFixed(2)}</span>
-      </div>`).join('');
-  }
-  // 수량 업데이트
-  const panel = document.getElementById('stagePanel');
-  if (panel) {
-    const oldBox = panel.querySelector('.stage-qty-box');
-    if (oldBox) {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = renderStageQty(cat);
-      oldBox.replaceWith(tmp.firstElementChild);
-    }
-  }
-  buildAndRender3D();
-}
-
-/* ── 베이별 단 수 조작 ── */
-function cycleScaffoldTier(idx) {
-  const cat = _getScaffoldCat(); if (!cat) return;
-  _ensureBayWidths(cat);
-  const bt = cat.params.bay_tiers;
-  bt[idx] = (bt[idx] >= 4) ? 1 : (bt[idx] || 2) + 1;
-  saveStageCats();
-  const chipsEl = document.getElementById('scaffoldTierChips');
-  if (chipsEl) {
-    chipsEl.innerHTML = bt.map((t,i) => `
-      <div class="scaffold-tier-chip t${Math.min(t,4)}" onclick="cycleScaffoldTier(${i})" title="탭하면 단 수 변경">
-        <span class="chip-idx">B${i+1}</span>
-        <span class="chip-val">${t}단</span>
-      </div>`).join('');
-  }
-  const panel = document.getElementById('stagePanel');
-  if (panel) {
-    const oldBox = panel.querySelector('.stage-qty-box');
-    if (oldBox) { const tmp = document.createElement('div'); tmp.innerHTML = renderStageQty(cat); oldBox.replaceWith(tmp.firstElementChild); }
-  }
-  buildAndRender3D();
-}
-
-/* 단 수 일괄 변경 (입력 필드) */
-function updateScaffoldAllTiers(val) {
-  const cat = _getScaffoldCat(); if (!cat) return;
-  const t = Math.max(1, Math.min(8, +val||2));
-  cat.params.tiers = t;
-  _ensureBayWidths(cat);
-  cat.params.bay_tiers = cat.params.bay_widths.map(() => t);
-  saveStageCats();
-  // 단 수 칩 갱신
-  const chipsEl = document.getElementById('scaffoldTierChips');
-  if (chipsEl) {
-    chipsEl.innerHTML = cat.params.bay_tiers.map((tv,i) => `
-      <div class="scaffold-tier-chip t${Math.min(tv,4)}" onclick="cycleScaffoldTier(${i})">
-        <span class="chip-idx">B${i+1}</span>
-        <span class="chip-val">${tv}단</span>
-      </div>`).join('');
-  }
-  const panel = document.getElementById('stagePanel');
-  if (panel) {
-    const oldBox = panel.querySelector('.stage-qty-box');
-    if (oldBox) { const tmp = document.createElement('div'); tmp.innerHTML = renderStageQty(cat); oldBox.replaceWith(tmp.firstElementChild); }
-  }
-  buildAndRender3D();
-}
-
-/* ── Three.js 3D 초기화 ── */
-function initStage3D() {
-  if (typeof THREE === 'undefined') return;
-  const canvas = document.getElementById('stage3dCanvas');
-  const wrap = document.getElementById('stage3dWrap');
-  if (!canvas || !wrap) return;
-
-  if (_stageRenderer) {
-    resizeStage3D();
-    return;
-  }
-
-  _stageRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  _stageRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  _stageRenderer.setClearColor(0x0f1218, 1);
-
-  _stageScene = new THREE.Scene();
-  _stageCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 200);
-
-  // 조명
-  _stageScene.add(new THREE.AmbientLight(0xffffff, 0.55));
-  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-  dir.position.set(8, 14, 6);
-  _stageScene.add(dir);
-  const fill = new THREE.DirectionalLight(0x88aacc, 0.3);
-  fill.position.set(-5, 3, -5);
-  _stageScene.add(fill);
-
-  resizeStage3D();
-
-  // 마우스 이벤트
-  canvas.addEventListener('mousedown', e => { _stageMouse.down = true; _stageMouse.x = e.clientX; _stageMouse.y = e.clientY; });
-  window.addEventListener('mouseup', () => _stageMouse.down = false);
-  canvas.addEventListener('mousemove', e => {
-    if (!_stageMouse.down) return;
-    _stageRot.y += (e.clientX - _stageMouse.x) * 0.007;
-    _stageRot.x += (e.clientY - _stageMouse.y) * 0.007;
-    _stageRot.x = Math.max(-1.4, Math.min(1.4, _stageRot.x));
-    _stageMouse.x = e.clientX; _stageMouse.y = e.clientY;
-    renderStage3D();
-  });
-  canvas.addEventListener('wheel', e => {
-    _stageZoom += e.deltaY * 0.02;
-    _stageZoom = Math.max(2, Math.min(50, _stageZoom));
-    renderStage3D();
-  }, { passive: true });
-
-  // 터치 이벤트
-  let _t0 = null, _t0dist = null;
-  canvas.addEventListener('touchstart', e => { _t0 = e.touches[0]; if(e.touches.length===2){_t0dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);} }, { passive: true });
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (e.touches.length === 2 && _t0dist !== null) {
-      const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      _stageZoom -= (d - _t0dist) * 0.05;
-      _stageZoom = Math.max(2, Math.min(50, _stageZoom));
-      _t0dist = d;
-    } else if (e.touches.length === 1 && _t0) {
-      const t = e.touches[0];
-      _stageRot.y += (t.clientX - _t0.clientX) * 0.007;
-      _stageRot.x += (t.clientY - _t0.clientY) * 0.007;
-      _stageRot.x = Math.max(-1.4, Math.min(1.4, _stageRot.x));
-      _t0 = t;
-    }
-    renderStage3D();
-  }, { passive: false });
-  canvas.addEventListener('touchend', () => { _t0 = null; _t0dist = null; }, { passive: true });
-
-  window.addEventListener('resize', resizeStage3D);
-}
-
-function resizeStage3D() {
-  const wrap = document.getElementById('stage3dWrap');
-  if (!wrap || !_stageRenderer || !_stageCamera) return;
-  const w = wrap.clientWidth, h = wrap.clientHeight;
-  if (w < 10 || h < 10) {
-    // 아직 레이아웃 미완료 — 잠시 후 재시도
-    setTimeout(resizeStage3D, 60);
-    return;
-  }
-  _stageRenderer.setSize(w, h);
-  _stageCamera.aspect = w / h;
-  _stageCamera.updateProjectionMatrix();
-  renderStage3D();
-}
-
-function renderStage3D() {
-  if (!_stageRenderer || !_stageScene || !_stageCamera) return;
-  const cy = _stageCenterY || 0;
-  const x = _stageZoom * Math.sin(_stageRot.y) * Math.cos(_stageRot.x);
-  const y = _stageZoom * Math.sin(_stageRot.x) + cy;
-  const z = _stageZoom * Math.cos(_stageRot.y) * Math.cos(_stageRot.x);
-  _stageCamera.position.set(x, y, z);
-  _stageCamera.lookAt(0, cy, 0);
-  _stageRenderer.render(_stageScene, _stageCamera);
-}
-
-function setStageView(mode) {
-  _stageViewMode = mode;
-  // 버튼 active 상태
-  ['3d','Front','Side','Top'].forEach(v => {
-    const btn = document.getElementById('vbtn' + (v==='3d'?'3d':v));
-    if (btn) btn.classList.toggle('active', mode === v.toLowerCase());
-  });
-  if (mode === '3d') {
-    _stageRot = { x: 0.45, y: 0.6 };
-  } else if (mode === 'front') {
-    _stageRot = { x: 0.0, y: 0.0 };  // Z+ 방향에서 정면 보기
-  } else if (mode === 'side') {
-    _stageRot = { x: 0.0, y: Math.PI / 2 }; // X+ 방향에서 측면 보기
-  } else if (mode === 'top') {
-    _stageRot = { x: Math.PI / 2 - 0.01, y: 0.0 }; // Y+ 위에서 아래로
-  }
-  renderStage3D();
-}
-
-function resetStage3DView() {
-  _stageRot = { x: 0.45, y: 0.6 };
-  renderStage3D();
-}
-
-/* ── 3D 모델 생성 ── */
-function buildAndRender3D() {
-  if (!_stageScene || typeof THREE === 'undefined') return;
-  const cat = stageCats.find(c => c.id === stageCurrentCat);
-
-  // 기존 오브젝트 제거 (조명 제외)
-  const toRemove = [];
-  _stageScene.traverse(obj => { if (obj.isMesh || (obj.isLineSegments)) toRemove.push(obj); });
-  toRemove.forEach(obj => { _stageScene.remove(obj); if (obj.geometry) obj.geometry.dispose(); if (obj.material) obj.material.dispose(); });
-
-  if (!cat) { renderStage3D(); return; }
-
-  if (cat.type === 'stage') {
-    buildStageModel(cat.params);
-  } else if (cat.type === 'scaffold') {
-    buildScaffoldModel(cat.params);
-  } else if (cat.type === 'event') {
-    buildEventModel(cat.params);
-  } else if (cat.type === 'assembly') {
-    buildAssemblyModel(cat.params);
-  } else {
-    buildTrussModel(cat.params);
-  }
-
-  // 그리드 헬퍼
-  const _gp = cat.params;
-  const _gw = cat.type==='event' ? (_gp.scaffold_bays||4)*1.83+(_gp.screen_w||7.2) : cat.type==='assembly' ? _assemblyTotalWidth(_gp)+4 : (_gp.width||10);
-  const _gd = cat.type==='event' ? Math.max((_gp.scaffold_rows||2-1)*(_gp.row_depth||1.83)+4, _gp.screen_w||7.2) : (_gp.depth||8);
-  const gridSize = Math.max(20, Math.ceil(Math.max(_gw, _gd) * 1.5 / 5) * 5);
-  const grid = new THREE.GridHelper(gridSize, gridSize/2, 0x1e2636, 0x1a2030);
-  _stageScene.add(grid);
-
-  renderStage3D();
-}
-
-/* 무대 모델 */
-function buildStageModel(p) {
-  const w = +p.width||10, d = +p.depth||8, h = +p.height||0.6, t = +p.tiers||1;
-  const matTop = new THREE.MeshLambertMaterial({ color: 0x3d5a7a });
-  const matSide = new THREE.MeshLambertMaterial({ color: 0x2a3f58 });
-  const matEdge = new THREE.LineBasicMaterial({ color: 0x3dba96 });
-
-  for (let tier = 0; tier < t; tier++) {
-    const tw = w - tier * 0.5, td = d - tier * 0.3;
-    const geo = new THREE.BoxGeometry(tw, h, td);
-    const mesh = new THREE.Mesh(geo, [matSide, matSide, matTop, matSide, matSide, matSide]);
-    mesh.position.set(0, h * (tier + 0.5), 0);
-    _stageScene.add(mesh);
-    // 엣지 라인
-    const edges = new THREE.EdgesGeometry(geo);
-    const line = new THREE.LineSegments(edges, matEdge);
-    line.position.copy(mesh.position);
-    _stageScene.add(line);
-  }
-  // 카메라 거리 조정
-  _stageCenterY = (h * t) / 2;
-  _stageZoom = Math.max(w, d) * 1.3;
-  renderStage3D();
-}
-
-/* 비계틀 모델 — 베이별 단 수(bay_tiers) 지원 */
-function buildScaffoldModel(p) {
-  const bwRaw = p.bay_widths || [1.83,1.83,1.83,1.83,1.83,1.83];
-  const bw = bwRaw.slice(0, 20);
-  const bays = bw.length;
-  const globalTiers = Math.min(+p.tiers||2, 8);
-  // 베이별 단 수 배열 (없으면 전체 동일)
-  const bt = Array.isArray(p.bay_tiers) && p.bay_tiers.length === bays
-    ? p.bay_tiers.map(t => Math.max(1, Math.min(8, +t||2)))
-    : bw.map(() => globalTiers);
-  const rowCount = Math.min(+p.rows||2, 6);
-  const rd = +p.row_depth||1.83;
-  const th = +p.tier_h||1.83;
-  const useX = p.xbrace !== false;
-  const pipeR = 0.032;
-
-  // 기둥 X 좌표 누적
-  const totalW = bw.reduce((a,b)=>a+b, 0);
-  const colX = []; let cx = 0; colX.push(cx);
-  for (let i = 0; i < bays; i++) { cx += bw[i]; colX.push(cx); }
-  const ox = -totalW / 2;
-  const totalD = (rowCount - 1) * rd;
-  const oz = -totalD / 2;
-
-  // 각 기둥(col)의 높이: 인접 베이 중 최대 단 수 * th
-  function colH(col) {
-    const left  = col > 0    ? bt[col-1] : null;
-    const right = col < bays ? bt[col]   : null;
-    return Math.max(left??0, right??0) * th;
-  }
-  const maxH = Math.max(...bt) * th;
-
-  // 재질
-  const matPost  = new THREE.MeshLambertMaterial({ color: 0xa0aabb });
-  const matHBar  = new THREE.MeshLambertMaterial({ color: 0x8090a8 });
-  const matDBar  = new THREE.MeshLambertMaterial({ color: 0x6a7e9a });
-  const matX183  = new THREE.MeshLambertMaterial({ color: 0x3dba96 });
-  const matX150  = new THREE.MeshLambertMaterial({ color: 0xd97248 });
-  const matX140  = new THREE.MeshLambertMaterial({ color: 0xc9a84c });
-  const matFig   = new THREE.MeshLambertMaterial({ color: 0xffd700 }); // 사람 모형
-
-  function addCylinder(ax, ay, az, bx, by, bz, mat, r) {
-    const pr = r || pipeR;
-    const dx=bx-ax, dy=by-ay, dz=bz-az;
-    const len = Math.sqrt(dx*dx+dy*dy+dz*dz);
-    if (len < 0.001) return;
-    const geo = new THREE.CylinderGeometry(pr, pr, len, 8, 1);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set((ax+bx)/2,(ay+by)/2,(az+bz)/2);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), new THREE.Vector3(dx/len,dy/len,dz/len));
-    _stageScene.add(mesh);
-  }
-  function addNode(x, y, z, mat) {
-    const geo = new THREE.SphereGeometry(pipeR*1.4, 8, 6);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(x, y, z);
-    _stageScene.add(mesh);
-  }
-
-  // ① 수직 기둥 — 각 기둥 높이는 인접 베이 최대 단 수에 따라 결정
-  for (let row = 0; row < rowCount; row++) {
-    for (let col = 0; col <= bays; col++) {
-      const x = ox + colX[col], z = oz + row * rd;
-      const h = colH(col);
-      addCylinder(x, 0, z, x, h, z, matPost);
+  // 상판
+  for (let row = 0; row < N; row++) {
+    const dr = N - 1 - row;
+    for (let col = 0; col < M; col++) {
+      const x = ox + col * cellW, y = oy + dr * cellH;
+      ctx.fillStyle = 'rgba(160, 100, 40, 0.18)';
+      ctx.fillRect(x + .5, y + .5, cellW - 1, cellH - 1);
+      const num = row * M + col + 1;
+      const fs = Math.min(12, cellW * 0.28, cellH * 0.36);
+      ctx.font = `600 ${fs}px -apple-system,sans-serif`;
+      ctx.fillStyle = 'rgba(120, 70, 20, 0.55)';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(num, x + cellW / 2, y + cellH / 2);
     }
   }
 
-  // ② H프레임 — 사진 기준 실제 구조 재현
-  //   각 단(tier)마다:
-  //   [상단바] - [상중바(35%)] - [중앙 세로 스트럿] - [하중바(65%)] - [하단바(다음 단 상단)]
-  //   중앙 스트럿: 베이 폭 중간 x, 상중바~하중바 연결
-  //   발 핀: 기둥 하단 돌출 스터브
-  for (let bay = 0; bay < bays; bay++) {
-    const x0 = ox + colX[bay], x1 = ox + colX[bay+1];
-    const xMid = (x0 + x1) / 2; // 베이 폭 중간 (중앙 스트럿 위치)
-    const bayTiers = bt[bay];
-    for (let row = 0; row < rowCount; row++) {
-      const z = oz + row * rd;
-      for (let tier = 0; tier < bayTiers; tier++) {
-        const yBot = tier * th;      // 이 단 하단 (= 이전 단 상단)
-        const yTop = (tier+1) * th;  // 이 단 상단 (= 다음 단 하단)
-        const yUMid = yBot + th * 0.62; // 상중바 (하단에서 62%)
-        const yLMid = yBot + th * 0.38; // 하중바 (하단에서 38%)
+  // 격자선
+  ctx.strokeStyle = 'rgba(100,120,160,0.2)'; ctx.lineWidth = 0.5;
+  for (let c = 0; c <= M; c++) {
+    const x = ox + c * cellW;
+    ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + N * cellH); ctx.stroke();
+  }
+  for (let r = 0; r <= N; r++) {
+    const y = oy + r * cellH;
+    ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + M * cellW, y); ctx.stroke();
+  }
 
-        // 상단바 (단 경계)
-        addCylinder(x0, yTop, z, x1, yTop, z, matHBar);
-        addNode(x0, yTop, z, matHBar);
-        addNode(x1, yTop, z, matHBar);
-        // 상중바
-        addCylinder(x0, yUMid, z, x1, yUMid, z, matHBar, pipeR*0.85);
-        // 하중바
-        addCylinder(x0, yLMid, z, x1, yLMid, z, matHBar, pipeR*0.85);
-        // 중앙 세로 스트럿 (상중바 ↔ 하중바)
-        addCylinder(xMid, yLMid, z, xMid, yUMid, z, matHBar, pipeR*0.85);
-        addNode(xMid, yUMid, z, matHBar);
-        addNode(xMid, yLMid, z, matHBar);
-      }
-      // 최하단 바닥바 (0단)
-      addCylinder(x0, 0, z, x1, 0, z, matHBar);
-      addNode(x0, 0, z, matHBar); addNode(x1, 0, z, matHBar);
+  // X대 (주황 가로바)
+  ctx.strokeStyle = '#ea580c'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  for (let r = 0; r <= N; r++) {
+    const y = oy + r * cellH;
+    for (const ss of spans) {
+      ctx.globalAlpha = 0.75; ctx.shadowColor = 'rgba(234,88,12,0.3)'; ctx.shadowBlur = 2;
+      ctx.beginPath(); ctx.moveTo(ox + ss * cellW + 2, y); ctx.lineTo(ox + (ss + 1) * cellW - 2, y); ctx.stroke();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
     }
   }
-  // 발 핀 — 각 기둥 하단에 짧은 돌출 스터브
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + colX[col];
-    for (let row = 0; row < rowCount; row++) {
-      const z = oz + row * rd;
-      // 좌우 수평 스터브 (발 핀)
-      addCylinder(x - 0.12, -0.08, z, x + 0.12, -0.08, z, matPost, pipeR * 0.7);
+  ctx.lineCap = 'butt';
+
+  // 지지대 (녹색 세로바)
+  ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  for (let cx = 0; cx <= M; cx++) {
+    const x = ox + cx * cellW;
+    for (const row of rowSpans) {
+      const dr = N - 1 - row;
+      const y1 = oy + dr * cellH + 2, y2 = oy + (dr + 1) * cellH - 2;
+      ctx.shadowColor = 'rgba(22,163,74,0.4)'; ctx.shadowBlur = 3;
+      ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
+  ctx.lineCap = 'butt';
 
-  // ③ 깊이 방향 연결재 — 기둥 높이까지
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + colX[col];
-    const h = colH(col);
-    const steps = Math.ceil(h / th); // 이 기둥에 해당하는 단 수
-    for (let tier = 0; tier <= steps; tier++) {
-      const y = Math.min(tier * th, h);
-      for (let row = 0; row < rowCount - 1; row++) {
-        const z0 = oz + row * rd, z1 = oz + (row+1) * rd;
-        addCylinder(x, y, z0, x, y, z1, matDBar);
-      }
-    }
+  // 줄 번호
+  for (let row = 0; row < N; row++) {
+    const dr = N - 1 - row;
+    ctx.fillStyle = 'rgba(100,116,139,0.8)';
+    ctx.font = '9px -apple-system,sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText((row + 1) + '줄', ox - 4, oy + dr * cellH + cellH / 2);
   }
-
-  // ④ X대 — 각 베이의 단 수에 맞게 그 베이만 적용
-  if (useX) {
-    for (let bay = 0; bay < bays; bay++) {
-      const x0 = ox + colX[bay], x1 = ox + colX[bay+1];
-      const w = bw[bay];
-      const matXc = w===1.83 ? matX183 : w===1.50 ? matX150 : matX140;
-      const bayTiers = bt[bay];
-      for (let row = 0; row < rowCount; row++) {
-        const z = oz + row * rd;
-        for (let tier = 0; tier < bayTiers; tier++) {
-          const y0 = tier * th, y1 = (tier+1) * th;
-          addCylinder(x0, y0, z, x1, y1, z, matXc, pipeR * 0.85);
-          addCylinder(x1, y0, z, x0, y1, z, matXc, pipeR * 0.85);
-        }
-      }
-    }
-  }
-
-  // ⑤ 사람 모형 (1.75m 기준 스케일 레퍼런스) — 오른쪽 끝에 배치
-  const figX = ox + totalW + 0.7;
-  const figZ = oz;
-  const figH = 1.75, bodyH = figH * 0.57, headR = figH * 0.10;
-  addCylinder(figX, 0, figZ, figX, bodyH, figZ, matFig, 0.10); // 몸통
-  const headGeo = new THREE.SphereGeometry(headR, 8, 6);
-  const headMesh = new THREE.Mesh(headGeo, matFig);
-  headMesh.position.set(figX, bodyH + headR, figZ);
-  _stageScene.add(headMesh);
-  // 팔
-  addCylinder(figX-0.18, bodyH*0.75, figZ, figX+0.18, bodyH*0.65, figZ, matFig, 0.05);
-  // 다리
-  addCylinder(figX-0.07, 0, figZ, figX-0.07, bodyH*0.45, figZ, matFig, 0.07);
-  addCylinder(figX+0.07, 0, figZ, figX+0.07, bodyH*0.45, figZ, matFig, 0.07);
-
-  _stageCenterY = maxH / 2;
-  _stageZoom = Math.max(totalW + 1.5, maxH, totalD) * 1.5 + 3;
-  renderStage3D();
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px -apple-system,sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('관객 ▲', ox + M * cellW / 2, oy + N * cellH + 3);
+  ctx.restore();
 }
 
-/* ── 이벤트 구조물 모델 (비계틀 + 사각트러스 + LED 프레임) ── */
-function buildEventModel(p) {
-  const bays    = Math.max(1, +p.scaffold_bays  || 4);
-  const tiers   = Math.max(1, +p.scaffold_tiers || 2);
-  const rows    = Math.max(1, +p.scaffold_rows  || 2);
-  const rd      = +p.row_depth   || 1.83;
-  const th      = +p.tier_h     || 1.83;
-  const ts      = +p.truss_size  || 0.29;
-  const screenW = +p.screen_w    || 7.2;
-  const screenH = +p.screen_h    || 4.5;
-  const showLeft = p.show_left_frame !== false;
-
-  const bayW = 1.83;
-  const scaffoldW = bays * bayW;
-  const scaffoldD = Math.max(0, (rows - 1) * rd);
-  const scaffoldH = tiers * th;
-  const frameH    = scaffoldH + th * 0.8; // 수직 트러스 프레임 높이 (비계보다 조금 높게)
-
-  const pipeR  = 0.025;
-  const trussR = 0.020;
-  const ts2    = ts / 2;
-
-  // --- 재질 ---
-  const matPost  = new THREE.MeshLambertMaterial({ color: 0xb8b8b8 });
-  const matBar   = new THREE.MeshLambertMaterial({ color: 0x909090 });
-  const matXbr   = new THREE.MeshLambertMaterial({ color: 0x787878 });
-  const matJoint = new THREE.MeshLambertMaterial({ color: 0xd0d0d0 });
-  const matTruss = new THREE.MeshLambertMaterial({ color: 0xd4a843 });
-  const matScreen= new THREE.MeshLambertMaterial({ color: 0x0d1a3a, transparent:true, opacity:0.75 });
-  const matSEdge = new THREE.LineBasicMaterial({ color: 0x2244cc });
-
-  // ─── 공통 헬퍼: 실린더 추가 ───
-  function addC(x0,y0,z0, x1,y1,z1, mat, r) {
-    r = r || pipeR;
-    const start = new THREE.Vector3(x0,y0,z0);
-    const end   = new THREE.Vector3(x1,y1,z1);
-    const dir   = new THREE.Vector3().subVectors(end, start);
-    const len   = dir.length();
-    if (len < 0.001) return;
-    const geo  = new THREE.CylinderGeometry(r,r,len,6,1);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.addVectors(start, end).multiplyScalar(0.5);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
-    _stageScene.add(mesh);
-  }
-  function addSph(x,y,z, r, mat) {
-    const geo  = new THREE.SphereGeometry(r||pipeR*1.5, 8, 6);
-    const mesh = new THREE.Mesh(geo, mat||matJoint);
-    mesh.position.set(x,y,z);
-    _stageScene.add(mesh);
-  }
-
-  // ─── 사각 트러스 빔 헬퍼 (X축 방향) ───
-  function addTrussX(x0, x1, cy, cz) {
-    const len = x1 - x0;
-    if (Math.abs(len) < 0.001) return;
-    const segs = Math.max(2, Math.round(Math.abs(len) / 0.55));
-    const sl = len / segs;
-    // 4 코너 코드
-    const corners = [[cy+ts2,cz+ts2],[cy-ts2,cz+ts2],[cy-ts2,cz-ts2],[cy+ts2,cz-ts2]];
-    for (const [cy2,cz2] of corners) addC(x0,cy2,cz2, x1,cy2,cz2, matTruss, trussR);
-    // 면 대각 가새
-    for (let s=0; s<segs; s++) {
-      const xa=x0+s*sl, xb=x0+(s+1)*sl;
-      // 상면
-      addC(xa,cy+ts2,cz+ts2, xb,cy+ts2,cz-ts2, matTruss, trussR*0.55);
-      addC(xa,cy+ts2,cz-ts2, xb,cy+ts2,cz+ts2, matTruss, trussR*0.55);
-      // 전면
-      addC(xa,cy+ts2,cz+ts2, xb,cy-ts2,cz+ts2, matTruss, trussR*0.55);
-      addC(xa,cy-ts2,cz+ts2, xb,cy+ts2,cz+ts2, matTruss, trussR*0.55);
-    }
-    // 끝단 노드
-    for (const [cy2,cz2] of corners) { addSph(x0,cy2,cz2, trussR*1.6, matTruss); addSph(x1,cy2,cz2, trussR*1.6, matTruss); }
-  }
-
-  // ─── 사각 트러스 빔 헬퍼 (Y축 방향) ───
-  function addTrussY(cx, y0, y1, cz) {
-    const len = y1 - y0;
-    if (Math.abs(len) < 0.001) return;
-    const segs = Math.max(2, Math.round(Math.abs(len) / 0.55));
-    const sl = len / segs;
-    const corners = [[cx+ts2,cz+ts2],[cx-ts2,cz+ts2],[cx-ts2,cz-ts2],[cx+ts2,cz-ts2]];
-    for (const [cx2,cz2] of corners) addC(cx2,y0,cz2, cx2,y1,cz2, matTruss, trussR);
-    for (let s=0; s<segs; s++) {
-      const ya=y0+s*sl, yb=y0+(s+1)*sl;
-      addC(cx+ts2,ya,cz+ts2, cx-ts2,yb,cz+ts2, matTruss, trussR*0.55);
-      addC(cx-ts2,ya,cz+ts2, cx+ts2,yb,cz+ts2, matTruss, trussR*0.55);
-      addC(cx+ts2,ya,cz+ts2, cx+ts2,yb,cz-ts2, matTruss, trussR*0.55);
-      addC(cx+ts2,ya,cz-ts2, cx+ts2,yb,cz+ts2, matTruss, trussR*0.55);
-    }
-    for (const [cx2,cz2] of corners) { addSph(cx2,y0,cz2, trussR*1.6, matTruss); addSph(cx2,y1,cz2, trussR*1.6, matTruss); }
-  }
-
-  // ─── 사각 트러스 빔 헬퍼 (Z축 방향) ───
-  function addTrussZ(cx, cy, z0, z1) {
-    const len = z1 - z0;
-    if (Math.abs(len) < 0.001) return;
-    const segs = Math.max(2, Math.round(Math.abs(len) / 0.55));
-    const sl = len / segs;
-    const corners = [[cx+ts2,cy+ts2],[cx-ts2,cy+ts2],[cx-ts2,cy-ts2],[cx+ts2,cy-ts2]];
-    for (const [cx2,cy2] of corners) addC(cx2,cy2,z0, cx2,cy2,z1, matTruss, trussR);
-    for (let s=0; s<segs; s++) {
-      const za=z0+s*sl, zb=z0+(s+1)*sl;
-      addC(cx+ts2,cy+ts2,za, cx-ts2,cy+ts2,zb, matTruss, trussR*0.55);
-      addC(cx-ts2,cy+ts2,za, cx+ts2,cy+ts2,zb, matTruss, trussR*0.55);
-      addC(cx+ts2,cy+ts2,za, cx+ts2,cy-ts2,zb, matTruss, trussR*0.55);
-      addC(cx+ts2,cy-ts2,za, cx+ts2,cy+ts2,zb, matTruss, trussR*0.55);
-    }
-    for (const [cx2,cy2] of corners) { addSph(cx2,cy2,z0, trussR*1.6, matTruss); addSph(cx2,cy2,z1, trussR*1.6, matTruss); }
-  }
-
-  // ════════════════════════════════════════
-  // 좌표계: 비계틀 중심 X=0, 앞면 Z=0, 뒷면 Z=-scaffoldD
-  const ox = -scaffoldW / 2; // 비계틀 X 시작
-
-  // ════════════════════════════════════════
-  // 1. 비계틀 (H-frame scaffolding)
-  // ════════════════════════════════════════
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + col * bayW;
-    for (let row = 0; row < rows; row++) {
-      const z = -row * rd;
-      // 수직 포스트
-      addC(x, 0, z, x, scaffoldH, z, matPost, pipeR);
-      // 각 단 상단 바 (H-프레임 가로봉) + 중간 바
-      for (let tier = 0; tier < tiers; tier++) {
-        const yTop = (tier + 1) * th;
-        const yMid = tier * th + th * 0.5;
-        if (col < bays) {
-          // 상단 가로봉
-          addC(x, yTop, z, ox+(col+1)*bayW, yTop, z, matBar, pipeR*0.85);
-          // 중간 가로봉
-          addC(x, yMid, z, ox+(col+1)*bayW, yMid, z, matBar, pipeR*0.75);
-        }
-        // 조인트 노드
-        addSph(x, yTop, z, pipeR*1.8, matJoint);
-      }
-    }
-  }
-  // 깊이 연결봉 (앞뒤 열 연결)
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + col * bayW;
-    for (let row = 0; row < rows - 1; row++) {
-      const z0 = -row * rd, z1 = -(row+1) * rd;
-      for (let tier = 0; tier <= tiers; tier++) {
-        addC(x, tier*th, z0, x, tier*th, z1, matBar, pipeR*0.85);
-      }
-    }
-  }
-  // X대 (가로 면: 각 열의 앞면/뒷면 — 베이 좌우 기둥 연결)
-  for (let row = 0; row < rows; row++) {
-    const z = -row * rd;
-    for (let bay = 0; bay < bays; bay++) {
-      const x0 = ox + bay * bayW, x1 = ox + (bay + 1) * bayW;
-      for (let tier = 0; tier < tiers; tier++) {
-        const y0 = tier * th, y1 = (tier + 1) * th;
-        addC(x0, y0, z, x1, y1, z, matXbr, pipeR*0.78);
-        addC(x1, y0, z, x0, y1, z, matXbr, pipeR*0.78);
-      }
-    }
-  }
-
-  // ════════════════════════════════════════
-  // 2. 수평 트러스 빔 (비계틀 상단, 앞줄)
-  // ════════════════════════════════════════
-  const topBeamY = scaffoldH + ts2;
-  addTrussX(ox, ox + scaffoldW, topBeamY, 0);
-  // 뒷줄도 수평 빔 (선택)
-  if (rows > 1) addTrussX(ox, ox + scaffoldW, topBeamY, -scaffoldD);
-  // 앞뒤 연결 (좌우 끝단)
-  if (rows > 1) {
-    addTrussZ(ox,             topBeamY, 0, -scaffoldD);
-    addTrussZ(ox + scaffoldW, topBeamY, 0, -scaffoldD);
-  }
-
-  // ════════════════════════════════════════
-  // 3. 좌측 수직 트러스 프레임
-  // ════════════════════════════════════════
-  if (showLeft) {
-    const lx = ox - ts - 0.3; // 비계틀 좌측에서 약간 띄워서
-    // 수직 기둥 2개 (앞/뒤)
-    addTrussY(lx, 0, frameH, 0);
-    if (rows > 1) addTrussY(lx, 0, frameH, -scaffoldD);
-    else addTrussY(lx, 0, frameH, -ts*2);
-    // 상단 수평 빔 (앞뒤 연결)
-    const lzEnd = rows > 1 ? -scaffoldD : -ts*2;
-    addTrussZ(lx, frameH, 0, lzEnd);
-    // 좌측 프레임 → 비계틀 상단 연결 빔 (앞)
-    addTrussX(lx, ox, topBeamY, 0);
-    if (rows > 1) addTrussX(lx, ox, topBeamY, -scaffoldD);
-  }
-
-  // ════════════════════════════════════════
-  // 4. LED 스크린 프레임 (우측 독립 구조)
-  // ════════════════════════════════════════
-  const screenGap = 1.0; // 비계틀과 간격
-  const sx0 = ox + scaffoldW + screenGap;
-  const sx1 = sx0 + screenW;
-  const sy0 = 0.3; // 바닥에서 살짝 띄움 (트러스 발판 높이)
-  const sy1 = sy0 + screenH;
-  const sz  = -scaffoldD / 2; // 깊이 중심에 위치
-
-  // LED 스크린 패널 (반투명 박스)
-  const screenGeo = new THREE.BoxGeometry(screenW, screenH, 0.05);
-  const screenMesh = new THREE.Mesh(screenGeo, matScreen);
-  screenMesh.position.set(sx0 + screenW/2, sy0 + screenH/2, sz);
-  _stageScene.add(screenMesh);
-  const edgesGeo = new THREE.EdgesGeometry(screenGeo);
-  const edgesLine = new THREE.LineSegments(edgesGeo, matSEdge);
-  edgesLine.position.copy(screenMesh.position);
-  _stageScene.add(edgesLine);
-
-  // LED 프레임 사각 트러스 (4변)
-  addTrussX(sx0, sx1, sy0, sz);  // 하단 빔
-  addTrussX(sx0, sx1, sy1, sz);  // 상단 빔
-  addTrussY(sx0, sy0, sy1, sz);  // 좌측 수직 빔
-  addTrussY(sx1, sy0, sy1, sz);  // 우측 수직 빔
-
-  // ════════════════════════════════════════
-  // 카메라 거리 조정
-  const totalW = scaffoldW + (showLeft ? ts + 0.3 : 0) + screenGap + screenW;
-  const totalH = Math.max(frameH, screenH + 0.3);
-  _stageCenterY = totalH / 2;
-  _stageZoom = Math.max(totalW, totalH, scaffoldD) * 1.4 + 3;
-  renderStage3D();
-}
-
-/* ══════════════════════════════════════════════
-   🧱 조립 도구 — Assembly Tool
-   ══════════════════════════════════════════════ */
-
-/* ── 블록 기본 파라미터 ── */
-const ASSEMBLY_BLOCK_DEFAULTS = {
-  scaffold: { label:'비계틀', icon:'🏗️', tag:'type-scaffold',
-    params:{ bay_widths:[1.83,1.83,1.83], bay_tiers:[2,2,2], rows:2, row_depth:1.83, tier_h:1.83, xbrace:true } },
-  truss_h:  { label:'수평 트러스 빔', icon:'➖', tag:'type-truss_h',
-    params:{ length:5.49, ts:0.29, y:3.66 } },
-  truss_v:  { label:'수직 트러스 프레임', icon:'⬆️', tag:'type-truss_v',
-    params:{ height:5.5, ts:0.29, depth:1.83 } },
-  led:      { label:'LED 스크린', icon:'📺', tag:'type-led',
-    params:{ width:7.2, height:4.5, ts:0.29 } },
-};
-
-function _assemblyTotalWidth(p) {
-  if (!p || !Array.isArray(p.blocks)) return 10;
-  let w = 0;
-  p.blocks.forEach(b => {
-    if (b.type === 'scaffold') {
-      const bw = b.params.bay_widths || [1.83,1.83,1.83];
-      w += bw.reduce((a,x)=>a+x,0);
-    } else if (b.type === 'truss_h') {
-      w += +b.params.length || 5.49;
-    } else if (b.type === 'truss_v') {
-      w += (+b.params.ts||0.29) + 0.1;
-    } else if (b.type === 'led') {
-      w += +b.params.width || 7.2;
-    }
-  });
-  return w || 10;
-}
-
-/* ── 패널 렌더링 ── */
-function renderAssemblyPanel(cat) {
-  const blocks = cat.params.blocks || [];
-
-  const paletteHtml = Object.entries(ASSEMBLY_BLOCK_DEFAULTS).map(([type, def]) =>
-    '<button class="assembly-part-btn" onclick="addAssemblyBlock(\'' + type + '\')">' +
-    '<span class="abt-icon">' + def.icon + '</span>' +
-    '<span>' + def.label + '</span>' +
-    '</button>'
-  ).join('');
-
-  const blocksHtml = blocks.length === 0
-    ? '<div class="assembly-empty">아래 버튼으로 자재를 추가하세요<br><span style="font-size:11px;margin-top:6px;display:block;color:var(--text-muted);">비계틀 → 트러스 → LED 순으로 추가하면<br>왼쪽부터 오른쪽으로 조립됩니다</span></div>'
-    : blocks.map((b, idx) => _renderAssemblyBlockCard(b, idx)).join('');
-
-  const qtyHtml = _renderAssemblyQty(blocks);
-
-  return '<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">자재 추가</div>' +
-    '<div class="assembly-palette">' + paletteHtml + '</div>' +
-    (blocks.length > 0 ? '<div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">조립 순서 (' + blocks.length + '개)</div>' : '') +
-    '<div class="assembly-block-list" id="assemblyBlockList">' + blocksHtml + '</div>' +
-    qtyHtml;
-}
-
-function _renderAssemblyBlockCard(b, idx) {
-  const def = ASSEMBLY_BLOCK_DEFAULTS[b.type] || { label:b.type, icon:'📦', tag:'' };
-  let fieldsHtml = '';
-
-  if (b.type === 'scaffold') {
-    const bw = b.params.bay_widths || [1.83,1.83,1.83];
-    const bt = b.params.bay_tiers || bw.map(()=>2);
-    const chipClass = w => w===1.83?'w183':w===1.50?'w150':'w140';
-    const bayChips = bw.map((w,i) =>
-      '<div class="scaffold-bay-chip ' + chipClass(w) + '" onclick="cycleAssemblyScaffoldBay(' + idx + ',' + i + ')" style="cursor:pointer;font-size:10px;padding:4px 7px;" title="탭하면 폭 변경">' +
-      '<span class="chip-idx">B' + (i+1) + '</span><span class="chip-val">' + w.toFixed(2) + 'm</span></div>'
-    ).join('');
-    const tierChips = bt.map((t,i) =>
-      '<div class="scaffold-tier-chip t' + Math.min(t,4) + '" onclick="cycleAssemblyScaffoldTier(' + idx + ',' + i + ')" style="cursor:pointer;font-size:10px;padding:4px 7px;">' +
-      '<span class="chip-idx">B' + (i+1) + '</span><span class="chip-val">' + t + '단</span></div>'
-    ).join('');
-
-    // H프레임 규격 선택 드롭다운
-    const hfSpecs = getSpecs('hframe');
-    let hfOpts = '<option value="">직접 입력</option>';
-    hfSpecs.forEach(s => {
-      const sel = b.params.hfSpecId === s.id ? ' selected' : '';
-      hfOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (' + s.w + 'mm × ' + s.h + 'mm)</option>';
-    });
-
-    const totalW = bw.reduce((a,x)=>a+x,0).toFixed(2);
-    const maxT = Math.max(...bt);
-    const th = +b.params.tier_h || 1.83;
-
-    fieldsHtml =
-      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
-      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 H프레임 규격 선택</div>' +
-      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applyHFrameToScaffoldBlock(' + idx + ',this.value)">' + hfOpts + '</select>' +
-      '<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">📏 선택하면 폭·높이 자동 입력. 자재규격에서 추가 가능.</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
-      '<span style="font-size:11px;color:var(--text-muted);font-weight:600;">기둥 간격 (베이 폭) — 탭하면 변경</span>' +
-      '<span style="display:flex;gap:4px;">' +
-      '<button class="scaffold-bay-remove-btn" style="font-size:11px;padding:3px 8px;" onclick="removeAssemblyScaffoldBay(' + idx + ')">－ 베이</button>' +
-      '<button class="scaffold-bay-add-btn" style="font-size:11px;padding:3px 8px;" onclick="addAssemblyScaffoldBay(' + idx + ')">＋ 베이</button>' +
-      '</span></div>' +
-      '<div class="scaffold-bay-chips" style="margin-bottom:10px;">' + bayChips + '</div>' +
-      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">층 수 (단) — 탭하면 변경</div>' +
-      '<div class="scaffold-tier-chips" style="margin-bottom:10px;">' + tierChips + '</div>' +
-      '<div class="assembly-block-fields">' +
-      '<div class="assembly-block-field"><label>열 수 (앞뒤)</label><input type="number" value="' + (b.params.rows||2) + '" min="1" max="6" step="1" oninput="updateAssemblyBlockParam(' + idx + ',\'rows\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>앞뒤 간격 (m)</label><input type="number" value="' + (b.params.row_depth||1.83) + '" min="0.5" max="5" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'row_depth\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>층 높이 (m)</label><input type="number" value="' + (+b.params.tier_h||1.83) + '" min="0.5" max="5" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'tier_h\',this.value)"></div>' +
-      '<div class="assembly-block-field" style="flex-direction:row;align-items:center;gap:8px;padding-top:16px;"><label style="margin:0;">X대 설치</label><input type="checkbox" ' + (b.params.xbrace!==false?'checked':'') + ' style="width:16px;height:16px;accent-color:var(--accent);" onchange="updateAssemblyBlockParam(' + idx + ',\'xbrace\',this.checked)"></div>' +
-      '</div>' +
-      '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);text-align:right;">가로 합계: <b style="color:var(--accent)">' + totalW + 'm</b> · 최대 높이: <b style="color:var(--accent)">' + (maxT*th).toFixed(2) + 'm</b></div>';
-
-  } else if (b.type === 'truss_h') {
-    const tSpecs = getSpecs('truss');
-    let tOpts = '<option value="">직접 입력</option>';
-    tSpecs.forEach(s => {
-      const sel = b.params.specId === s.id ? ' selected' : '';
-      tOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (길이 ' + s.len + 'mm / 단면 ' + s.sec + 'mm)</option>';
-    });
-    fieldsHtml =
-      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
-      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 트러스 규격 선택</div>' +
-      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applySpecToBlock(' + idx + ',\'truss\',this.value)">' + tOpts + '</select>' +
-      '</div>' +
-      '<div class="assembly-block-fields">' +
-      '<div class="assembly-block-field"><label>길이 (m)</label><input type="number" value="' + (+b.params.length||5.49) + '" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'length\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>설치 높이 (m)</label><input type="number" value="' + (+b.params.y||3.66) + '" min="0" max="20" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'y\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>단면 크기 (m)</label><input type="number" value="' + (+b.params.ts||0.29) + '" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'ts\',this.value)"></div>' +
-      '</div>';
-
-  } else if (b.type === 'truss_v') {
-    const tSpecs = getSpecs('truss');
-    let tOpts = '<option value="">직접 입력</option>';
-    tSpecs.forEach(s => {
-      const sel = b.params.specId === s.id ? ' selected' : '';
-      tOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (길이 ' + s.len + 'mm / 단면 ' + s.sec + 'mm)</option>';
-    });
-    fieldsHtml =
-      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
-      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 트러스 규격 선택</div>' +
-      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applySpecToBlock(' + idx + ',\'truss\',this.value)">' + tOpts + '</select>' +
-      '</div>' +
-      '<div class="assembly-block-fields">' +
-      '<div class="assembly-block-field"><label>높이 (m)</label><input type="number" value="' + (+b.params.height||5.5) + '" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'height\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>앞뒤 깊이 (m)</label><input type="number" value="' + (+b.params.depth||1.83) + '" min="0.1" max="10" step="0.01" oninput="updateAssemblyBlockParam(' + idx + ',\'depth\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>단면 크기 (m)</label><input type="number" value="' + (+b.params.ts||0.29) + '" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'ts\',this.value)"></div>' +
-      '</div>';
-
-  } else if (b.type === 'led') {
-    const lSpecs = getSpecs('ledframe');
-    let lOpts = '<option value="">직접 입력</option>';
-    lSpecs.forEach(s => {
-      const sel = b.params.specId === s.id ? ' selected' : '';
-      lOpts += '<option value="' + s.id + '"' + sel + '>' + s.name + ' (' + s.w + ' × ' + s.h + 'mm)</option>';
-    });
-    fieldsHtml =
-      '<div style="background:var(--surface);border-radius:8px;padding:10px;margin-bottom:10px;">' +
-      '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">📐 LED 프레임 규격 선택</div>' +
-      '<select style="width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;font-family:\'Noto Sans KR\',sans-serif;" onchange="applySpecToBlock(' + idx + ',\'ledframe\',this.value)">' + lOpts + '</select>' +
-      '</div>' +
-      '<div class="assembly-block-fields">' +
-      '<div class="assembly-block-field"><label>가로 폭 (m)</label><input type="number" value="' + (+b.params.width||7.2) + '" min="0.5" max="30" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'width\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>세로 높이 (m)</label><input type="number" value="' + (+b.params.height||4.5) + '" min="0.5" max="20" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'height\',this.value)"></div>' +
-      '<div class="assembly-block-field"><label>단면 크기 (m)</label><input type="number" value="' + (+b.params.ts||0.29) + '" min="0.1" max="1" step="0.001" oninput="updateAssemblyBlockParam(' + idx + ',\'ts\',this.value)"></div>' +
-      '</div>';
-  }
-
-  const colorMap = {scaffold:'var(--accent)',truss_h:'#d97248',truss_v:'#c9a84c',led:'#5588dd'};
-  const color = colorMap[b.type] || 'var(--text-muted)';
-
-  return '<div class="assembly-block-card type-' + b.type + '">' +
-    '<div class="assembly-block-header">' +
-    '<div style="display:flex;align-items:center;gap:6px;">' +
-    '<span style="font-size:18px;">' + def.icon + '</span>' +
-    '<div><div class="assembly-block-title" style="color:' + color + '">' + def.label + '</div>' +
-    '<div style="font-size:10px;color:var(--text-muted);">#' + (idx+1) + ' 블록</div></div>' +
-    '</div>' +
-    '<button class="assembly-block-remove" onclick="removeAssemblyBlock(' + idx + ')" title="삭제">✕</button>' +
-    '</div>' +
-    fieldsHtml +
-    '</div>';
-}
-
-function _renderAssemblyQty(blocks) {
-  if (!blocks || blocks.length === 0) return '';
-  let rows = [];
-  blocks.forEach((b, i) => {
-    const def = ASSEMBLY_BLOCK_DEFAULTS[b.type];
-    if (b.type === 'scaffold') {
-      const bw = b.params.bay_widths || [1.83,1.83,1.83];
-      const totalW = bw.reduce((a,x)=>a+x,0).toFixed(2);
-      const bt = b.params.bay_tiers || bw.map(()=>2);
-      const maxT = Math.max(...bt);
-      const th = +b.params.tier_h||1.83;
-      rows.push([`#${i+1} 비계틀`, `${totalW}m × ${(maxT*th).toFixed(2)}m`]);
-    } else if (b.type === 'truss_h') {
-      rows.push([`#${i+1} 수평 트러스`, `${(+b.params.length||5.49).toFixed(2)}m @ ${(+b.params.y||3.66).toFixed(2)}m`]);
-    } else if (b.type === 'truss_v') {
-      rows.push([`#${i+1} 수직 트러스`, `H${(+b.params.height||5.5).toFixed(2)}m × D${(+b.params.depth||1.83).toFixed(2)}m`]);
-    } else if (b.type === 'led') {
-      rows.push([`#${i+1} LED 스크린`, `${(+b.params.width||7.2).toFixed(1)}m × ${(+b.params.height||4.5).toFixed(1)}m`]);
-    }
-  });
-  const totalW = _assemblyTotalWidth({ blocks }).toFixed(2);
-  rows.push(['총 가로 폭', `${totalW} m`]);
-  return `<div class="assembly-qty-box">
-    <div class="assembly-qty-title">📊 블록 구성 요약</div>
-    ${rows.map(r=>`<div class="assembly-qty-row"><span>${r[0]}</span><span style="font-weight:700;">${r[1]}</span></div>`).join('')}
-  </div>`;
-}
-
-/* ── 블록 CRUD ── */
-function _getAssemblyCat() {
-  return stageCats.find(c => c.id === stageCurrentCat && c.type === 'assembly');
-}
-
-function addAssemblyBlock(type) {
-  const cat = stageCats.find(c => c.id === stageCurrentCat);
-  if (!cat || cat.type !== 'assembly') return;
-  if (!Array.isArray(cat.params.blocks)) cat.params.blocks = [];
-  const def = ASSEMBLY_BLOCK_DEFAULTS[type];
-  if (!def) return;
-  const block = { type, id: 'blk_'+Date.now(), params: JSON.parse(JSON.stringify(def.params)) };
-  cat.params.blocks.push(block);
-  saveStageCats();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-function removeAssemblyBlock(idx) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  cat.params.blocks.splice(idx, 1);
-  saveStageCats();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-function applySpecToBlock(idx, type, specId) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[idx]; if (!b) return;
-  const spec = getSpec(type, specId); if (!spec) return;
-  b.params.specId = specId;
-  // 스펙 값을 파라미터에 반영 (m 단위로 변환)
-  if (type === 'truss') {
-    if (b.type === 'truss_h') { b.params.length = spec.len/1000; b.params.ts = spec.sec/1000; }
-    if (b.type === 'truss_v') { b.params.height = spec.len/1000; b.params.ts = spec.sec/1000; }
-  } else if (type === 'ledframe') {
-    b.params.width  = spec.w/1000;
-    b.params.height = spec.h/1000;
-    b.params.ts     = spec.sec/1000;
-  }
-  saveStageCats();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-/* scaffold 블록에 H프레임 규격으로 베이 폭 자동 입력 */
-function applyHFrameToScaffoldBlock(blockIdx, specId) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[blockIdx]; if (!b || b.type !== 'scaffold') return;
-  const spec = getSpec('hframe', specId); if (!spec) return;
-  // 모든 베이 폭을 spec.w(mm→m)로 변경
-  const wm = spec.w / 1000;
-  const hm = spec.h / 1000;
-  b.params.bay_widths = b.params.bay_widths.map(() => wm);
-  b.params.tier_h = hm;
-  saveStageCats();
-  renderStagePanel();
-  buildAndRender3D();
-}
-
-function updateAssemblyBlockParam(idx, key, val) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[idx]; if (!b) return;
-  if (key === 'xbrace') b.params[key] = !!val;
-  else b.params[key] = isNaN(+val) ? val : +val;
-  saveStageCats();
-  buildAndRender3D();
-  // 수량 박스만 갱신
-  const panel = document.getElementById('stagePanel');
-  if (panel) {
-    const old = panel.querySelector('.assembly-qty-box');
-    const tmp = document.createElement('div');
-    tmp.innerHTML = _renderAssemblyQty(cat.params.blocks);
-    if (old && tmp.firstElementChild) old.replaceWith(tmp.firstElementChild);
-  }
-}
-
-function addAssemblyScaffoldBay(blockIdx) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[blockIdx]; if (!b || b.type !== 'scaffold') return;
-  if (!Array.isArray(b.params.bay_widths)) b.params.bay_widths = [1.83,1.83,1.83];
-  if (!Array.isArray(b.params.bay_tiers)) b.params.bay_tiers = b.params.bay_widths.map(()=>2);
-  if (b.params.bay_widths.length >= 20) return;
-  b.params.bay_widths.push(b.params.bay_widths[b.params.bay_widths.length-1]||1.83);
-  b.params.bay_tiers.push(b.params.bay_tiers[b.params.bay_tiers.length-1]||2);
-  saveStageCats(); renderStagePanel(); buildAndRender3D();
-}
-
-function removeAssemblyScaffoldBay(blockIdx) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[blockIdx]; if (!b || b.type !== 'scaffold') return;
-  if ((b.params.bay_widths||[]).length <= 1) return;
-  b.params.bay_widths.pop();
-  b.params.bay_tiers.pop();
-  saveStageCats(); renderStagePanel(); buildAndRender3D();
-}
-
-function cycleAssemblyScaffoldBay(blockIdx, bayIdx) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[blockIdx]; if (!b || b.type !== 'scaffold') return;
-  const seq = [1.83, 1.50, 1.40];
-  const cur = b.params.bay_widths[bayIdx];
-  const ci = seq.indexOf(cur);
-  b.params.bay_widths[bayIdx] = seq[(ci+1)%seq.length];
-  saveStageCats(); renderStagePanel(); buildAndRender3D();
-}
-
-function cycleAssemblyScaffoldTier(blockIdx, bayIdx) {
-  const cat = _getAssemblyCat(); if (!cat) return;
-  const b = cat.params.blocks[blockIdx]; if (!b || b.type !== 'scaffold') return;
-  if (!Array.isArray(b.params.bay_tiers)) b.params.bay_tiers = b.params.bay_widths.map(()=>2);
-  const cur = b.params.bay_tiers[bayIdx] || 2;
-  b.params.bay_tiers[bayIdx] = (cur % 4) + 1;
-  saveStageCats(); renderStagePanel(); buildAndRender3D();
-}
-
-/* ── 3D 빌드 ── */
-function buildAssemblyModel(p) {
-  const blocks = p.blocks || [];
-  if (blocks.length === 0) { renderStage3D(); return; }
-
-  const totalW = _assemblyTotalWidth(p);
-  let ox = -totalW / 2; // 중앙 정렬
-  let maxH = 0;
-
-  blocks.forEach(b => {
-    if (b.type === 'scaffold') {
-      const bw = b.params.bay_widths || [1.83,1.83,1.83];
-      const blockW = bw.reduce((a,x)=>a+x,0);
-      _asmScaffold(b.params, ox);
-      const bt = b.params.bay_tiers || bw.map(()=>2);
-      const th = +b.params.tier_h||1.83;
-      maxH = Math.max(maxH, Math.max(...bt) * th);
-      ox += blockW;
-    } else if (b.type === 'truss_h') {
-      const len = +b.params.length||5.49;
-      _asmTrussH(b.params, ox, ox+len);
-      maxH = Math.max(maxH, +b.params.y||3.66 + (+b.params.ts||0.29));
-      ox += len;
-    } else if (b.type === 'truss_v') {
-      const ts = +b.params.ts||0.29;
-      _asmTrussV(b.params, ox);
-      maxH = Math.max(maxH, +b.params.height||5.5);
-      ox += ts + 0.1;
-    } else if (b.type === 'led') {
-      const w = +b.params.width||7.2;
-      _asmLED(b.params, ox);
-      maxH = Math.max(maxH, +b.params.height||4.5);
-      ox += w;
-    }
-  });
-
-  _stageCenterY = maxH / 2;
-  _stageZoom = Math.max(totalW, maxH, 4) * 1.5 + 4;
-  renderStage3D();
-}
-
-/* 조립용 비계틀 렌더러 */
-function _asmScaffold(p, ox) {
-  const bw = p.bay_widths || [1.83,1.83,1.83];
-  const bt = p.bay_tiers || bw.map(()=>2);
-  const rows = Math.max(1, +p.rows||2);
-  const rd = +p.row_depth||1.83;
-  const th = +p.tier_h||1.83;
-  const useX = p.xbrace !== false;
-  const bays = bw.length;
-  const pipeR = 0.025;
-
-  // 누적 x 좌표
-  const colX = [0];
-  bw.forEach(w => colX.push(colX[colX.length-1]+w));
-
-  const matPost  = new THREE.MeshLambertMaterial({ color: 0xb8b8b8 });
-  const matHBar  = new THREE.MeshLambertMaterial({ color: 0xa0a0a0 });
-  const matDepth = new THREE.MeshLambertMaterial({ color: 0x888888 });
-  const matX183  = new THREE.MeshLambertMaterial({ color: 0x3dba96 });
-  const matX150  = new THREE.MeshLambertMaterial({ color: 0xd97248 });
-  const matX140  = new THREE.MeshLambertMaterial({ color: 0xc9a84c });
-  const matJoint = new THREE.MeshLambertMaterial({ color: 0xd0d0d0 });
-
-  function addNode(x,y,z,mat) {
-    const g = new THREE.SphereGeometry(pipeR*1.4, 6, 5);
-    const m = new THREE.Mesh(g, mat);
-    m.position.set(x, y, z); _stageScene.add(m);
-  }
-  function addCyl(ax,ay,az,bx,by,bz,mat,r=pipeR) {
-    addCylinder(ax,ay,az,bx,by,bz,mat,r);
-  }
-
-  // 기둥 높이 계산 (인접 베이 중 최대)
-  function colH(col) {
-    let h = 0;
-    if (col > 0)    h = Math.max(h, bt[col-1]*th);
-    if (col < bays) h = Math.max(h, bt[col]*th);
-    return h;
-  }
-
-  // ① 수직 기둥
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + colX[col];
-    const ch = colH(col);
-    for (let row = 0; row < rows; row++) {
-      const z = row * rd;
-      addCyl(x, 0, z, x, ch, z, matPost);
-      addNode(x, ch, z, matJoint);
-    }
-  }
-
-  // ② H프레임 (수평바 + 중앙 스트럿)
-  for (let bay = 0; bay < bays; bay++) {
-    const x0 = ox + colX[bay], x1 = ox + colX[bay+1];
-    const xMid = (x0+x1)/2;
-    const bayTiers = bt[bay];
-    for (let row = 0; row < rows; row++) {
-      const z = row * rd;
-      for (let tier = 0; tier < bayTiers; tier++) {
-        const yBot = tier*th, yTop = (tier+1)*th;
-        const yUMid = yBot + th*0.62, yLMid = yBot + th*0.38;
-        addCyl(x0, yTop, z, x1, yTop, z, matHBar);
-        addNode(x0, yTop, z, matHBar); addNode(x1, yTop, z, matHBar);
-        addCyl(x0, yUMid, z, x1, yUMid, z, matHBar, pipeR*0.85);
-        addCyl(x0, yLMid, z, x1, yLMid, z, matHBar, pipeR*0.85);
-        addCyl(xMid, yLMid, z, xMid, yUMid, z, matHBar, pipeR*0.85);
-        addNode(xMid, yUMid, z, matHBar); addNode(xMid, yLMid, z, matHBar);
-      }
-      addCyl(x0, 0, z, x1, 0, z, matHBar);
-      addNode(x0, 0, z, matHBar); addNode(x1, 0, z, matHBar);
-    }
-  }
-  // 발 핀
-  for (let col = 0; col <= bays; col++) {
-    const x = ox + colX[col];
-    for (let row = 0; row < rows; row++) {
-      const z = row * rd;
-      addCyl(x-0.12, -0.08, z, x+0.12, -0.08, z, matPost, pipeR*0.7);
-    }
-  }
-
-  // ③ 깊이 연결봉
-  if (rows > 1) {
-    for (let col = 0; col <= bays; col++) {
-      const x = ox + colX[col];
-      const ch = colH(col);
-      for (let row = 0; row < rows-1; row++) {
-        const z0 = row*rd, z1 = (row+1)*rd;
-        const tierCnt = Math.round(ch/th);
-        for (let tier = 0; tier <= tierCnt; tier++) {
-          const y = tier*th;
-          addCyl(x, y, z0, x, y, z1, matDepth, pipeR*0.85);
-        }
-      }
-    }
-  }
-
-  // ④ X대 (정면 가새)
-  if (useX) {
-    for (let bay = 0; bay < bays; bay++) {
-      const x0 = ox + colX[bay], x1 = ox + colX[bay+1];
-      const w = bw[bay];
-      const matXc = w===1.83 ? matX183 : w===1.50 ? matX150 : matX140;
-      const bayTiers = bt[bay];
-      for (let row = 0; row < rows; row++) {
-        const z = row*rd;
-        for (let tier = 0; tier < bayTiers; tier++) {
-          const y0 = tier*th, y1 = (tier+1)*th;
-          addCyl(x0, y0, z, x1, y1, z, matXc, pipeR*0.85);
-          addCyl(x1, y0, z, x0, y1, z, matXc, pipeR*0.85);
-        }
-      }
-    }
-  }
-}
-
-/* 조립용 수평 트러스 빔 렌더러 (공중에 뜬 사각 트러스) */
-function _asmTrussH(p, x0, x1) {
-  const y  = +p.y  || 3.66;
-  const ts = +p.ts || 0.29;
-  const ts2 = ts/2;
-  const trussR = 0.018;
-  const matT = new THREE.MeshLambertMaterial({ color: 0xd4a843 });
-  const oz = 0; // 깊이 중앙 기준 (0)
-  // 4 코너 코드
-  function co(dx,dz) { addCylinder(x0,y+dx,oz+dz, x1,y+dx,oz+dz, matT, trussR); }
-  co(-ts2,-ts2); co(-ts2,+ts2); co(+ts2,-ts2); co(+ts2,+ts2);
-  // 단면 가새 (여러 위치)
-  const spans = Math.max(2, Math.round((x1-x0)/0.6));
-  for (let i=0; i<=spans; i++) {
-    const fx = x0 + (x1-x0)*i/spans;
-    addCylinder(fx,y-ts2,oz-ts2, fx,y+ts2,oz+ts2, matT, trussR);
-    addCylinder(fx,y-ts2,oz+ts2, fx,y+ts2,oz-ts2, matT, trussR);
-    addCylinder(fx,y-ts2,oz-ts2, fx,y-ts2,oz+ts2, matT, trussR);
-    addCylinder(fx,y+ts2,oz-ts2, fx,y+ts2,oz+ts2, matT, trussR);
-  }
-  // 면 대각 가새
-  for (let i=0; i<spans; i++) {
-    const fa = x0+(x1-x0)*i/spans, fb = x0+(x1-x0)*(i+1)/spans;
-    addCylinder(fa,y-ts2,oz-ts2, fb,y+ts2,oz+ts2, matT, trussR*0.8);
-    addCylinder(fa,y+ts2,oz-ts2, fb,y-ts2,oz+ts2, matT, trussR*0.8);
-    addCylinder(fa,y-ts2,oz-ts2, fb,y-ts2,oz+ts2, matT, trussR*0.8);
-    addCylinder(fa,y+ts2,oz-ts2, fb,y+ts2,oz+ts2, matT, trussR*0.8);
-  }
-}
-
-/* 조립용 수직 트러스 프레임 렌더러 (Π 형) */
-function _asmTrussV(p, x0) {
-  const height = +p.height || 5.5;
-  const depth  = +p.depth  || 1.83;
-  const ts     = +p.ts     || 0.29;
-  const ts2 = ts/2;
-  const trussR = 0.018;
-  const xC = x0 + ts/2;
-  const matT = new THREE.MeshLambertMaterial({ color: 0xd4a843 });
-  // 앞뒤 수직 기둥 (4코너)
-  [[0,0],[0,depth],[ts,0],[ts,depth]].forEach(([dx,dz]) => {
-    addCylinder(x0+dx, 0, dz, x0+dx, height, dz, matT, trussR);
-  });
-  // 상단 빔 (앞뒤)
-  const spans = Math.max(2, Math.round(height/0.6));
-  for (let i=0; i<=spans; i++) {
-    const fy = height*i/spans;
-    // 앞면 단면 (z=0)
-    addCylinder(x0,    fy, 0, x0+ts, fy, 0, matT, trussR);
-    // 뒷면 단면 (z=depth)
-    addCylinder(x0,    fy, depth, x0+ts, fy, depth, matT, trussR);
-    // 측면 단면 (x=x0)
-    addCylinder(x0, fy, 0, x0, fy, depth, matT, trussR);
-    // 측면 단면 (x=x0+ts)
-    addCylinder(x0+ts, fy, 0, x0+ts, fy, depth, matT, trussR);
-  }
-  // 면 대각 가새
-  for (let i=0; i<spans; i++) {
-    const ya = height*i/spans, yb = height*(i+1)/spans;
-    addCylinder(x0,  ya, 0, x0+ts, yb, 0, matT, trussR*0.8);
-    addCylinder(x0+ts, ya, 0, x0, yb, 0, matT, trussR*0.8);
-    addCylinder(x0, ya, depth, x0+ts, yb, depth, matT, trussR*0.8);
-  }
-  // 상단 수평 연결 빔 (앞 → 뒤)
-  [[x0,0],[x0,ts],[x0+ts,0],[x0+ts,ts]].forEach(([dx,dz]) => {
-    // already handled above; add top horizontal
-  });
-  addCylinder(x0, height, 0, x0, height, depth, matT, trussR);
-  addCylinder(x0+ts, height, 0, x0+ts, height, depth, matT, trussR);
-}
-
-/* 조립용 LED 스크린 렌더러 */
-function _asmLED(p, x0) {
-  const w  = +p.width  || 7.2;
-  const h  = +p.height || 4.5;
-  const ts = +p.ts     || 0.29;
-  const ts2 = ts/2;
-  const trussR = 0.018;
-  const matT = new THREE.MeshLambertMaterial({ color: 0xd4a843 });
-  const matScreen = new THREE.MeshLambertMaterial({ color: 0x0d1a3a, transparent:true, opacity:0.75 });
-  const matSEdge = new THREE.LineBasicMaterial({ color: 0x2244cc });
-
-  const x1 = x0 + w;
-  const oz = 0;
-
-  // 4개 수직 기둥 (코너)
-  [[x0,oz-ts2],[x0,oz+ts2],[x1,oz-ts2],[x1,oz+ts2]].forEach(([cx,cz]) => {
-    addCylinder(cx, 0, cz, cx, h+ts2, cz, matT, trussR);
-  });
-  // 상단 수평 빔 (앞뒤 좌우)
-  addCylinder(x0, h, oz-ts2, x1, h, oz-ts2, matT, trussR);
-  addCylinder(x0, h, oz+ts2, x1, h, oz+ts2, matT, trussR);
-  // 하단 수평 빔
-  addCylinder(x0, 0, oz-ts2, x1, 0, oz-ts2, matT, trussR);
-  addCylinder(x0, 0, oz+ts2, x1, 0, oz+ts2, matT, trussR);
-  // 측면 연결
-  addCylinder(x0, 0, oz-ts2, x0, 0, oz+ts2, matT, trussR);
-  addCylinder(x1, 0, oz-ts2, x1, 0, oz+ts2, matT, trussR);
-  addCylinder(x0, h, oz-ts2, x0, h, oz+ts2, matT, trussR);
-  addCylinder(x1, h, oz-ts2, x1, h, oz+ts2, matT, trussR);
-
-  // LED 패널
-  const sgeo = new THREE.PlaneGeometry(w, h);
-  const smesh = new THREE.Mesh(sgeo, matScreen);
-  smesh.position.set(x0+w/2, h/2, oz);
-  _stageScene.add(smesh);
-  const sedges = new THREE.EdgesGeometry(sgeo);
-  const sline = new THREE.LineSegments(sedges, matSEdge);
-  sline.position.copy(smesh.position);
-  _stageScene.add(sline);
-}
-
-/* ══════════════════════════════════════════════
-   🧱 레고 조립 시스템 — Lego Snap Engine
-   ══════════════════════════════════════════════ */
-
-// 부품 정의 (시각 크기 px, 연결점, 이미지)
-const LEGO_PARTS = {
-  hframe:   { name:'H프레임',    img:'images/parts/hframe.jpg',   w:80, h:80,
-    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:80,dy:0},{id:'BL',dx:0, dy:80},{id:'BR',dx:80,dy:80}],
-    color:'#3dba96' },
-  xbrace:   { name:'X대',        img:'images/parts/xbrace.jpg',   w:80, h:80,
-    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:80,dy:0},{id:'BL',dx:0, dy:80},{id:'BR',dx:80,dy:80}],
-    color:'#d97248' },
-  hbar:     { name:'가로봉',     img:'images/parts/hbar.png',     w:160,h:20,
-    connectors:[{id:'L',dx:0,  dy:10},{id:'R',dx:160,dy:10}],
-    color:'#888888' },
-  truss:    { name:'트러스빔',   img:'images/parts/truss.png',    w:200,h:40,
-    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:200,dy:0},{id:'BL',dx:0,dy:40},{id:'BR',dx:200,dy:40}],
-    color:'#d4a843' },
-  ledframe: { name:'LED프레임',  img:'images/parts/ledframe.jpg', w:100,h:130,
-    connectors:[{id:'TL',dx:0, dy:0},{id:'TR',dx:100,dy:0},{id:'BL',dx:0,dy:130},{id:'BR',dx:100,dy:130}],
-    color:'#5588dd' },
-};
-
-const SNAP_DIST = 36; // 스냅 거리 (px)
-let legoPlaced = [];  // 배치된 부품 목록
-let _legoDrag  = null; // 현재 드래그 상태
-let _legoSvg   = null;
-let _legoGhost = null;
-let _legoBoardRect = null;
-
-/* ── 초기화 ── */
-function initLegoBoard() {
-  _legoSvg = document.getElementById('legoBoardSvg');
-  if (!_legoSvg) return;
-  // 3D 기본 숨김
-  const w3d = document.getElementById('stage3dWrap');
-  const btn3d = document.getElementById('stage3dToggleBtn');
-  if (w3d) w3d.classList.remove('visible');
-  if (btn3d) btn3d.classList.remove('active');
-  renderLegoSheet();
-  renderLegoBoard();
-}
-
-/* ── 시트 열기/닫기 ── */
-function legoOpenSheet() {
-  document.getElementById('legoSheetOverlay').classList.add('open');
-  document.getElementById('legoSheet').classList.add('open');
-}
-function legoCloseSheet() {
-  document.getElementById('legoSheetOverlay').classList.remove('open');
-  document.getElementById('legoSheet').classList.remove('open');
-}
-
-/* ── 시트 카드 렌더링 (최초 1회) ── */
-const LEGO_EMOJI = { hframe:'🏗️', xbrace:'✕', hbar:'━', truss:'⬡', ledframe:'📺' };
-function renderLegoSheet() {
-  const grid = document.getElementById('legoSheetGrid');
-  if (!grid) return;
-  grid.innerHTML = ''; // 매번 새로 렌더
-  Object.entries(LEGO_PARTS).forEach(([type, def]) => {
-    const card = document.createElement('div');
-    card.className = 'lego-part-card';
-    card.style.borderColor = def.color;
-
-    const thumb = document.createElement('div');
-    thumb.className = 'lego-part-thumb';
-    thumb.style.background = def.color + '33';
-    // 이미지 시도, 실패하면 이모지
-    const img = document.createElement('img');
-    img.src = def.img;
-    img.alt = def.name;
-    img.onerror = function() { thumb.innerHTML = '<span style="font-size:32px">' + (LEGO_EMOJI[type]||'🔩') + '</span>'; };
-    thumb.appendChild(img);
-
-    const label = document.createElement('span');
-    label.className = 'lego-part-name';
-    label.style.color = def.color;
-    label.textContent = def.name;
-
-    card.appendChild(thumb);
-    card.appendChild(label);
-    grid.appendChild(card);
-
-    // 탭/클릭 → 보드 중앙에 추가 후 시트 닫기
-    card.addEventListener('click', () => {
-      legoAddToCenter(type);
-      legoCloseSheet();
-    });
-    card.addEventListener('touchend', e => {
-      e.preventDefault();
-      legoAddToCenter(type);
-      legoCloseSheet();
-    });
-  });
-}
-
-/* ── 보드 중앙에 부품 추가 ── */
-function legoAddToCenter(type) {
-  const area = document.getElementById('legoBoardArea');
-  const def  = LEGO_PARTS[type];
-  if (!area || !def) return;
-  const bw = area.clientWidth  || 300;
-  const bh = area.clientHeight || 400;
-  // 겹치지 않게 약간씩 오프셋
-  const offset = (legoPlaced.length % 5) * 20;
-  legoPlaced.push({
-    type, id: 'lego_' + Date.now(),
-    x: Math.max(0, (bw - def.w) / 2 + offset),
-    y: Math.max(0, (bh - def.h) / 2 + offset)
-  });
-  renderLegoBoard();
-}
-
-/* ── 보드 렌더링 ── */
-function renderLegoBoard() {
-  if (!_legoSvg) return;
-  const empty = document.getElementById('legoBoardEmpty');
-  if (empty) empty.style.display = legoPlaced.length === 0 ? 'flex' : 'none';
-
-  _legoSvg.innerHTML = '';
-
-  // 배치된 부품들
-  legoPlaced.forEach((item, idx) => {
-    const def = LEGO_PARTS[item.type];
-    if (!def) return;
-    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-    g.setAttribute('class','lego-placed');
-    g.setAttribute('data-idx', idx);
-    g.setAttribute('transform','translate('+item.x+','+item.y+')');
-
-    // 배경 사각형
-    const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    bg.setAttribute('width', def.w); bg.setAttribute('height', def.h);
-    bg.setAttribute('rx','8'); bg.setAttribute('fill','#1a2030');
-    bg.setAttribute('stroke', def.color); bg.setAttribute('stroke-width','2');
-    g.appendChild(bg);
-
-    // 이미지
-    const img = document.createElementNS('http://www.w3.org/2000/svg','image');
-    img.setAttribute('href', def.img);
-    img.setAttribute('x','2'); img.setAttribute('y','2');
-    img.setAttribute('width', def.w-4); img.setAttribute('height', def.h-4);
-    img.setAttribute('preserveAspectRatio','xMidYMid meet');
-    img.setAttribute('clip-path','inset(0 round 6px)');
-    g.appendChild(img);
-
-    // 이름 라벨
-    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
-    txt.setAttribute('x', def.w/2); txt.setAttribute('y', def.h-4);
-    txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-size','9');
-    txt.setAttribute('fill', def.color); txt.setAttribute('font-weight','700');
-    txt.setAttribute('font-family','Noto Sans KR,sans-serif');
-    txt.textContent = def.name;
-    g.appendChild(txt);
-
-    // 연결점 (작게, 드래그 중일 때만 크게)
-    def.connectors.forEach(c => {
-      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      dot.setAttribute('class','lego-connector');
-      dot.setAttribute('cx', c.dx); dot.setAttribute('cy', c.dy);
-      dot.setAttribute('r','4'); dot.setAttribute('fill', def.color);
-      dot.setAttribute('opacity','0.5');
-      dot.setAttribute('data-part-idx', idx); dot.setAttribute('data-con-id', c.id);
-      g.appendChild(dot);
-    });
-
-    // 드래그 이벤트
-    g.addEventListener('mousedown',  e => legoItemDragStart(e, idx, false));
-    g.addEventListener('touchstart', e => legoItemDragStart(e, idx, true), {passive:false});
-
-    // 더블탭/더블클릭 → 삭제
-    g.addEventListener('dblclick', () => legoRemoveItem(idx));
-
-    _legoSvg.appendChild(g);
-  });
-
-  // 3D 동기화
-  legoSyncTo3D();
-}
-
-/* ── 드래그 시작 (팔레트) ── */
-function legoPaletteDragStart(e, type, isTouch) {
-  e.preventDefault();
-  const def = LEGO_PARTS[type];
-  const pt  = isTouch ? e.touches[0] : e;
-
-  _legoDrag = { isNew:true, type, startX:pt.clientX, startY:pt.clientY };
-  createLegoGhost(type, pt.clientX, pt.clientY);
-  if (isTouch) {
-    document.addEventListener('touchmove', legoDragMove, {passive:false});
-    document.addEventListener('touchend',  legoDragEnd);
-  } else {
-    document.addEventListener('mousemove', legoDragMove);
-    document.addEventListener('mouseup',   legoDragEnd);
-  }
-}
-
-/* ── 드래그 시작 (보드 위 기존 부품) ── */
-function legoItemDragStart(e, idx, isTouch) {
-  e.preventDefault(); e.stopPropagation();
-  const item = legoPlaced[idx];
-  if (!item) return;
-  const pt = isTouch ? e.touches[0] : e;
-
-  _legoDrag = { isNew:false, idx, type:item.type, origX:item.x, origY:item.y, startX:pt.clientX, startY:pt.clientY };
-  createLegoGhost(item.type, pt.clientX, pt.clientY);
-
-  if (isTouch) {
-    document.addEventListener('touchmove', legoDragMove, {passive:false});
-    document.addEventListener('touchend',  legoDragEnd);
-  } else {
-    document.addEventListener('mousemove', legoDragMove);
-    document.addEventListener('mouseup',   legoDragEnd);
-  }
-}
-
-/* ── 고스트 생성 ── */
-function createLegoGhost(type, cx, cy) {
-  removeLegoGhost();
-  const def = LEGO_PARTS[type];
-  _legoGhost = document.createElement('div');
-  _legoGhost.className = 'lego-drag-ghost';
-  _legoGhost.style.cssText = 'width:' + def.w + 'px;height:' + def.h + 'px;background:#1a2030;border-color:' + def.color + ';display:flex;align-items:center;justify-content:center;';
-  const img = document.createElement('img');
-  img.src = def.img;
-  img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px;';
-  img.onerror = function() { this.remove(); _legoGhost.textContent = LEGO_EMOJI[type] || '🔩'; _legoGhost.style.fontSize = '28px'; };
-  _legoGhost.appendChild(img);
-  document.body.appendChild(_legoGhost);
-  moveLegoGhost(cx, cy);
-}
-
-function removeLegoGhost() {
-  if (_legoGhost) { _legoGhost.remove(); _legoGhost = null; }
-}
-
-function moveLegoGhost(cx, cy) {
-  if (!_legoGhost) return;
-  _legoGhost.style.left = cx + 'px';
-  _legoGhost.style.top  = cy + 'px';
-}
-
-/* ── 드래그 이동 ── */
-function legoDragMove(e) {
-  e.preventDefault();
-  const pt = e.touches ? e.touches[0] : e;
-  moveLegoGhost(pt.clientX, pt.clientY);
-
-  // 스냅 미리보기
-  const boardPos = clientToBoard(pt.clientX, pt.clientY);
-  if (boardPos && _legoDrag) {
-    const snap = findSnapTarget(_legoDrag.type, boardPos.x, boardPos.y, _legoDrag.isNew ? -1 : _legoDrag.idx);
-    highlightSnap(snap);
-  }
-}
-
-/* ── 드래그 끝 ── */
-function legoDragEnd(e) {
-  document.removeEventListener('mousemove', legoDragMove);
-  document.removeEventListener('mouseup',   legoDragEnd);
-  document.removeEventListener('touchmove', legoDragMove);
-  document.removeEventListener('touchend',  legoDragEnd);
-  clearSnapHighlight();
-
-  const pt = e.changedTouches ? e.changedTouches[0] : e;
-
-  // 보드 영역 밖이면 삭제
-  const boardPos = clientToBoard(pt.clientX, pt.clientY);
-  if (!boardPos) {
-    if (_legoDrag && !_legoDrag.isNew) legoRemoveItem(_legoDrag.idx);
-    removeLegoGhost(); _legoDrag = null; return;
-  }
-
-  // 스냅 계산
-  const skipIdx = _legoDrag && !_legoDrag.isNew ? _legoDrag.idx : -1;
-  const snap = findSnapTarget(_legoDrag.type, boardPos.x, boardPos.y, skipIdx);
-  const finalX = snap ? snap.snapX : boardPos.x - LEGO_PARTS[_legoDrag.type].w/2;
-  const finalY = snap ? snap.snapY : boardPos.y - LEGO_PARTS[_legoDrag.type].h/2;
-
-  if (_legoDrag.isNew) {
-    legoPlaced.push({ type:_legoDrag.type, x:finalX, y:finalY, id:'lego_'+Date.now() });
-  } else {
-    legoPlaced[_legoDrag.idx].x = finalX;
-    legoPlaced[_legoDrag.idx].y = finalY;
-  }
-
-  removeLegoGhost();
-  _legoDrag = null;
-  renderLegoBoard();
-}
-
-/* ── 보드 좌표 변환 ── */
-function clientToBoard(cx, cy) {
-  const area = document.getElementById('legoBoardArea');
-  if (!area) return null;
-  const r = area.getBoundingClientRect();
-  if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return null;
-  return { x: cx - r.left, y: cy - r.top };
-}
-
-/* ── 스냅 알고리즘 ── */
-function findSnapTarget(type, mx, my, skipIdx) {
-  const def = LEGO_PARTS[type];
-  let best = null, bestDist = SNAP_DIST;
-
-  legoPlaced.forEach((item, pIdx) => {
-    if (pIdx === skipIdx) return;
-    const pDef = LEGO_PARTS[item.type];
-    if (!pDef) return;
-
-    pDef.connectors.forEach(pc => {
-      const pcX = item.x + pc.dx, pcY = item.y + pc.dy;
-
-      def.connectors.forEach(dc => {
-        // 드래그 중인 부품을 중심에 놓았을 때의 커넥터 위치
-        const dcX = mx - def.w/2 + dc.dx;
-        const dcY = my - def.h/2 + dc.dy;
-        const dist = Math.hypot(pcX - dcX, pcY - dcY);
-
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = {
-            snapX: mx - def.w/2 + (pcX - dcX),
-            snapY: my - def.h/2 + (pcY - dcY),
-            pcX, pcY, dist
-          };
-        }
-      });
-    });
-  });
-  return best;
-}
-
-/* ── 스냅 하이라이트 ── */
-function highlightSnap(snap) {
-  if (!_legoSvg) return;
-  _legoSvg.querySelectorAll('.snap-indicator').forEach(e=>e.remove());
-  if (!snap) return;
-  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  c.setAttribute('class','snap-indicator');
-  c.setAttribute('cx', snap.pcX); c.setAttribute('cy', snap.pcY);
-  c.setAttribute('r','10'); c.setAttribute('fill','none');
-  c.setAttribute('stroke','#3dba96'); c.setAttribute('stroke-width','2.5');
-  c.setAttribute('opacity','0.9');
-  _legoSvg.appendChild(c);
-}
-function clearSnapHighlight() {
-  if (_legoSvg) _legoSvg.querySelectorAll('.snap-indicator').forEach(e=>e.remove());
-}
-
-/* ── 부품 삭제 ── */
-function legoRemoveItem(idx) {
-  legoPlaced.splice(idx, 1);
-  renderLegoBoard();
-}
-
-function legoClearAll() {
-  if (legoPlaced.length === 0) return;
-  if (!confirm('조립 보드를 모두 지울까요?')) return;
-  legoPlaced = [];
-  renderLegoBoard();
-}
-
-/* ── 3D 동기화 ── */
-function legoSyncTo3D() {
-  if (!_stageScene || typeof THREE === 'undefined') return;
-
-  // 기존 오브젝트 제거
-  const toRemove = [];
-  _stageScene.traverse(obj => { if (obj.isMesh || obj.isLineSegments) toRemove.push(obj); });
-  toRemove.forEach(obj => { _stageScene.remove(obj); if(obj.geometry)obj.geometry.dispose(); if(obj.material)obj.material.dispose(); });
-
-  if (legoPlaced.length === 0) { renderStage3D(); return; }
-
-  // 보드 → 3D 좌표 변환 (픽셀 → 미터, 1px = 약 0.025m 기준)
-  const SCALE = 0.025;
-  const area = document.getElementById('legoBoardArea');
-  const boardW = area ? area.clientWidth : 400;
-  const boardH = area ? area.clientHeight : 300;
-
-  legoPlaced.forEach(item => {
-    const def = LEGO_PARTS[item.type];
-    if (!def) return;
-    // 보드 중앙 기준으로 3D x,z 계산 (Y는 위아래)
-    const cx3 = (item.x + def.w/2 - boardW/2) * SCALE;
-    const cy3 = 0;
-    const cz3 = (item.y + def.h/2 - boardH/2) * SCALE * 0.5;
-    const pw  = def.w * SCALE;
-    const ph  = def.h * SCALE;
-
-    const matMap = {
-      hframe:'#b8b8b8', xbrace:'#3dba96', hbar:'#888888', truss:'#d4a843', ledframe:'#1a3a8a'
-    };
-    const mat = new THREE.MeshLambertMaterial({ color: matMap[item.type] || '#888', transparent:item.type==='ledframe', opacity:item.type==='ledframe'?0.7:1 });
-    const depth = item.type === 'truss' ? pw * 0.2 : item.type === 'hframe' ? pw * 0.1 : pw * 0.05;
-    const geo = new THREE.BoxGeometry(pw, ph, depth);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(cx3, ph/2, cz3);
-    _stageScene.add(mesh);
-    const edges = new THREE.EdgesGeometry(geo);
-    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: matMap[item.type]||'#888'}));
-    line.position.copy(mesh.position);
-    _stageScene.add(line);
-  });
-
-  const grid = new THREE.GridHelper(20, 10, 0x1e2636, 0x1a2030);
-  _stageScene.add(grid);
-
-  _stageCenterY = 1.5;
-  _stageZoom = 10;
-  renderStage3D();
-}
-
-/* ── 3D 접기/펴기 ── */
-function toggle3DView() {
-  const wrap = document.getElementById('stage3dWrap');
-  const btn  = document.getElementById('stage3dToggleBtn');
-  if (!wrap) return;
-  wrap.classList.toggle('visible');
-  const visible = wrap.classList.contains('visible');
-  if (btn) btn.classList.toggle('active', visible);
-  if (visible) { setTimeout(()=>{ resizeStage3D(); legoSyncTo3D(); }, 260); }
-}
-
-/* 트러스/커스텀 모델 */
-function buildTrussModel(p) {
-  const w = +p.width||10, h = +p.height||5, d = +p.depth||1, bays = +p.bays||5;
-  const mat = new THREE.MeshLambertMaterial({ color: 0xaa8844 });
-  const matEdge = new THREE.LineBasicMaterial({ color: 0xc9a84c });
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(0, h/2, 0);
-  _stageScene.add(mesh);
-  const edges = new THREE.EdgesGeometry(geo);
-  const line = new THREE.LineSegments(edges, matEdge);
-  line.position.copy(mesh.position);
-  _stageScene.add(line);
-  _stageZoom = Math.max(w, h) * 1.2;
-  renderStage3D();
-}
+function scReset() { scM = 1; scN = 1; scUpdate(); }
 </script>
 
 </body>
