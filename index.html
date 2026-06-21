@@ -8079,14 +8079,16 @@ async function lib3dUpload(input) {
       headers: {
         'apikey': SB_KEY,
         'Authorization': `Bearer ${SB_KEY}`,
-        'Content-Type': 'model/vnd.collada+xml',
+        'Content-Type': 'application/octet-stream',
         'x-upsert': 'true'
       },
       body: file
     });
     if (!res.ok) {
-      if (warn) warn.style.display = 'block';
-      showToast('❌ 업로드 실패 — 버킷 설정 확인');
+      let errMsg = '';
+      try { const j = await res.json(); errMsg = j.message || j.error || ''; } catch(e) {}
+      if (warn) { warn.style.display = 'block'; warn.innerHTML = `⚠ 업로드 실패 (${res.status}): ${errMsg || '버킷/RLS 설정 확인'}<br>대시보드 → Storage → Policies → skp-library에 anon INSERT 정책 추가 필요`; }
+      showToast(`❌ 업로드 실패 ${res.status}: ${errMsg}`);
       input.value = '';
       return;
     }
