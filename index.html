@@ -1566,7 +1566,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-19</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-20</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9130,25 +9130,42 @@ function toggleAiChat() {
 
 function buildSystemPrompt() {
   const today = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
-  const logsJson = JSON.stringify((logs || []).slice(0, 80).map(l => ({
-    date: l.date, name: l.eventName, venue: l.venue,
-    console: l.console, speakers: l.speakers,
-    issue: l.issue, weather: l.weather
-  })));
-  const allTasks = [
-    ...(warehouseTasks || []).map(t => ({ ...t, type:'창고' })),
-    ...(officeTasks || []).map(t => ({ ...t, type:'사무실' })),
-    ...(directiveTasks || []).map(t => ({ ...t, type:'대표지시' }))
-  ];
-  const tasksJson = JSON.stringify(allTasks.slice(0, 60));
-  const equipSummary = equipmentData ? Object.entries(equipmentData).map(([cat, items]) => `${cat}:${(items||[]).length}종`).join(', ') : '미로드';
-  const albaSummary = albaData && albaData.workers ? `알바 ${albaData.workers.length}명 등록` : '미로드';
-  return `당신은 한바다 음향팀의 전담 업무 비서입니다. 오늘: ${today}
-[행사일지 최근 80건] ${logsJson}
-[업무 목록] ${tasksJson}
-[장비 현황] ${equipSummary}
-[알바 현황] ${albaSummary}
-모든 답변은 한국어로, 간결하고 실용적으로 하세요. 데이터를 바탕으로 구체적인 수치나 날짜를 포함하여 답변하세요.`;
+
+  // 행사일지: 날짜·행사명·장소 위주로 간결하게
+  const logLines = (logs || []).slice(0, 60).map(l =>
+    `${l.date} | ${l.eventName||'(제목없음)'} | ${l.venue||''} | 이슈:${l.issue||'없음'}`
+  ).join('\n');
+
+  // 미완료 업무만
+  const pendingTasks = [
+    ...(warehouseTasks||[]).filter(t=>t.status!=='done').map(t=>`[창고] ${t.title}`),
+    ...(officeTasks||[]).filter(t=>t.status!=='done').map(t=>`[사무실] ${t.title}`),
+    ...(directiveTasks||[]).filter(t=>t.status!=='done').map(t=>`[대표지시] ${t.title}`)
+  ].slice(0,40).join('\n');
+
+  const equipSummary = equipmentData
+    ? Object.entries(equipmentData).map(([cat,items])=>`${cat} ${(items||[]).length}종`).join(', ')
+    : '미로드';
+  const albaSummary = albaData?.workers
+    ? albaData.workers.map(w=>w.name).join(', ')
+    : '미로드';
+
+  return `당신은 한바다 음향팀 전담 AI 비서입니다. 오늘: ${today}
+반드시 아래 실제 데이터를 참고해서 구체적으로 답하세요.
+
+## 행사일지 (최근 ${(logs||[]).length}건, 형식: 날짜|행사명|장소|이슈)
+${logLines || '데이터 없음'}
+
+## 미완료 업무
+${pendingTasks || '없음'}
+
+## 장비 현황
+${equipSummary}
+
+## 알바 명단
+${albaSummary}
+
+답변 규칙: 한국어, 간결하게, 숫자/날짜 구체적으로.`;
 }
 
 function appendAiMsg(role, text) {
@@ -9183,7 +9200,7 @@ async function aiSend() {
       ...aiHistory
     ];
     const response = await puter.ai.chat(messages, {
-      model: 'x-ai/grok-4.3',
+      model: 'x-ai/grok-3-mini-fast',
       stream: true
     });
     for await (const part of response) {
