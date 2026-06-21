@@ -2441,22 +2441,9 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <!-- 트러스 설정 모달 -->
 <div class="modal-overlay" id="trussCfgModal">
   <div class="modal-sheet truss-cfg-sheet">
-    <div class="modal-title" style="font-size:17px;margin-bottom:18px">
+    <div class="modal-title" style="font-size:17px;margin-bottom:14px">
       ⬛ 트러스 설정
-      <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">큐브 규격 220mm 고정</span>
-    </div>
-
-    <!-- 설치 방향 -->
-    <div class="truss-cfg-section">
-      <div class="truss-cfg-section-label">설치 방향</div>
-      <div class="truss-dir-group">
-        <button class="truss-dir-btn" id="tDir-h" onclick="_setTrussDir('h')">
-          ↔ 가로<br><span style="font-size:10px;font-weight:400;opacity:0.7">무대 가로 방향</span>
-        </button>
-        <button class="truss-dir-btn" id="tDir-v" onclick="_setTrussDir('v')">
-          ↕ 세로<br><span style="font-size:10px;font-weight:400;opacity:0.7">무대 세로 방향</span>
-        </button>
-      </div>
+      <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">큐브 220mm 고정 · 가로/세로 독립 설정</span>
     </div>
 
     <!-- 설치 높이 -->
@@ -2471,90 +2458,165 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
     </div>
 
-    <!-- 섹션 구성 -->
+    <!-- ↔ 가로 섹션 구성 -->
     <div class="truss-cfg-section">
-      <div class="truss-cfg-section-label">섹션 구성 <span style="text-transform:none;font-weight:400;font-size:10px">— 여러 규격 조합 가능</span></div>
+      <div class="truss-cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
+        <span>↔ 가로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 무대 가로 방향 · 상하 대칭</span></span>
+        <span class="truss-total-val" id="hTotalSpan" style="font-size:13px">—</span>
+      </div>
       <div class="truss-section-grid">
-        <!-- 큐브 (왼쪽) -->
+        <!-- 큐브 (좌) -->
         <div class="truss-sect-row truss-cube-row">
           <div class="truss-sect-ico truss-cube-ico"></div>
           <div class="truss-sect-len">큐브 (좌)</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussCube('left',-1)">−</button>
-            <span class="truss-modal-step-val" id="tcube-left">1</span>
-            <button class="truss-big-btn" onclick="_adjTrussCube('left',1)">+</button>
+            <button class="truss-big-btn" onclick="_adjTrussCube('h','L',-1)">−</button>
+            <span class="truss-modal-step-val" id="htcube-L">1</span>
+            <button class="truss-big-btn" onclick="_adjTrussCube('h','L',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="tcube-inv-left"></div>
+          <div class="truss-sect-inv" id="htcube-inv-L"></div>
         </div>
-        <!-- 2m 섹션 -->
+        <!-- 2m -->
         <div class="truss-sect-row">
           <div class="truss-sect-ico" style="background:#1a3a5c"></div>
           <div class="truss-sect-len">2m</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('2',-1)">−</button>
-            <span class="truss-modal-step-val" id="tsect-2">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('2',1)">+</button>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','2',-1)">−</button>
+            <span class="truss-modal-step-val" id="htsect-2">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','2',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="tsect-inv-2"></div>
+          <div class="truss-sect-inv" id="htsect-inv-2"></div>
         </div>
-        <!-- 1.5m 섹션 -->
+        <!-- 1.5m -->
         <div class="truss-sect-row">
           <div class="truss-sect-ico" style="background:#1e5279"></div>
           <div class="truss-sect-len">1.5m</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('1.5',-1)">−</button>
-            <span class="truss-modal-step-val" id="tsect-1.5">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('1.5',1)">+</button>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','1.5',-1)">−</button>
+            <span class="truss-modal-step-val" id="htsect-1.5">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','1.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="tsect-inv-1.5"></div>
+          <div class="truss-sect-inv" id="htsect-inv-1.5"></div>
         </div>
-        <!-- 1m 섹션 -->
+        <!-- 1m -->
         <div class="truss-sect-row">
           <div class="truss-sect-ico" style="background:#21699a"></div>
           <div class="truss-sect-len">1m</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('1',-1)">−</button>
-            <span class="truss-modal-step-val" id="tsect-1">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('1',1)">+</button>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','1',-1)">−</button>
+            <span class="truss-modal-step-val" id="htsect-1">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','1',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="tsect-inv-1"></div>
+          <div class="truss-sect-inv" id="htsect-inv-1"></div>
         </div>
-        <!-- 0.5m 섹션 -->
+        <!-- 0.5m -->
         <div class="truss-sect-row">
           <div class="truss-sect-ico" style="background:#2980b9"></div>
           <div class="truss-sect-len">0.5m</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('0.5',-1)">−</button>
-            <span class="truss-modal-step-val" id="tsect-0.5">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('0.5',1)">+</button>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','0.5',-1)">−</button>
+            <span class="truss-modal-step-val" id="htsect-0.5">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('h','0.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="tsect-inv-0.5"></div>
+          <div class="truss-sect-inv" id="htsect-inv-0.5"></div>
         </div>
-        <!-- 큐브 (오른쪽) -->
+        <!-- 큐브 (우) -->
         <div class="truss-sect-row truss-cube-row">
           <div class="truss-sect-ico truss-cube-ico"></div>
           <div class="truss-sect-len">큐브 (우)</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussCube('right',-1)">−</button>
-            <span class="truss-modal-step-val" id="tcube-right">1</span>
-            <button class="truss-big-btn" onclick="_adjTrussCube('right',1)">+</button>
+            <button class="truss-big-btn" onclick="_adjTrussCube('h','R',-1)">−</button>
+            <span class="truss-modal-step-val" id="htcube-R">1</span>
+            <button class="truss-big-btn" onclick="_adjTrussCube('h','R',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="tcube-inv-right"></div>
+          <div class="truss-sect-inv" id="htcube-inv-R"></div>
         </div>
       </div>
+      <div class="truss-stage-badge" id="trussStageWarnH" style="margin-top:6px"></div>
+    </div>
+
+    <!-- ↕ 세로 섹션 구성 -->
+    <div class="truss-cfg-section">
+      <div class="truss-cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
+        <span>↕ 세로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 무대 세로 방향 · 좌우 대칭</span></span>
+        <span class="truss-total-val" id="vTotalSpan" style="font-size:13px">—</span>
+      </div>
+      <div class="truss-section-grid">
+        <!-- 큐브 (상) -->
+        <div class="truss-sect-row truss-cube-row">
+          <div class="truss-sect-ico truss-cube-ico"></div>
+          <div class="truss-sect-len">큐브 (상)</div>
+          <div class="truss-modal-step">
+            <button class="truss-big-btn" onclick="_adjTrussCube('v','T',-1)">−</button>
+            <span class="truss-modal-step-val" id="vtcube-T">1</span>
+            <button class="truss-big-btn" onclick="_adjTrussCube('v','T',1)">+</button>
+          </div>
+          <div class="truss-sect-inv" id="vtcube-inv-T"></div>
+        </div>
+        <!-- 2m -->
+        <div class="truss-sect-row">
+          <div class="truss-sect-ico" style="background:#1a3a5c"></div>
+          <div class="truss-sect-len">2m</div>
+          <div class="truss-modal-step">
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','2',-1)">−</button>
+            <span class="truss-modal-step-val" id="vtsect-2">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','2',1)">+</button>
+          </div>
+          <div class="truss-sect-inv" id="vtsect-inv-2"></div>
+        </div>
+        <!-- 1.5m -->
+        <div class="truss-sect-row">
+          <div class="truss-sect-ico" style="background:#1e5279"></div>
+          <div class="truss-sect-len">1.5m</div>
+          <div class="truss-modal-step">
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','1.5',-1)">−</button>
+            <span class="truss-modal-step-val" id="vtsect-1.5">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','1.5',1)">+</button>
+          </div>
+          <div class="truss-sect-inv" id="vtsect-inv-1.5"></div>
+        </div>
+        <!-- 1m -->
+        <div class="truss-sect-row">
+          <div class="truss-sect-ico" style="background:#21699a"></div>
+          <div class="truss-sect-len">1m</div>
+          <div class="truss-modal-step">
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','1',-1)">−</button>
+            <span class="truss-modal-step-val" id="vtsect-1">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','1',1)">+</button>
+          </div>
+          <div class="truss-sect-inv" id="vtsect-inv-1"></div>
+        </div>
+        <!-- 0.5m -->
+        <div class="truss-sect-row">
+          <div class="truss-sect-ico" style="background:#2980b9"></div>
+          <div class="truss-sect-len">0.5m</div>
+          <div class="truss-modal-step">
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','0.5',-1)">−</button>
+            <span class="truss-modal-step-val" id="vtsect-0.5">0</span>
+            <button class="truss-big-btn" onclick="_adjTrussSection('v','0.5',1)">+</button>
+          </div>
+          <div class="truss-sect-inv" id="vtsect-inv-0.5"></div>
+        </div>
+        <!-- 큐브 (하) -->
+        <div class="truss-sect-row truss-cube-row">
+          <div class="truss-sect-ico truss-cube-ico"></div>
+          <div class="truss-sect-len">큐브 (하)</div>
+          <div class="truss-modal-step">
+            <button class="truss-big-btn" onclick="_adjTrussCube('v','B',-1)">−</button>
+            <span class="truss-modal-step-val" id="vtcube-B">1</span>
+            <button class="truss-big-btn" onclick="_adjTrussCube('v','B',1)">+</button>
+          </div>
+          <div class="truss-sect-inv" id="vtcube-inv-B"></div>
+        </div>
+      </div>
+      <div class="truss-stage-badge" id="trussStageWarnV" style="margin-top:6px"></div>
     </div>
 
     <!-- 미리보기 -->
     <div class="truss-preview-wrap" id="trussMiniPreviewWrap">
-      <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:6px">섹션을 추가하면 미리보기가 표시됩니다</div>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:6px">가로·세로 섹션을 추가하면 미리보기가 표시됩니다</div>
     </div>
 
-    <!-- 총 스팬 + 경고 -->
-    <div class="truss-total-row">
-      <div class="truss-total-label">총 스팬 (큐브 포함)</div>
-      <div class="truss-total-val" id="tTotalSpan">0.0m</div>
-    </div>
-    <div class="truss-stage-badge" id="trussStageWarn"></div>
     <div id="trussInvStatus" style="font-size:12px;padding:6px 2px;display:none"></div>
 
     <!-- 버튼 -->
@@ -7233,13 +7295,40 @@ function daeRenderSVG() {
     let pw = baseSz.pw, pd = baseSz.pd;
     let label = it.label;
 
+    // 트러스 사각 프레임 (가로 + 세로 모두 설정된 경우)
     if (p.type === 'truss' && p.truss) {
-      const {span, spec, dir, totalSpan, cubesLeft, cubesRight} = p.truss;
-      const dispSpan = totalSpan ?? (span + ((cubesLeft ?? 1) + (cubesRight ?? 1)) * 0.22);
-      const thick = Math.max(((spec || 220) / 1000) * 2.5, 0.3);
-      if (dir === 'v') { pw = thick; pd = dispSpan; }
-      else             { pw = dispSpan; pd = thick; }
-      label = `트러스 ${dispSpan.toFixed(2)}m`;
+      const t = p.truss;
+      const thick = Math.max(((t.spec || 220) / 1000) * 2.5, 0.2);
+      const hasHD = (t.hTotalSpan || 0) > 0.01;
+      const hasVD = (t.vTotalSpan || 0) > 0.01;
+
+      if (hasHD && hasVD) {
+        pw = t.hTotalSpan; pd = t.vTotalSpan;
+        const hw = pw/2, hd = pd/2;
+        const cubeW = thick * 1.5;
+        const col = baseSz.color, cubeC = '#f59e0b';
+        const fs = Math.max(Math.min(pw, pd) * 0.11, 0.25).toFixed(3);
+        s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">`;
+        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="transparent"/>`;
+        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${thick.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
+        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y+hd-thick).toFixed(3)}" width="${pw.toFixed(3)}" height="${thick.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
+        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${thick.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
+        s += `<rect x="${(p.x+hw-thick).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${thick.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
+        [[p.x-hw, p.y-hd],[p.x+hw-cubeW, p.y-hd],[p.x-hw, p.y+hd-cubeW],[p.x+hw-cubeW, p.y+hd-cubeW]].forEach(([cx,cy]) => {
+          s += `<rect x="${cx.toFixed(3)}" y="${cy.toFixed(3)}" width="${cubeW.toFixed(3)}" height="${cubeW.toFixed(3)}" fill="${cubeC}" rx="0.06" opacity="0.9"/>`;
+        });
+        s += `<text x="${p.x.toFixed(3)}" y="${p.y.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="${fs}" font-weight="700">⬛ ${t.hTotalSpan.toFixed(1)}×${t.vTotalSpan.toFixed(1)}m</text>`;
+        s += `</g>`;
+        return;
+      }
+      // 단일 바
+      if (hasHD) { pw = t.hTotalSpan; pd = thick; label = `트러스 ${t.hTotalSpan.toFixed(2)}m`; }
+      else if (hasVD) { pw = thick; pd = t.vTotalSpan; label = `트러스 ${t.vTotalSpan.toFixed(2)}m`; }
+      else {
+        const disp = t.totalSpan ?? ((t.span||0) + ((t.cubesLeft??1)+(t.cubesRight??1))*0.22);
+        if (t.dir === 'v') { pw = thick; pd = disp; } else { pw = disp; pd = thick; }
+        label = `트러스 ${(disp||0).toFixed(2)}m`;
+      }
     }
 
     const hw = pw/2, hd = pd/2;
@@ -7422,15 +7511,27 @@ function daeGetInventoryUsed() {
   daePlacements.forEach(p => {
     if (p.id === _trussCfgId) return;
     if (p.type === 'truss' && p.truss) {
-      const sects = p.truss.sections;
-      if (sects && typeof sects === 'object') {
-        ['0.5','1','1.5','2'].forEach(k => { used[k] += (sects[k]||0); });
-      } else if (typeof p.truss.sectionLen === 'number') {
-        const k = String(p.truss.sectionLen);
-        used[k] = (used[k]||0) + (typeof sects === 'number' ? sects : 0);
+      const t = p.truss;
+      if (t.hSections || t.vSections) {
+        // 신형 포맷
+        if (t.hSections) ['0.5','1','1.5','2'].forEach(k => { used[k] += (t.hSections[k]||0); });
+        if (t.vSections) ['0.5','1','1.5','2'].forEach(k => { used[k] += (t.vSections[k]||0); });
+        const hasH = t.hSections && Object.values(t.hSections).some(v=>v>0);
+        const hasV = t.vSections && Object.values(t.vSections).some(v=>v>0);
+        if (hasH && hasV) used.corner += 4; // 사각 프레임: 코너 4개
+        else if (hasH) used.corner += (t.hCubesL??1) + (t.hCubesR??1);
+        else if (hasV) used.corner += (t.vCubesT??1) + (t.vCubesB??1);
+      } else {
+        // 구형 포맷
+        const sects = t.sections;
+        if (sects && typeof sects === 'object') {
+          ['0.5','1','1.5','2'].forEach(k => { used[k] += (sects[k]||0); });
+        } else if (typeof t.sectionLen === 'number') {
+          const k = String(t.sectionLen);
+          used[k] = (used[k]||0) + (typeof sects === 'number' ? sects : 0);
+        }
+        used.corner += (t.cubesLeft??1) + (t.cubesRight??1);
       }
-      // 큐브 사용량 집계
-      used.corner += (p.truss.cubesLeft ?? 1) + (p.truss.cubesRight ?? 1);
     }
     if (p.type === 'truss_corner') used.corner++;
   });
@@ -7454,7 +7555,11 @@ function _updateInvRemainders() {
 
 // ── 트러스 설정 ──
 let _trussCfgId = null;
-const _trussDef = () => ({sections: {'0.5':0,'1':0,'1.5':0,'2':0}, spec: 220, elevation: 4.0, dir: 'h', cubesLeft: 1, cubesRight: 1});
+const _trussDef = () => ({
+  spec: 220, elevation: 4.0,
+  hSections: {'0.5':0,'1':0,'1.5':0,'2':0}, hCubesL: 1, hCubesR: 1,
+  vSections: {'0.5':0,'1':0,'1.5':0,'2':0}, vCubesT: 1, vCubesB: 1,
+});
 let _trussCfg = _trussDef();
 
 function _computeSpan(sections) {
@@ -7466,19 +7571,28 @@ function openTrussConfig(id, e) {
   _trussCfgId = id;
   const p = daePlacements.find(pl => pl.id === id);
   if (p?.truss) {
-    if (typeof p.truss.sections === 'number') {
-      // 구형 포맷 마이그레이션
-      const sects = {'0.5':0,'1':0,'1.5':0,'2':0};
-      sects[String(p.truss.sectionLen || 1)] = p.truss.sections;
-      _trussCfg = {sections: sects, spec: 220, elevation: p.truss.elevation||4.0, dir: p.truss.dir||'h', cubesLeft: 1, cubesRight: 1};
+    const t = p.truss;
+    if (t.hSections || t.vSections) {
+      // 신형 포맷
+      _trussCfg = {..._trussDef(), ...t};
     } else {
-      _trussCfg = {..._trussDef(), ...p.truss};
-      if (!_trussCfg.sections || typeof _trussCfg.sections !== 'object') _trussCfg.sections = {'0.5':0,'1':0,'1.5':0,'2':0};
-      // cubes 기본값 보정
-      if (_trussCfg.cubesLeft == null) _trussCfg.cubesLeft = 1;
-      if (_trussCfg.cubesRight == null) _trussCfg.cubesRight = 1;
-      _trussCfg.spec = 220; // 항상 220으로 고정
+      // 구형 → 신형 마이그레이션
+      _trussCfg = _trussDef();
+      let sects = {'0.5':0,'1':0,'1.5':0,'2':0};
+      if (typeof t.sections === 'object' && t.sections) sects = {...sects, ...t.sections};
+      else if (typeof t.sections === 'number') sects[String(t.sectionLen||1)] = t.sections;
+      if (!t.dir || t.dir === 'h') {
+        _trussCfg.hSections = sects;
+        _trussCfg.hCubesL = t.cubesLeft ?? 1;
+        _trussCfg.hCubesR = t.cubesRight ?? 1;
+      } else {
+        _trussCfg.vSections = sects;
+        _trussCfg.vCubesT = t.cubesLeft ?? 1;
+        _trussCfg.vCubesB = t.cubesRight ?? 1;
+      }
+      _trussCfg.elevation = t.elevation ?? 4.0;
     }
+    _trussCfg.spec = 220;
   } else {
     _trussCfg = _trussDef();
   }
@@ -7491,17 +7605,18 @@ function closeTrussCfg() {
   document.getElementById('trussCfgModal').classList.remove('show');
 }
 
-function _setTrussDir(v) { _trussCfg.dir = v; _updateTrussUI(); }
-
-function _adjTrussSection(len, delta) {
-  if (!_trussCfg.sections) _trussCfg.sections = {'0.5':0,'1':0,'1.5':0,'2':0};
-  _trussCfg.sections[len] = Math.max(0, (_trussCfg.sections[len]||0) + delta);
+function _adjTrussSection(axis, len, delta) {
+  const key = axis === 'h' ? 'hSections' : 'vSections';
+  if (!_trussCfg[key]) _trussCfg[key] = {'0.5':0,'1':0,'1.5':0,'2':0};
+  _trussCfg[key][len] = Math.max(0, (_trussCfg[key][len]||0) + delta);
   _updateTrussUI();
 }
 
-function _adjTrussCube(side, delta) {
-  const key = side === 'left' ? 'cubesLeft' : 'cubesRight';
-  _trussCfg[key] = Math.max(0, (_trussCfg[key] || 0) + delta);
+function _adjTrussCube(axis, side, delta) {
+  const keyMap = {h:{L:'hCubesL',R:'hCubesR'}, v:{T:'vCubesT',B:'vCubesB'}};
+  const key = keyMap[axis]?.[side];
+  if (!key) return;
+  _trussCfg[key] = Math.max(0, (_trussCfg[key]||0) + delta);
   _updateTrussUI();
 }
 
@@ -7512,147 +7627,168 @@ function _adjTrussF(key, delta) {
 
 function _updateTrussUI() {
   const tc = _trussCfg;
-  if (!tc.sections || typeof tc.sections !== 'object') tc.sections = {'0.5':0,'1':0,'1.5':0,'2':0};
-  const span = _computeSpan(tc.sections);
-  const cubesLeft = tc.cubesLeft ?? 1;
-  const cubesRight = tc.cubesRight ?? 1;
-  const totalWithCubes = parseFloat((span + (cubesLeft + cubesRight) * 0.22).toFixed(3));
-  const {w, d} = daeGetDims();
-  const stageDim = tc.dir === 'v' ? d : w;
-  const dimLabel = tc.dir === 'v' ? '세로' : '가로';
-  const hasAnything = span > 0 || cubesLeft > 0 || cubesRight > 0;
-  const isOver = hasAnything && totalWithCubes > stageDim;
-  const used = daeGetInventoryUsed();
+  if (!tc.hSections) tc.hSections = {'0.5':0,'1':0,'1.5':0,'2':0};
+  if (!tc.vSections) tc.vSections = {'0.5':0,'1':0,'1.5':0,'2':0};
 
-  // 방향 버튼
-  ['h', 'v'].forEach(v => document.getElementById(`tDir-${v}`)?.classList.toggle('active', tc.dir === v));
+  const hSpan = _computeSpan(tc.hSections);
+  const vSpan = _computeSpan(tc.vSections);
+  const hCubesL = tc.hCubesL ?? 1, hCubesR = tc.hCubesR ?? 1;
+  const vCubesT = tc.vCubesT ?? 1, vCubesB = tc.vCubesB ?? 1;
+  const hTotal = parseFloat((hSpan + (hCubesL + hCubesR) * 0.22).toFixed(3));
+  const vTotal = parseFloat((vSpan + (vCubesT + vCubesB) * 0.22).toFixed(3));
+  const hasH = hSpan > 0 || hCubesL > 0 || hCubesR > 0;
+  const hasV = vSpan > 0 || vCubesT > 0 || vCubesB > 0;
+  const {w, d} = daeGetDims();
+  const used = daeGetInventoryUsed();
+  const cubeInvTotal = trussInventory.corner || 0;
+  const cubeUsedOther = used.corner || 0;
+  const cubeAvail = cubeInvTotal - cubeUsedOther;
 
   // 높이
   const elevEl = document.getElementById('tElevVal');
   if (elevEl) elevEl.textContent = tc.elevation.toFixed(1);
 
-  // 큐브 카운트 + 재고
-  const cubeInvTotal = trussInventory.corner || 0;
-  const cubeUsedOther = used.corner || 0;
-  const cubeAvail = cubeInvTotal - cubeUsedOther;
-  const cubeNeed = cubesLeft + cubesRight;
-  [['left', cubesLeft], ['right', cubesRight]].forEach(([side, cnt]) => {
-    const el = document.getElementById(`tcube-${side}`);
-    if (el) el.textContent = cnt;
-    const invEl = document.getElementById(`tcube-inv-${side}`);
-    if (invEl) {
-      if (cubeInvTotal === 0) { invEl.textContent = ''; invEl.className = 'truss-sect-inv'; return; }
-      const ok = cubeAvail >= cubeNeed;
-      invEl.textContent = cnt > 0 ? (ok ? `재고 ${cubeAvail}개` : `⚠ 재고 부족`) : `재고 ${cubeAvail}개`;
-      invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
-    }
-  });
-
-  // 섹션 카운트 + 재고
+  // ── 축별 UI 업데이트 헬퍼 ──
   const SEC_COLORS = {'2':'#1a3a5c','1.5':'#1e5279','1':'#21699a','0.5':'#2980b9'};
-  ['0.5','1','1.5','2'].forEach(k => {
-    const cnt = tc.sections[k] || 0;
-    const el = document.getElementById(`tsect-${k}`);
-    if (el) el.textContent = cnt;
-    const invEl = document.getElementById(`tsect-inv-${k}`);
-    if (invEl) {
-      const inv = trussInventory[k] || 0;
-      if (inv === 0) { invEl.textContent = ''; invEl.className = 'truss-sect-inv'; return; }
-      const available = inv - (used[k] || 0);
-      const ok = available >= cnt;
-      invEl.textContent = cnt > 0 ? `${cnt}개 / 남은 ${available}개` : `재고 ${inv}개`;
-      invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
-    }
-  });
+  const updateAxisUI = (axis) => {
+    const isH = axis === 'h';
+    const sections = isH ? tc.hSections : tc.vSections;
+    const cubeA = isH ? hCubesL : vCubesT;
+    const cubeB = isH ? hCubesR : vCubesB;
+    const sideA = isH ? 'L' : 'T';
+    const sideB = isH ? 'R' : 'B';
+    const totalCubeNeed = cubeA + cubeB;
 
-  // 총 스팬
-  const spanEl = document.getElementById('tTotalSpan');
-  if (spanEl) spanEl.textContent = hasAnything ? totalWithCubes.toFixed(2) + 'm' : '0.0m';
+    [[sideA, cubeA], [sideB, cubeB]].forEach(([side, cnt]) => {
+      const el = document.getElementById(`${axis}tcube-${side}`);
+      if (el) el.textContent = cnt;
+      const invEl = document.getElementById(`${axis}tcube-inv-${side}`);
+      if (invEl) {
+        if (cubeInvTotal === 0) { invEl.textContent = ''; invEl.className = 'truss-sect-inv'; return; }
+        const ok = cubeAvail >= totalCubeNeed;
+        invEl.textContent = ok ? `재고 ${cubeAvail}개` : `⚠ 부족`;
+        invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
+      }
+    });
+
+    ['0.5','1','1.5','2'].forEach(k => {
+      const cnt = sections[k] || 0;
+      const el = document.getElementById(`${axis}tsect-${k}`);
+      if (el) el.textContent = cnt;
+      const invEl = document.getElementById(`${axis}tsect-inv-${k}`);
+      if (invEl) {
+        const inv = trussInventory[k] || 0;
+        if (inv === 0) { invEl.textContent = ''; invEl.className = 'truss-sect-inv'; return; }
+        const available = inv - (used[k] || 0);
+        const ok = available >= cnt;
+        invEl.textContent = cnt > 0 ? `${cnt}개 / 남은 ${available}개` : `재고 ${inv}개`;
+        invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
+      }
+    });
+  };
+  updateAxisUI('h');
+  updateAxisUI('v');
+
+  // 스팬 표시
+  const hSpanEl = document.getElementById('hTotalSpan');
+  if (hSpanEl) hSpanEl.textContent = hasH ? hTotal.toFixed(2) + 'm' : '—';
+  const vSpanEl = document.getElementById('vTotalSpan');
+  if (vSpanEl) vSpanEl.textContent = hasV ? vTotal.toFixed(2) + 'm' : '—';
 
   // ── 미리보기 SVG ──
   const previewWrap = document.getElementById('trussMiniPreviewWrap');
   if (previewWrap) {
-    if (!hasAnything) {
-      previewWrap.innerHTML = `<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px">섹션을 추가하면 미리보기가 표시됩니다</div>`;
-    } else {
-      const CUBE_C = '#f59e0b';
-      const SVG_W = 260, SVG_H = 64, MG = 6, GAP = 2;
-      const yt = 14, rh = 24, midY = yt + rh / 2;
-      const INNER_W = SVG_W - 2 * MG;
-
-      // 엘리먼트 목록 생성
-      const elems = [];
-      if (cubesLeft > 0) elems.push({len: cubesLeft * 0.22, color: CUBE_C, label: `큐브×${cubesLeft}`, cube: true});
-      ['2','1.5','1','0.5'].forEach(k => {
-        for (let i = 0; i < (tc.sections[k]||0); i++) {
-          elems.push({len: parseFloat(k), color: SEC_COLORS[k], label: `${k}m`, cube: false});
-        }
+    const CUBE_C = '#f59e0b';
+    if (!hasH && !hasV) {
+      previewWrap.innerHTML = `<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px">가로·세로 섹션을 추가하면 미리보기가 표시됩니다</div>`;
+    } else if (hasH && hasV) {
+      // 사각 프레임 미리보기
+      const SVG_W = 260, SVG_H = 110, MG = 12;
+      const innerW = SVG_W - 2*MG, innerH = SVG_H - 2*MG - 14;
+      const maxDim = Math.max(hTotal, vTotal, 1);
+      const scl = Math.min(innerW / hTotal, innerH / vTotal);
+      const fw = hTotal * scl, fh = vTotal * scl;
+      const fx = MG + (innerW - fw) / 2, fy = MG + (innerH - fh) / 2;
+      const bw = Math.max(scl * 0.22, 5);
+      const hOver = hTotal > w, vOver = vTotal > d;
+      const hCol = hOver ? '#ef4444' : '#546e7a';
+      const vCol = vOver ? '#ef4444' : '#3d5a73';
+      let svgS = `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="display:block;width:100%">`;
+      // 프레임
+      svgS += `<rect x="${fx.toFixed(1)}" y="${fy.toFixed(1)}" width="${fw.toFixed(1)}" height="${bw.toFixed(1)}" fill="${hCol}" rx="2"/>`;
+      svgS += `<rect x="${fx.toFixed(1)}" y="${(fy+fh-bw).toFixed(1)}" width="${fw.toFixed(1)}" height="${bw.toFixed(1)}" fill="${hCol}" rx="2"/>`;
+      svgS += `<rect x="${fx.toFixed(1)}" y="${fy.toFixed(1)}" width="${bw.toFixed(1)}" height="${fh.toFixed(1)}" fill="${vCol}" rx="2"/>`;
+      svgS += `<rect x="${(fx+fw-bw).toFixed(1)}" y="${fy.toFixed(1)}" width="${bw.toFixed(1)}" height="${fh.toFixed(1)}" fill="${vCol}" rx="2"/>`;
+      // 코너 큐브
+      [[fx,fy],[fx+fw-bw,fy],[fx,fy+fh-bw],[fx+fw-bw,fy+fh-bw]].forEach(([cx,cy]) => {
+        svgS += `<rect x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" width="${bw.toFixed(1)}" height="${bw.toFixed(1)}" fill="${CUBE_C}" rx="1.5"/>`;
       });
-      if (cubesRight > 0) elems.push({len: cubesRight * 0.22, color: CUBE_C, label: `큐브×${cubesRight}`, cube: true});
-
-      // 너비 계산
-      const totalReal = elems.reduce((s, e) => s + e.len, 0) || 1;
-      const availPx = INNER_W - (elems.length - 1) * GAP;
-      const pxPerM = availPx / totalReal;
-      elems.forEach(e => { e.px = Math.max(e.cube ? 18 : 14, e.len * pxPerM); });
-      const usedPx = elems.reduce((s, e) => s + e.px, 0) + (elems.length - 1) * GAP;
-      if (usedPx > INNER_W) {
-        const sc = INNER_W / usedPx;
-        elems.forEach(e => { e.px *= sc; });
-      }
-
-      let svgS = `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="display:block;width:100%;max-height:80px">`;
-      let cx = MG;
-      elems.forEach(e => {
-        const fill = e.cube
-          ? (isOver ? '#854d0e' : CUBE_C)
-          : (isOver ? '#7f1d1d' : e.color);
-        const stroke = e.cube ? 'rgba(255,220,80,0.45)' : 'rgba(255,255,255,0.18)';
-        svgS += `<rect x="${cx.toFixed(1)}" y="${yt}" width="${e.px.toFixed(1)}" height="${rh}" fill="${fill}" rx="2.5" stroke="${stroke}" stroke-width="0.7"/>`;
-        if (e.px >= 18) {
-          const fs = Math.min(e.px * 0.14, 7).toFixed(1);
-          const tc2 = e.cube ? '#3d1f00' : 'rgba(255,255,255,0.92)';
-          svgS += `<text x="${(cx + e.px/2).toFixed(1)}" y="${midY.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${tc2}" font-size="${fs}" font-weight="700">${e.label}</text>`;
-        }
-        cx += e.px + GAP;
-      });
-      // 하단 라벨
-      const parts = [];
-      if (cubesLeft > 0) parts.push(`큐브×${cubesLeft}`);
-      ['2','1.5','1','0.5'].filter(k=>(tc.sections[k]||0)>0).forEach(k => parts.push(`${k}m×${tc.sections[k]}`));
-      if (cubesRight > 0) parts.push(`큐브×${cubesRight}`);
-      const lblColor = isOver ? '#f87171' : '#777';
-      svgS += `<text x="${SVG_W/2}" y="${SVG_H - 5}" text-anchor="middle" fill="${lblColor}" font-size="5.8">${parts.join(' + ')} = ${totalWithCubes.toFixed(2)}m</text>`;
+      // 치수 라벨
+      svgS += `<text x="${(fx+fw/2).toFixed(1)}" y="${(fy-3).toFixed(1)}" text-anchor="middle" fill="${hOver?'#f87171':'#aaa'}" font-size="6">↔ ${hTotal.toFixed(2)}m${hOver?' ⚠':''}</text>`;
+      svgS += `<text x="${(fx-3).toFixed(1)}" y="${(fy+fh/2).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${vOver?'#f87171':'#aaa'}" font-size="6" transform="rotate(-90,${(fx-3).toFixed(1)},${(fy+fh/2).toFixed(1)})">↕ ${vTotal.toFixed(2)}m${vOver?' ⚠':''}</text>`;
+      svgS += `<text x="${SVG_W/2}" y="${SVG_H-3}" text-anchor="middle" fill="#666" font-size="5.5">대칭 사각 프레임 — 위=아래 ${hTotal.toFixed(2)}m, 좌=우 ${vTotal.toFixed(2)}m</text>`;
       svgS += `</svg>`;
       previewWrap.innerHTML = svgS;
-    }
-  }
-
-  // 무대 초과 경고
-  const warnEl = document.getElementById('trussStageWarn');
-  if (warnEl) {
-    if (!hasAnything) {
-      warnEl.className = 'truss-stage-badge';
-    } else if (isOver) {
-      warnEl.className = 'truss-stage-badge over';
-      warnEl.textContent = `⚠ 무대 ${dimLabel}(${stageDim.toFixed(1)}m) 초과 — 전체 ${totalWithCubes.toFixed(2)}m`;
     } else {
-      warnEl.className = 'truss-stage-badge ok';
-      warnEl.textContent = `✓ 무대 ${dimLabel} ${stageDim.toFixed(1)}m 이내 — 여유 ${(stageDim - totalWithCubes).toFixed(2)}m`;
+      // 단일 바 미리보기
+      const isHBar = hasH;
+      const sections2 = isHBar ? tc.hSections : tc.vSections;
+      const cubeA2 = isHBar ? hCubesL : vCubesT;
+      const cubeB2 = isHBar ? hCubesR : vCubesB;
+      const total2 = isHBar ? hTotal : vTotal;
+      const isOver2 = isHBar ? (hTotal > w) : (vTotal > d);
+      const SVG_W2 = 260, SVG_H2 = 62, MG2 = 6, GAP = 2;
+      const yt = 14, rh = 24, midY = yt + rh/2;
+      const INNER_W = SVG_W2 - 2*MG2;
+      const elems = [];
+      if (cubeA2 > 0) elems.push({len: cubeA2*0.22, color:CUBE_C, label:`큐브×${cubeA2}`, cube:true});
+      ['2','1.5','1','0.5'].forEach(k => { for (let i=0;i<(sections2[k]||0);i++) elems.push({len:parseFloat(k),color:SEC_COLORS[k],label:`${k}m`,cube:false}); });
+      if (cubeB2 > 0) elems.push({len: cubeB2*0.22, color:CUBE_C, label:`큐브×${cubeB2}`, cube:true});
+      if (elems.length > 0) {
+        const totalR = elems.reduce((s,e)=>s+e.len,0)||1;
+        const avail = INNER_W - (elems.length-1)*GAP;
+        const ppm = avail / totalR;
+        elems.forEach(e=>{e.px=Math.max(e.cube?18:14,e.len*ppm);});
+        const usd = elems.reduce((s,e)=>s+e.px,0)+(elems.length-1)*GAP;
+        if (usd > INNER_W) { const sc=INNER_W/usd; elems.forEach(e=>{e.px*=sc;}); }
+        let svgS2 = `<svg viewBox="0 0 ${SVG_W2} ${SVG_H2}" style="display:block;width:100%;max-height:70px">`;
+        let cx=MG2;
+        elems.forEach(e=>{
+          const fill=e.cube?(isOver2?'#854d0e':CUBE_C):(isOver2?'#7f1d1d':e.color);
+          svgS2+=`<rect x="${cx.toFixed(1)}" y="${yt}" width="${e.px.toFixed(1)}" height="${rh}" fill="${fill}" rx="2.5" stroke="${e.cube?'rgba(255,220,80,0.4)':'rgba(255,255,255,0.15)'}" stroke-width="0.7"/>`;
+          if (e.px>=18){const fs=Math.min(e.px*0.14,7).toFixed(1);svgS2+=`<text x="${(cx+e.px/2).toFixed(1)}" y="${midY.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${e.cube?'#3d1f00':'rgba(255,255,255,0.9)'}" font-size="${fs}" font-weight="700">${e.label}</text>`;}
+          cx+=e.px+GAP;
+        });
+        svgS2+=`<text x="${SVG_W2/2}" y="${SVG_H2-4}" text-anchor="middle" fill="${isOver2?'#f87171':'#777'}" font-size="5.8">= ${total2.toFixed(2)}m${isOver2?' ⚠ 무대 초과':''}</text>`;
+        svgS2+=`</svg>`;
+        previewWrap.innerHTML = svgS2;
+      }
     }
   }
 
-  // 재고 종합 상태
+  // ── 경고 ──
+  const setBadge = (id, val, stageDim2, label) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (val <= 0) { el.className = 'truss-stage-badge'; return; }
+    if (val > stageDim2) { el.className='truss-stage-badge over'; el.textContent=`⚠ 무대 ${label}(${stageDim2.toFixed(1)}m) 초과 — ${val.toFixed(2)}m`; }
+    else { el.className='truss-stage-badge ok'; el.textContent=`✓ 무대 ${label} ${stageDim2.toFixed(1)}m 이내 — 여유 ${(stageDim2-val).toFixed(2)}m`; }
+  };
+  setBadge('trussStageWarnH', hasH ? hTotal : 0, w, '가로');
+  setBadge('trussStageWarnV', hasV ? vTotal : 0, d, '세로');
+
+  // 재고 종합
   const invStatus = document.getElementById('trussInvStatus');
   if (invStatus) {
-    const hasInv = Object.values(trussInventory).some(v => v > 0);
-    if (!hasInv || !hasAnything) { invStatus.style.display = 'none'; return; }
-    const sectOk = ['0.5','1','1.5','2'].every(k => {
-      const cnt = tc.sections[k] || 0;
-      return cnt === 0 || (trussInventory[k]||0) - (used[k]||0) >= cnt;
+    const hasInv = Object.values(trussInventory).some(v=>v>0);
+    if (!hasInv || (!hasH && !hasV)) { invStatus.style.display='none'; return; }
+    const cubeNeed2 = (hasH&&hasV)?4:(hasH?hCubesL+hCubesR:vCubesT+vCubesB);
+    const cubeOk = cubeInvTotal===0 || cubeAvail>=cubeNeed2;
+    const sectOk = ['0.5','1','1.5','2'].every(k=>{
+      const cH=(tc.hSections[k]||0), cV=(tc.vSections[k]||0);
+      return (trussInventory[k]||0)-(used[k]||0) >= cH+cV;
     });
-    const cubeOk = cubeInvTotal === 0 || cubeAvail >= cubeNeed;
-    const allOk = sectOk && cubeOk;
+    const allOk = cubeOk && sectOk;
     invStatus.textContent = allOk ? '✓ 재고 충분' : '⚠ 재고 부족 항목 있음';
     invStatus.style.color = allOk ? '#3dba96' : '#e74c3c';
     invStatus.style.display = '';
@@ -7661,12 +7797,14 @@ function _updateTrussUI() {
 
 function daeApplyTrussConfig() {
   const tc = _trussCfg;
-  const span = _computeSpan(tc.sections);
-  const cubesLeft = tc.cubesLeft ?? 1;
-  const cubesRight = tc.cubesRight ?? 1;
-  const totalSpan = parseFloat((span + (cubesLeft + cubesRight) * 0.22).toFixed(3));
+  const hSpan = _computeSpan(tc.hSections);
+  const vSpan = _computeSpan(tc.vSections);
+  const hCubesL = tc.hCubesL??1, hCubesR = tc.hCubesR??1;
+  const vCubesT = tc.vCubesT??1, vCubesB = tc.vCubesB??1;
+  const hTotalSpan = parseFloat((hSpan+(hCubesL+hCubesR)*0.22).toFixed(3));
+  const vTotalSpan = parseFloat((vSpan+(vCubesT+vCubesB)*0.22).toFixed(3));
   const p = daePlacements.find(pl => pl.id === _trussCfgId);
-  if (p) p.truss = {...tc, span, totalSpan};
+  if (p) p.truss = {...tc, hSpan, vSpan, hTotalSpan, vTotalSpan};
   closeTrussCfg();
   daeRenderSVG();
   _updateInvRemainders();
