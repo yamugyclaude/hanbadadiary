@@ -122,6 +122,79 @@
 
 ---
 
+## 사진 저장 구조
+
+### 현재 방식: Supabase Storage (2026-06-21 적용)
+
+사진은 **Supabase Storage 버킷**에 파일로 업로드되고, DB에는 **URL 문자열만** 저장됩니다.
+
+```
+[사용자가 사진 선택]
+  → 브라우저에서 800px 리사이즈 + JPEG 0.7 압축 (약 100~300KB)
+  → Supabase Storage 버킷 'event-photos'에 업로드
+      경로: soundlogs/{log_id}/sound_0.jpg ~ sound_3.jpg
+            soundlogs/{log_id}/stage_0.jpg ~ stage_3.jpg
+  → 업로드 성공 시 → soundPhotos[idx] = 공개 URL
+  → 업로드 실패 시 → soundPhotos[idx] = base64 (폴백, DB에 저장됨)
+
+[저장 버튼 / 자동저장]
+  → base64로 남은 사진 있으면 Storage 재업로드 시도
+  → soundlogs.data 컬럼에 URL만 포함된 log 객체 저장
+
+[일지 삭제]
+  → Storage에서 해당 log_id 폴더의 파일들 삭제
+  → soundlogs 테이블 행 삭제
+```
+
+#### 관련 함수
+
+| 함수 | 역할 |
+|---|---|
+| `uploadPhotoToStorage(logId, type, idx, base64)` | base64 → Storage 업로드, 공개 URL 반환 (실패 시 null) |
+| `deletePhotosFromStorage(log)` | log의 soundPhotos·stagePhotos에 있는 Storage URL 파일 전체 삭제 |
+| `loadPhoto(type, idx, input)` | 사진 선택 → 리사이즈 → 즉시 Storage 업로드 |
+| `saveAndSync()` | base64 남은 사진 마이그레이션 후 DB 저장 |
+
+#### Supabase Storage 최초 설정 (새 환경 구축 시 필수)
+
+Supabase Dashboard에서 아래 2가지를 직접 설정해야 합니다.
+anon 키로는 버킷 생성이 불가능하여 코드로 자동화할 수 없습니다.
+
+1. **버킷 생성**: Storage → New Bucket
+   - Name: `event-photos`
+   - Public bucket: **ON** (체크)
+
+2. **RLS 정책 추가** (버킷 생성 후 Policies 탭):
+   - INSERT: `((bucket_id = 'event-photos'::text) AND (role() = 'anon'::text))`
+   - UPDATE: 동일
+   - DELETE: 동일
+   - SELECT: 공개 버킷이므로 별도 설정 불필요
+
+   또는 SQL Editor에서:
+   ```sql
+   CREATE POLICY "anon can upload event photos"
+   ON storage.objects FOR INSERT TO anon
+   WITH CHECK (bucket_id = 'event-photos');
+
+   CREATE POLICY "anon can update event photos"
+   ON storage.objects FOR UPDATE TO anon
+   USING (bucket_id = 'event-photos');
+
+   CREATE POLICY "anon can delete event photos"
+   ON storage.objects FOR DELETE TO anon
+   USING (bucket_id = 'event-photos');
+   ```
+
+#### 이전 방식 (레거시 — 2026-06-21 이전)
+
+사진을 base64 문자열로 인코딩하여 `soundlogs.data` JSON 컬럼에 직접 저장했습니다.
+
+- 문제: 행사 1건당 사진 최대 2.4MB → Supabase 무료 DB 500MB 한도 빠르게 소진
+- 기존 base64 데이터: 편집 후 저장 시 자동으로 Storage URL로 마이그레이션됩니다.
+  Storage 설정이 안 된 경우에는 폴백으로 base64 그대로 DB에 저장됩니다 (기능은 유지됨).
+
+---
+
 ## 동기화 구조
 
 ```
@@ -197,3 +270,6 @@ claude
 | 2026-06-05 | 👷 알바관리 페이지 신설 (명단·스케줄·팝업) |
 | 2026-06-05 | 장비 카테고리 개편 (이벤트장비 → 사무실·조명·특효·기타) |
 | 2026-06-05 | 계정/암호 전체 변경: admin/6293 → hanbada/2375 |
+| 2026-06-21 | 행사일지 사진 저장 방식 변경: base64 → Supabase Storage URL |
+| 2026-06-21 | `uploadPhotoToStorage`, `deletePhotosFromStorage` 함수 신설 |
+| 2026-06-21 | 일지 삭제 시 Storage 파일도 함께 삭제, 이전 base64 데이터 자동 마이그레이션 |

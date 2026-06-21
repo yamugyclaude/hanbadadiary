@@ -3481,6 +3481,46 @@ function refreshSpeakerUI() {
   document.getElementById('speakerInputWrap').style.display = speakerBrands.size > 0 ? 'block' : 'none';
 }
 
+// ── Supabase Storage 사진 업로드/삭제 ──
+async function uploadPhotoToStorage(logId, type, idx, base64) {
+  try {
+    const byteStr = atob(base64.split(',')[1]);
+    const ab = new ArrayBuffer(byteStr.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+    const blob = new Blob([ab], { type: 'image/jpeg' });
+    const path = `soundlogs/${logId}/${type}_${idx}.jpg`;
+    const res = await fetch(`${SB_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'image/jpeg',
+        'x-upsert': 'true'
+      },
+      body: blob
+    });
+    if (!res.ok) return null;
+    return `${SB_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
+  } catch(e) { return null; }
+}
+
+async function deletePhotosFromStorage(log) {
+  const all = [...(log.soundPhotos||[]), ...(log.stagePhotos||[])].filter(Boolean);
+  for (const url of all) {
+    if (!url.startsWith('http')) continue;
+    try {
+      const marker = `/storage/v1/object/public/${PHOTO_BUCKET}/`;
+      const path = url.split(marker)[1];
+      if (!path) continue;
+      await fetch(`${SB_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+      });
+    } catch(e) {}
+  }
+}
+
 // ── 사진 업로드 ──
 let soundPhotos = [null, null, null, null];
 let stagePhotos = [null, null, null, null];
@@ -3498,8 +3538,15 @@ function loadPhoto(type, idx, input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => resizeImage(e.target.result, base64 => {
-    setPhotoSlot(type, idx, base64);
+  reader.onload = e => resizeImage(e.target.result, async base64 => {
+    setPhotoSlot(type, idx, base64); // 즉시 미리보기 (base64)
+    const url = await uploadPhotoToStorage(currentId, type, idx, base64);
+    if (url) {
+      // Storage 업로드 성공 → 배열만 URL로 교체 (UI는 base64 미리보기 유지)
+      if (type === 'sound') soundPhotos[idx] = url;
+      else stagePhotos[idx] = url;
+    }
+    // 실패 시 base64 유지 (setPhotoSlot이 이미 배열에 base64 저장)
   });
   reader.readAsDataURL(file);
   input.value = '';
@@ -5857,6 +5904,8 @@ showToast('✓ 저장 완료');
 }
 async function sbDeleteLog(id) {
 try {
+const log = logs.find(l => l.id === id);
+if (log) await deletePhotosFromStorage(log);
 await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
 method: 'DELETE',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
@@ -5934,6 +5983,7 @@ el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2200);
 // ── Supabase 설정 ──
 const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
+const PHOTO_BUCKET = 'event-photos'; // Supabase Storage 버킷명 (public, Dashboard에서 생성 필요)
 
 // 일지 하나를 Supabase에 저장 (개별 upsert)
 async function sbUpsertLog(log) {
@@ -5973,6 +6023,19 @@ updateTitle();
 addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
 showToast('저장 중…');
 try {
+// base64로 남은 사진 Storage에 업로드 (신규 업로드 실패분 재시도 + 이전 데이터 마이그레이션)
+for (let i = 0; i < soundPhotos.length; i++) {
+  if (soundPhotos[i] && soundPhotos[i].startsWith('data:')) {
+    const url = await uploadPhotoToStorage(currentId, 'sound', i, soundPhotos[i]);
+    if (url) { soundPhotos[i] = url; log.soundPhotos[i] = url; }
+  }
+}
+for (let i = 0; i < stagePhotos.length; i++) {
+  if (stagePhotos[i] && stagePhotos[i].startsWith('data:')) {
+    const url = await uploadPhotoToStorage(currentId, 'stage', i, stagePhotos[i]);
+    if (url) { stagePhotos[i] = url; log.stagePhotos[i] = url; }
+  }
+}
 await sbUpsertLog(log);
 showToast('✓ 저장 + ☁️ 클라우드 완료');
 } catch(e) {
