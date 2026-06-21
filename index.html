@@ -1835,11 +1835,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div class="dae-info-box-row"><span class="dae-info-box-label">계산기 연동</span><span class="dae-info-box-val" id="dae-calc-size">—</span></div>
             <div class="dae-info-box-row"><span class="dae-info-box-label">면적</span><span class="dae-info-box-val" id="dae-calc-area">—</span></div>
           </div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">또는 직접 입력 (계산기 값 덮어씀)</div>
-          <div class="dae-row">
-            <div class="dae-field"><label>가로 (m)</label><input type="number" id="dae-w" placeholder="자동" step="0.1" min="0.1" oninput="daeUpdateInfo()"></div>
-            <div class="dae-field"><label>세로 (m)</label><input type="number" id="dae-d" placeholder="자동" step="0.1" min="0.1" oninput="daeUpdateInfo()"></div>
-          </div>
+          <input type="hidden" id="dae-w">
+          <input type="hidden" id="dae-d">
           <div class="dae-row">
             <div class="dae-field"><label>높이 (m)</label><input type="number" id="dae-h" placeholder="1.0" step="0.1" min="0.1" value="1.0"></div>
             <div class="dae-field"><label>계단 위치</label>
@@ -1851,6 +1848,64 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
                 <option value="both">좌우</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <!-- 무대 평면도 -->
+        <div class="dae-section">
+          <div class="dae-section-label">🗺️ 무대 평면도 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 빈 곳 클릭 → 장비 배치 / 장비 클릭 → 삭제</span></div>
+          <div class="dae-svg-legend">
+            <span class="dae-leg-box" style="background:#c8922a;color:#0a0804">무대</span>
+            <span class="dae-leg-box" style="background:#3d5c70">트러스</span>
+            <button class="dae-leg-clear" onclick="daePlacements=[];daeNextId=1;daeRenderSVG();showToast('배치 초기화')">🗑️ 초기화</button>
+          </div>
+          <div id="daeSVGWrap"></div>
+          <!-- 배치 목록 -->
+          <div id="daePlacedList" class="dae-placed-list" style="display:none">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:12px 0 6px">배치된 항목</div>
+            <div id="daePlacedItems"></div>
+          </div>
+        </div>
+
+        <!-- 행사장 위치 -->
+        <div class="dae-section">
+          <div class="dae-section-label">📍 행사장 위치</div>
+          <div class="dae-location-tabs">
+            <div class="dae-loc-tab active" id="dlt-empty" onclick="daeLocTab('empty')">빈 공간</div>
+            <div class="dae-loc-tab" id="dlt-address" onclick="daeLocTab('address')">주소 입력</div>
+            <div class="dae-loc-tab" id="dlt-gps" onclick="daeLocTab('gps')">GPS 좌표</div>
+            <div class="dae-loc-tab" id="dlt-photo" onclick="daeLocTab('photo')">도면/사진</div>
+          </div>
+          <div class="dae-loc-content active" id="dlc-empty">
+            <div style="font-size:12px;color:var(--text-muted);padding:8px 0">위치 정보 없이 무대 구조물만 생성합니다.</div>
+          </div>
+          <div class="dae-loc-content" id="dlc-address">
+            <div class="dae-field"><label>행사장 주소</label><input type="text" id="dae-address" placeholder="예) 서울시 마포구 상암동 월드컵공원"></div>
+          </div>
+          <div class="dae-loc-content" id="dlc-gps">
+            <div class="dae-row">
+              <div class="dae-field"><label>위도 (Lat)</label><input type="number" id="dae-lat" placeholder="37.5665" step="0.000001"></div>
+              <div class="dae-field"><label>경도 (Lng)</label><input type="number" id="dae-lng" placeholder="126.9780" step="0.000001"></div>
+            </div>
+          </div>
+          <div class="dae-loc-content" id="dlc-photo">
+            <div class="dae-field">
+              <label>행사장 도면 또는 사진</label>
+              <div style="border:1.5px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;cursor:pointer" onclick="document.getElementById('dae-photo-input').click()">
+                📁 파일 선택 (jpg/png/pdf)
+              </div>
+              <input type="file" id="dae-photo-input" accept="image/*,.pdf" style="display:none" onchange="daePhotoSelected(this)">
+              <div id="dae-photo-name" style="font-size:12px;color:var(--accent);margin-top:6px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 메모 -->
+        <div class="dae-section">
+          <div class="dae-section-label">📝 배치 메모</div>
+          <div class="dae-field">
+            <label>장비 배치 지시사항</label>
+            <textarea id="dae-memo" rows="4" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="예) 좌우 메인스피커 2조, 무대 앞 서브우퍼 4개, 관객석 15m 지점 콘솔"></textarea>
           </div>
         </div>
 
@@ -1904,64 +1959,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               </div>
               <div class="truss-inv-rem" id="tinv-rem-corner"></div>
             </div>
-          </div>
-        </div>
-
-        <!-- 무대 평면도 -->
-        <div class="dae-section">
-          <div class="dae-section-label">🗺️ 무대 평면도 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 빈 곳 클릭 → 장비 배치 / 장비 클릭 → 삭제</span></div>
-          <div class="dae-svg-legend">
-            <span class="dae-leg-box" style="background:#5c3a1e">무대</span>
-            <span class="dae-leg-box" style="background:#0d2a42">관객석</span>
-            <button class="dae-leg-clear" onclick="daePlacements=[];daeNextId=1;daeRenderSVG();showToast('배치 초기화')">🗑️ 초기화</button>
-          </div>
-          <div id="daeSVGWrap"></div>
-          <!-- 배치 목록 -->
-          <div id="daePlacedList" class="dae-placed-list" style="display:none">
-            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:12px 0 6px">배치된 항목</div>
-            <div id="daePlacedItems"></div>
-          </div>
-        </div>
-
-        <!-- 행사장 위치 -->
-        <div class="dae-section">
-          <div class="dae-section-label">📍 행사장 위치</div>
-          <div class="dae-location-tabs">
-            <div class="dae-loc-tab active" id="dlt-empty" onclick="daeLocTab('empty')">빈 공간</div>
-            <div class="dae-loc-tab" id="dlt-address" onclick="daeLocTab('address')">주소 입력</div>
-            <div class="dae-loc-tab" id="dlt-gps" onclick="daeLocTab('gps')">GPS 좌표</div>
-            <div class="dae-loc-tab" id="dlt-photo" onclick="daeLocTab('photo')">도면/사진</div>
-          </div>
-          <div class="dae-loc-content active" id="dlc-empty">
-            <div style="font-size:12px;color:var(--text-muted);padding:8px 0">위치 정보 없이 무대 구조물만 생성합니다.</div>
-          </div>
-          <div class="dae-loc-content" id="dlc-address">
-            <div class="dae-field"><label>행사장 주소</label><input type="text" id="dae-address" placeholder="예) 서울시 마포구 상암동 월드컵공원"></div>
-          </div>
-          <div class="dae-loc-content" id="dlc-gps">
-            <div class="dae-row">
-              <div class="dae-field"><label>위도 (Lat)</label><input type="number" id="dae-lat" placeholder="37.5665" step="0.000001"></div>
-              <div class="dae-field"><label>경도 (Lng)</label><input type="number" id="dae-lng" placeholder="126.9780" step="0.000001"></div>
-            </div>
-          </div>
-          <div class="dae-loc-content" id="dlc-photo">
-            <div class="dae-field">
-              <label>행사장 도면 또는 사진</label>
-              <div style="border:1.5px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;cursor:pointer" onclick="document.getElementById('dae-photo-input').click()">
-                📁 파일 선택 (jpg/png/pdf)
-              </div>
-              <input type="file" id="dae-photo-input" accept="image/*,.pdf" style="display:none" onchange="daePhotoSelected(this)">
-              <div id="dae-photo-name" style="font-size:12px;color:var(--accent);margin-top:6px"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 메모 -->
-        <div class="dae-section">
-          <div class="dae-section-label">📝 배치 메모</div>
-          <div class="dae-field">
-            <label>장비 배치 지시사항</label>
-            <textarea id="dae-memo" rows="4" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="예) 좌우 메인스피커 2조, 무대 앞 서브우퍼 4개, 관객석 15m 지점 콘솔"></textarea>
           </div>
         </div>
 
@@ -7243,112 +7240,175 @@ function daeGetDims() {
 function daeRenderSVG() {
   const {w, d} = daeGetDims();
   const mg = DAE_MARGIN;
-  const audH = 3.5;
   const vW = w + mg * 2;
-  const vH = d + mg * 2 + audH;
+  const vH = d + mg * 2;
   const stX = mg, stY = mg;
 
+  // ── 색상 팔레트 ──
+  const C = {
+    bg:      '#111827',
+    bgGrid:  'rgba(255,255,255,0.032)',
+    stage:   '#14100a',
+    stageBd: '#c8922a',
+    stageHi: '#f0c84a',
+    panel:   '#2a1b0b',
+    dim:     '#5b9bd5',
+  };
+
   let s = `<svg id="daeStageSVG" viewBox="0 0 ${vW.toFixed(2)} ${vH.toFixed(2)}"
-    style="display:block;width:100%;background:#0f0f1a;border-radius:10px;touch-action:manipulation"
+    style="display:block;width:100%;background:${C.bg};border-radius:12px;touch-action:manipulation;font-family:system-ui,-apple-system,sans-serif"
     onclick="daeSVGClick(event)">`;
 
-  // 무대 판 그리드 선 (1.8m × 0.9m)
-  for (let x = stX; x <= stX + w + 0.01; x += 1.8) {
-    const px = Math.min(x, stX + w).toFixed(3);
-    s += `<line x1="${px}" y1="${stY.toFixed(3)}" x2="${px}" y2="${(stY+d).toFixed(3)}" stroke="#9a7030" stroke-width="0.03" opacity="0.4"/>`;
+  // ── 1m 배경 그리드 ──
+  for (let x = 0; x <= Math.ceil(vW); x++) {
+    s += `<line x1="${x}" y1="0" x2="${x}" y2="${vH.toFixed(2)}" stroke="${C.bgGrid}" stroke-width="0.015"/>`;
   }
-  for (let y = stY; y <= stY + d + 0.01; y += 0.9) {
-    const py = Math.min(y, stY + d).toFixed(3);
-    s += `<line x1="${stX.toFixed(3)}" y1="${py}" x2="${(stX+w).toFixed(3)}" y2="${py}" stroke="#9a7030" stroke-width="0.03" opacity="0.4"/>`;
+  for (let y = 0; y <= Math.ceil(vH); y++) {
+    s += `<line x1="0" y1="${y}" x2="${vW.toFixed(2)}" y2="${y}" stroke="${C.bgGrid}" stroke-width="0.015"/>`;
   }
 
-  // 무대 바닥
-  s += `<rect x="${stX}" y="${stY}" width="${w.toFixed(3)}" height="${d.toFixed(3)}" fill="#5c3a1e" fill-opacity="0.92" stroke="#c4912a" stroke-width="0.07"/>`;
+  // ── 무대 드롭 섀도우 ──
+  s += `<rect x="${(stX+0.1).toFixed(3)}" y="${(stY+0.1).toFixed(3)}" width="${w.toFixed(3)}" height="${d.toFixed(3)}" fill="rgba(0,0,0,0.55)" rx="0.04"/>`;
 
-  // 치수선 (가로)
-  const dl = vW * 0.028;
-  s += `<line x1="${stX}" y1="${(stY-0.45).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(stY-0.45).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
-  s += `<line x1="${stX}" y1="${(stY-0.62).toFixed(3)}" x2="${stX}" y2="${(stY-0.28).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
-  s += `<line x1="${(stX+w).toFixed(3)}" y1="${(stY-0.62).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(stY-0.28).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
-  s += `<text x="${(stX+w/2).toFixed(3)}" y="${(stY-0.56).toFixed(3)}" text-anchor="middle" fill="#f39c12" font-size="${dl.toFixed(3)}">${w.toFixed(1)}m</text>`;
+  // ── 무대 바닥 ──
+  s += `<rect x="${stX}" y="${stY}" width="${w.toFixed(3)}" height="${d.toFixed(3)}" fill="${C.stage}"/>`;
 
-  // 치수선 (세로)
-  s += `<line x1="${(stX-0.45).toFixed(3)}" y1="${stY}" x2="${(stX-0.45).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
-  s += `<line x1="${(stX-0.62).toFixed(3)}" y1="${stY}" x2="${(stX-0.28).toFixed(3)}" y2="${stY}" stroke="#f39c12" stroke-width="0.04"/>`;
-  s += `<line x1="${(stX-0.62).toFixed(3)}" y1="${(stY+d).toFixed(3)}" x2="${(stX-0.28).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="#f39c12" stroke-width="0.04"/>`;
-  const midDY = stY + d / 2, rotX = stX - 0.6;
-  s += `<text x="${rotX.toFixed(3)}" y="${midDY.toFixed(3)}" text-anchor="middle" fill="#f39c12" font-size="${dl.toFixed(3)}" transform="rotate(-90,${rotX.toFixed(3)},${midDY.toFixed(3)})">${d.toFixed(1)}m</text>`;
+  // 판넬 세로 구분선 (1.8m 간격)
+  for (let x = stX + 1.8; x < stX + w - 0.01; x += 1.8) {
+    s += `<line x1="${x.toFixed(3)}" y1="${stY}" x2="${x.toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="${C.panel}" stroke-width="0.028"/>`;
+  }
+  // 판넬 가로 구분선 (0.9m 간격)
+  for (let y = stY + 0.9; y < stY + d - 0.01; y += 0.9) {
+    s += `<line x1="${stX}" y1="${y.toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${y.toFixed(3)}" stroke="${C.panel}" stroke-width="0.018"/>`;
+  }
 
-  // FRONT 라벨
-  const fl = (vW * 0.042).toFixed(3);
-  s += `<text x="${(stX+w/2).toFixed(3)}" y="${(stY+d-0.2).toFixed(3)}" text-anchor="middle" fill="#f39c12" font-size="${fl}" font-weight="800" letter-spacing="0.02">▼ FRONT</text>`;
+  // ── 무대 테두리 ──
+  s += `<rect x="${stX}" y="${stY}" width="${w.toFixed(3)}" height="${d.toFixed(3)}" fill="none" stroke="${C.stageBd}" stroke-width="0.07"/>`;
+  // 내부 하이라이트 (상단 + 좌측 — 입체감)
+  const bev = 0.06;
+  s += `<line x1="${stX.toFixed(3)}" y1="${(stY+bev).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(stY+bev).toFixed(3)}" stroke="${C.stageHi}" stroke-width="0.02" opacity="0.3"/>`;
+  s += `<line x1="${(stX+bev).toFixed(3)}" y1="${stY.toFixed(3)}" x2="${(stX+bev).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="${C.stageHi}" stroke-width="0.02" opacity="0.3"/>`;
+  // 하단 + 우측 어두운 선 (깊이감)
+  s += `<line x1="${stX.toFixed(3)}" y1="${(stY+d-0.025).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(stY+d-0.025).toFixed(3)}" stroke="rgba(0,0,0,0.5)" stroke-width="0.04"/>`;
+  s += `<line x1="${(stX+w-0.025).toFixed(3)}" y1="${stY.toFixed(3)}" x2="${(stX+w-0.025).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="rgba(0,0,0,0.5)" stroke-width="0.04"/>`;
 
-  // 관객석 영역
-  const audY = stY + d + 0.6;
-  s += `<rect x="${(stX-0.5).toFixed(3)}" y="${audY.toFixed(3)}" width="${(w+1).toFixed(3)}" height="${(audH-0.8).toFixed(3)}" fill="#0d2a42" fill-opacity="0.7" stroke="#2471a3" stroke-width="0.05" rx="0.3"/>`;
-  s += `<text x="${(stX+w/2).toFixed(3)}" y="${(audY+(audH-0.8)/2).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="#5dade2" font-size="${(vW*0.05).toFixed(3)}">👥 관객석</text>`;
+  // ── FRONT 방향 표시 ──
+  const fmx = stX + w / 2;
+  const fby = stY + d;
+  const triSz = Math.min(mg * 0.11, 0.35);
+  const ftSize = Math.max(w * 0.052, 0.2);
+  const ftW = ftSize * 5, ftH = ftSize * 1.75;
+  s += `<line x1="${fmx.toFixed(3)}" y1="${fby.toFixed(3)}" x2="${fmx.toFixed(3)}" y2="${(fby+triSz*0.8).toFixed(3)}" stroke="${C.stageBd}" stroke-width="0.04"/>`;
+  s += `<polygon points="${fmx.toFixed(3)},${(fby+triSz*1.85).toFixed(3)} ${(fmx-triSz*0.62).toFixed(3)},${(fby+triSz*0.82).toFixed(3)} ${(fmx+triSz*0.62).toFixed(3)},${(fby+triSz*0.82).toFixed(3)}" fill="${C.stageBd}" opacity="0.95"/>`;
+  const ftY = fby + triSz * 2.05;
+  s += `<rect x="${(fmx-ftW/2).toFixed(3)}" y="${ftY.toFixed(3)}" width="${ftW.toFixed(3)}" height="${ftH.toFixed(3)}" fill="${C.stageBd}" rx="${(ftH/2).toFixed(3)}" opacity="0.9"/>`;
+  s += `<text x="${fmx.toFixed(3)}" y="${(ftY+ftH/2).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="#0a0804" font-size="${ftSize.toFixed(3)}" font-weight="800" letter-spacing="0.07em">FRONT</text>`;
 
-  // 장비 항목
+  // ── 치수선 ──
+  const dimSW = '0.022';
+  const dimC = C.dim;
+  const dimOff = Math.min(mg * 0.24, 0.62);
+  const tickSz = dimOff * 0.4;
+  const dimFS = (vW * 0.027).toFixed(3);
+  const lbgH = parseFloat(dimFS) * 1.5;
+
+  // 가로 치수 (상단)
+  const dhY = stY - dimOff;
+  s += `<line x1="${stX.toFixed(3)}" y1="${(dhY-tickSz).toFixed(3)}" x2="${stX.toFixed(3)}" y2="${(dhY+tickSz).toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  s += `<line x1="${(stX+w).toFixed(3)}" y1="${(dhY-tickSz).toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${(dhY+tickSz).toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  const hGap = w * 0.14;
+  s += `<line x1="${stX.toFixed(3)}" y1="${dhY.toFixed(3)}" x2="${(stX+w/2-hGap).toFixed(3)}" y2="${dhY.toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  s += `<line x1="${(stX+w/2+hGap).toFixed(3)}" y1="${dhY.toFixed(3)}" x2="${(stX+w).toFixed(3)}" y2="${dhY.toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  const hlbW = hGap * 2.1;
+  s += `<rect x="${(stX+w/2-hlbW/2).toFixed(3)}" y="${(dhY-lbgH/2).toFixed(3)}" width="${hlbW.toFixed(3)}" height="${lbgH.toFixed(3)}" fill="${C.bg}" rx="${(lbgH/2).toFixed(3)}"/>`;
+  s += `<text x="${(stX+w/2).toFixed(3)}" y="${dhY.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="${dimC}" font-size="${dimFS}" font-weight="700">${w.toFixed(1)} m</text>`;
+
+  // 세로 치수 (좌측)
+  const dvX = stX - dimOff;
+  const msy = stY + d / 2;
+  s += `<line x1="${(dvX-tickSz).toFixed(3)}" y1="${stY.toFixed(3)}" x2="${(dvX+tickSz).toFixed(3)}" y2="${stY.toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  s += `<line x1="${(dvX-tickSz).toFixed(3)}" y1="${(stY+d).toFixed(3)}" x2="${(dvX+tickSz).toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  const vGap = d * 0.14;
+  s += `<line x1="${dvX.toFixed(3)}" y1="${stY.toFixed(3)}" x2="${dvX.toFixed(3)}" y2="${(msy-vGap).toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  s += `<line x1="${dvX.toFixed(3)}" y1="${(msy+vGap).toFixed(3)}" x2="${dvX.toFixed(3)}" y2="${(stY+d).toFixed(3)}" stroke="${dimC}" stroke-width="${dimSW}"/>`;
+  const vlbW = vGap * 2.1;
+  s += `<rect x="${(dvX-lbgH/2).toFixed(3)}" y="${(msy-vlbW/2).toFixed(3)}" width="${lbgH.toFixed(3)}" height="${vlbW.toFixed(3)}" fill="${C.bg}" rx="${(lbgH/2).toFixed(3)}" transform="rotate(-90,${dvX.toFixed(3)},${msy.toFixed(3)})"/>`;
+  s += `<text x="${dvX.toFixed(3)}" y="${msy.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="${dimC}" font-size="${dimFS}" font-weight="700" transform="rotate(-90,${dvX.toFixed(3)},${msy.toFixed(3)})">${d.toFixed(1)} m</text>`;
+
+  // ── 장비 항목 ──
+  const EQ_CODES = {speaker:'SPK',sub:'SUB',monitor:'MON',console:'CON',truss:'TRS',truss_corner:'CRN',light:'LGT',stair:'STR',tent:'TNT',power:'PWR',person:'AUD',mic:'MIC'};
+
   daePlacements.forEach(p => {
-    const it = DAE_ITEMS[p.type] || {icon:'?', label:p.type};
+    const it = DAE_ITEMS[p.type] || {label: p.type};
     const baseSz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
     let pw = baseSz.pw, pd = baseSz.pd;
-    let label = it.label;
+    const code = EQ_CODES[p.type] || p.type.slice(0,3).toUpperCase();
 
-    // 트러스 사각 프레임 (가로 + 세로 모두 설정된 경우)
+    // 트러스 사각 프레임
     if (p.type === 'truss' && p.truss) {
       const t = p.truss;
-      const thick = Math.max(((t.spec || 220) / 1000) * 2.5, 0.2);
-      const hasHD = (t.hTotalSpan || 0) > 0.01;
-      const hasVD = (t.vTotalSpan || 0) > 0.01;
-
+      const thick = Math.max(((t.spec||220)/1000)*2.5, 0.2);
+      const hasHD = (t.hTotalSpan||0) > 0.01;
+      const hasVD = (t.vTotalSpan||0) > 0.01;
       if (hasHD && hasVD) {
         pw = t.hTotalSpan; pd = t.vTotalSpan;
         const hw = pw/2, hd = pd/2;
-        const cubeW = thick * 1.5;
-        const col = baseSz.color, cubeC = '#f59e0b';
-        const fs = Math.max(Math.min(pw, pd) * 0.11, 0.25).toFixed(3);
+        const cw = thick * 1.5;
+        const barC = '#3d5c70', cubeC = '#e8a020';
+        const fs = Math.max(Math.min(pw,pd)*0.1,0.2).toFixed(3);
+        const lfs = Math.max(Math.min(pw,pd)*0.068,0.14).toFixed(3);
         s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">`;
         s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="transparent"/>`;
-        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${thick.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
-        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y+hd-thick).toFixed(3)}" width="${pw.toFixed(3)}" height="${thick.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
-        s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${thick.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
-        s += `<rect x="${(p.x+hw-thick).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${thick.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.92" stroke="rgba(255,255,255,0.4)" stroke-width="0.05" rx="0.07"/>`;
-        [[p.x-hw, p.y-hd],[p.x+hw-cubeW, p.y-hd],[p.x-hw, p.y+hd-cubeW],[p.x+hw-cubeW, p.y+hd-cubeW]].forEach(([cx,cy]) => {
-          s += `<rect x="${cx.toFixed(3)}" y="${cy.toFixed(3)}" width="${cubeW.toFixed(3)}" height="${cubeW.toFixed(3)}" fill="${cubeC}" rx="0.06" opacity="0.9"/>`;
+        [[0,0,pw,thick],[0,pd-thick,pw,thick],[0,0,thick,pd],[pw-thick,0,thick,pd]].forEach(([ox,oy,bw2,bh2])=>{
+          s += `<rect x="${(p.x-hw+ox).toFixed(3)}" y="${(p.y-hd+oy).toFixed(3)}" width="${bw2.toFixed(3)}" height="${bh2.toFixed(3)}" fill="${barC}" stroke="rgba(150,210,255,0.22)" stroke-width="0.02" rx="0.04"/>`;
         });
-        s += `<text x="${p.x.toFixed(3)}" y="${p.y.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="${fs}" font-weight="700">⬛ ${t.hTotalSpan.toFixed(1)}×${t.vTotalSpan.toFixed(1)}m</text>`;
+        [[0,0],[pw-cw,0],[0,pd-cw],[pw-cw,pd-cw]].forEach(([ox,oy])=>{
+          s += `<rect x="${(p.x-hw+ox).toFixed(3)}" y="${(p.y-hd+oy).toFixed(3)}" width="${cw.toFixed(3)}" height="${cw.toFixed(3)}" fill="${cubeC}" rx="0.04" opacity="0.92"/>`;
+        });
+        s += `<text x="${p.x.toFixed(3)}" y="${(p.y-parseFloat(fs)*0.55).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(150,210,255,0.82)" font-size="${fs}" font-weight="800">TRS</text>`;
+        s += `<text x="${p.x.toFixed(3)}" y="${(p.y+parseFloat(fs)*0.65).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(150,210,255,0.5)" font-size="${lfs}">${t.hTotalSpan.toFixed(1)}×${t.vTotalSpan.toFixed(1)}m</text>`;
         s += `</g>`;
         return;
       }
       // 단일 바
-      if (hasHD) { pw = t.hTotalSpan; pd = thick; label = `트러스 ${t.hTotalSpan.toFixed(2)}m`; }
-      else if (hasVD) { pw = thick; pd = t.vTotalSpan; label = `트러스 ${t.vTotalSpan.toFixed(2)}m`; }
+      if (hasHD) { pw = t.hTotalSpan; pd = thick; }
+      else if (hasVD) { pw = thick; pd = t.vTotalSpan; }
       else {
-        const disp = t.totalSpan ?? ((t.span||0) + ((t.cubesLeft??1)+(t.cubesRight??1))*0.22);
-        if (t.dir === 'v') { pw = thick; pd = disp; } else { pw = disp; pd = thick; }
-        label = `트러스 ${(disp||0).toFixed(2)}m`;
+        const disp = t.totalSpan ?? ((t.span||0)+((t.cubesLeft??1)+(t.cubesRight??1))*0.22);
+        if (t.dir==='v'){pw=thick;pd=disp;}else{pw=disp;pd=thick;}
       }
     }
 
+    // ── 일반 장비 ──
     const hw = pw/2, hd = pd/2;
-    const iconFS = (Math.min(pw, pd) * 0.45).toFixed(3);
-    const lblFS  = (Math.min(pw, pd) * 0.2).toFixed(3);
-    s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">
-      <rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}"
-        fill="${baseSz.color}" fill-opacity="0.92" stroke="rgba(255,255,255,0.55)" stroke-width="0.055" rx="0.1"/>
-      <text x="${p.x.toFixed(3)}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" font-size="${iconFS}">${it.icon}</text>
-      <text x="${p.x.toFixed(3)}" y="${(p.y+hd*0.72).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${lblFS}" font-weight="700">${label}</text>
-    </g>`;
+    const minD = Math.min(pw, pd);
+    const codeFS = Math.max(minD * 0.34, 0.17).toFixed(3);
+    const nameFS = Math.max(minD * 0.155, 0.11).toFixed(3);
+    const col = baseSz.color;
+    const acH = Math.min(pd * 0.22, 0.17);
+    s += `<g data-id="${p.id}" onpointerdown="daeItemPointerDown(${p.id},event)" style="cursor:grab;touch-action:none">`;
+    s += `<rect x="${(p.x-hw+0.05).toFixed(3)}" y="${(p.y-hd+0.05).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="rgba(0,0,0,0.45)" rx="0.09"/>`;
+    s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.9" stroke="rgba(255,255,255,0.28)" stroke-width="0.038" rx="0.09"/>`;
+    s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${acH.toFixed(3)}" fill="rgba(255,255,255,0.13)" rx="0.09"/>`;
+    s += `<text x="${p.x.toFixed(3)}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${codeFS}" font-weight="800">${code}</text>`;
+    s += `<text x="${p.x.toFixed(3)}" y="${(p.y+hd*0.63).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.58)" font-size="${nameFS}">${it.label}</text>`;
+    s += `</g>`;
   });
 
-  // 스케일 바
-  const sbX = vW - mg * 0.7, sbY = vH - 0.4;
-  const sbFS = (vW * 0.028).toFixed(3);
-  s += `<line x1="${(sbX-1).toFixed(3)}" y1="${sbY}" x2="${sbX.toFixed(3)}" y2="${sbY}" stroke="#555" stroke-width="0.06"/>`;
-  s += `<line x1="${(sbX-1).toFixed(3)}" y1="${(sbY-0.13).toFixed(3)}" x2="${(sbX-1).toFixed(3)}" y2="${(sbY+0.13).toFixed(3)}" stroke="#555" stroke-width="0.06"/>`;
-  s += `<line x1="${sbX.toFixed(3)}" y1="${(sbY-0.13).toFixed(3)}" x2="${sbX.toFixed(3)}" y2="${(sbY+0.13).toFixed(3)}" stroke="#555" stroke-width="0.06"/>`;
-  s += `<text x="${(sbX-0.5).toFixed(3)}" y="${(sbY-0.2).toFixed(3)}" text-anchor="middle" fill="#555" font-size="${sbFS}">1m</text>`;
+  // ── 스케일 바 (우하단) ──
+  const sbY = vH - mg * 0.26;
+  const sbEndX = vW - mg * 0.22;
+  const sbFS = (vW * 0.022).toFixed(3);
+  const sbH = 0.12;
+  for (let i = 0; i <= 3; i++) {
+    const sx = sbEndX - (3 - i);
+    s += `<line x1="${sx.toFixed(3)}" y1="${(sbY-sbH).toFixed(3)}" x2="${sx.toFixed(3)}" y2="${(sbY+sbH*0.5).toFixed(3)}" stroke="#4a5568" stroke-width="0.022"/>`;
+    s += `<text x="${sx.toFixed(3)}" y="${(sbY+sbH*0.5+0.18).toFixed(3)}" text-anchor="middle" fill="#4a5568" font-size="${sbFS}">${i}</text>`;
+  }
+  s += `<line x1="${(sbEndX-3).toFixed(3)}" y1="${sbY.toFixed(3)}" x2="${sbEndX.toFixed(3)}" y2="${sbY.toFixed(3)}" stroke="#4a5568" stroke-width="0.02"/>`;
+  s += `<rect x="${(sbEndX-3).toFixed(3)}" y="${(sbY-sbH).toFixed(3)}" width="1" height="${sbH.toFixed(3)}" fill="#4a5568"/>`;
+  s += `<rect x="${(sbEndX-1).toFixed(3)}" y="${(sbY-sbH).toFixed(3)}" width="1" height="${sbH.toFixed(3)}" fill="#4a5568"/>`;
+  s += `<text x="${(sbEndX-1.5).toFixed(3)}" y="${(sbY-sbH-0.17).toFixed(3)}" text-anchor="middle" fill="#4a5568" font-size="${sbFS}">m</text>`;
 
   s += `</svg>`;
   const wrap = document.getElementById('daeSVGWrap');
