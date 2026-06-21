@@ -18,12 +18,25 @@
 
 ## Supabase 설정
 
-- **대시보드 로그인**: `yamugyhan@gmail.com` (구글 계정)
-- **대시보드 URL**: `https://supabase.com/dashboard/project/poxafvsqxvcaewduhvxt`
-- **프로젝트 URL**: `https://poxafvsqxvcaewduhvxt.supabase.co`
-- **Key**: 코드 내 `SB_KEY` 상수 참조 (anon key)
+> ⚠️ **중요 — 프로젝트가 2개입니다. 절대 혼동 금지.**
+> 코드에는 `SB_URL`/`SB_KEY` (DB용)과 `STORAGE_URL`/`STORAGE_KEY` (사진용)이 분리되어 있습니다.
+> 어느 한 쪽 URL/키를 바꿀 때 다른 쪽을 덮어쓰지 마세요.
 
-### 테이블 구조
+### 1. DB 프로젝트 — 텍스트 데이터 (soundlogs, tasks, vehicle_data 등)
+
+- **대시보드**: `https://supabase.com/dashboard/project/nifmnigvrjfctdimgmda`
+- **코드 상수**: `SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co'`
+- **코드 상수**: `SB_KEY` (코드 내 anon key 참조)
+- **로그인**: `yamugyhan@gmail.com` (구글 계정)
+
+### 2. Storage 프로젝트 — 사진·파일 (용량 분리, 2026-06-21 신설)
+
+- **대시보드**: `https://supabase.com/dashboard/project/poxafvsqxvcaewduhvxt`
+- **코드 상수**: `STORAGE_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co'`
+- **코드 상수**: `STORAGE_KEY` (코드 내 anon key 참조)
+- **버킷**: `event-photos` (행사사진), `skp-library` (3D 모델)
+
+### 테이블 구조 (DB 프로젝트에만 존재)
 
 | 테이블 | 용도 |
 |---|---|

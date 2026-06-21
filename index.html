@@ -1502,7 +1502,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-16</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-17</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -3078,6 +3078,7 @@ function afterLogin() {
   if (fb) fb.style.display = isAdmin ? 'block' : 'none';
   renderList();
   autoLoadAll();
+  checkDbConnection();
   initRealtime();
   if (gcalConfig.apiKey && gcalConfig.calendarId) fetchGCalEvents();
 }
@@ -7502,13 +7503,20 @@ async function runCloudDiag() {
   async function testTable(name, url) {
     try {
       const r = await fetch(url + '?select=id&limit=1', { headers: H });
-      const rows = r.ok ? await r.json().catch(()=>[]) : [];
-      const count_r = await fetch(url + '?select=id', { headers: { ...H, 'Prefer': 'count=exact' }, method: 'HEAD' }).catch(()=>null);
-      const count = count_r ? (count_r.headers.get('content-range') || '?') : '?';
-      if (!r.ok) return `<span style="color:#e74c3c">❌ ${name}: HTTP ${r.status} (접근 차단 / RLS 설정 필요)</span>`;
-      return `<span style="color:#2ecc71">✅ ${name}: 정상 (범위: ${count})</span>`;
+      if (!r.ok) {
+        const hint = r.status === 404
+          ? '테이블 없음 또는 잘못된 프로젝트 URL'
+          : r.status === 401 || r.status === 403
+            ? 'RLS 차단 — SQL Editor에서 정책 추가 필요'
+            : `HTTP ${r.status}`;
+        return { ok: false, html: `<span style="color:#e74c3c">❌ ${name}: ${hint}</span>` };
+      }
+      const rows = await r.json().catch(()=>[]);
+      const hdr = await fetch(url + '?select=id', { headers: { ...H, 'Prefer': 'count=exact' }, method: 'HEAD' }).catch(()=>null);
+      const range = hdr ? (hdr.headers.get('content-range') || '?') : '?';
+      return { ok: true, html: `<span style="color:#2ecc71">✅ ${name}: 정상 (${range} 행)</span>` };
     } catch(e) {
-      return `<span style="color:#e74c3c">❌ ${name}: 네트워크 오류 — ${e.message}</span>`;
+      return { ok: false, html: `<span style="color:#e74c3c">❌ ${name}: 네트워크 오류</span>` };
     }
   }
 
@@ -7519,43 +7527,120 @@ async function runCloudDiag() {
         await fetch(url + `?id=eq.${payload.id}`, { method: 'DELETE', headers: H }).catch(()=>{});
         return `<span style="color:#2ecc71">✅ ${name} 쓰기: 허용됨</span>`;
       }
-      return `<span style="color:#e74c3c">❌ ${name} 쓰기: HTTP ${r.status} (RLS INSERT 차단)<br><small>→ Supabase SQL 실행 필요 (아래 참조)</small></span>`;
+      if (r.status === 404) return `<span style="color:#e74c3c">❌ ${name} 쓰기: 테이블 없음 (프로젝트 URL 확인)</span>`;
+      return `<span style="color:#e74c3c">❌ ${name} 쓰기: HTTP ${r.status} — RLS INSERT 차단 (SQL Fix 필요)</span>`;
     } catch(e) {
-      return `<span style="color:#e74c3c">❌ ${name} 쓰기 오류: ${e.message}</span>`;
+      return `<span style="color:#e74c3c">❌ ${name} 쓰기: 네트워크 오류</span>`;
     }
   }
 
   const base = `${SB_URL}/rest/v1`;
-  const [r1, r2, r3, w1, w2] = await Promise.all([
-    testTable('soundlogs', `${base}/soundlogs`),
-    testTable('tasks',     `${base}/tasks`),
-    testTable('vehicle_data', `${base}/vehicle_data`),
-    testWrite('soundlogs', `${base}/soundlogs`, { id:'__diag_test__', date:'2000-01-01', event_name:'__test__', data:'{}', md_content:'' }),
-    testWrite('tasks',     `${base}/tasks`,     { id:'__diag_test__', type:'warehouse',  title:'__test__',    body:'', status:'todo', priority:'mid', due:'', data:'{}' }),
+  const [t1, t2, t3] = await Promise.all([
+    testTable('soundlogs',   `${base}/soundlogs`),
+    testTable('tasks',       `${base}/tasks`),
+    testTable('vehicle_data',`${base}/vehicle_data`),
   ]);
+  // WRITE는 READ가 성공한 경우만 (404면 쓸 필요 없음)
+  const allOk = t1.ok && t2.ok && t3.ok;
+  const [w1, w2] = allOk ? await Promise.all([
+    testWrite('soundlogs', `${base}/soundlogs`, { id:'__diag__', date:'2000-01-01', event_name:'__test__', data:'{}', md_content:'' }),
+    testWrite('tasks',     `${base}/tasks`,     { id:'__diag__', type:'warehouse', title:'__test__', body:'', status:'todo', priority:'mid', due:'', data:'{}' }),
+  ]) : ['(READ 실패로 WRITE 생략)', '(READ 실패로 WRITE 생략)'];
 
-  const sql = `-- Supabase SQL Editor에 붙여넣고 실행하세요:
-ALTER TABLE soundlogs DISABLE ROW LEVEL SECURITY;
-ALTER TABLE tasks     DISABLE ROW LEVEL SECURITY;`;
+  const localLogs  = logs.length;
+  const localTasks = warehouseTasks.length + officeTasks.length + directiveTasks.length;
+
+  const sql = `-- Supabase SQL Editor (DB 프로젝트: nifmnigvrjfctdimgmda) 에서 실행:
+ALTER TABLE soundlogs    DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_data DISABLE ROW LEVEL SECURITY;`;
 
   body.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.6">
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.7">
+      <div style="background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text-muted)">
+        DB: <code>${SB_URL}</code>
+      </div>
       <b style="color:var(--gold)">📡 READ 테스트</b>
-      <div>${r1}</div><div>${r2}</div><div>${r3}</div>
-      <b style="color:var(--gold);margin-top:6px">✏️ WRITE 테스트</b>
+      <div>${t1.html}</div><div>${t2.html}</div><div>${t3.html}</div>
+      <b style="color:var(--gold);margin-top:4px">✏️ WRITE 테스트</b>
       <div>${w1}</div><div>${w2}</div>
-      <details style="margin-top:10px">
-        <summary style="cursor:pointer;color:var(--gold)">🔧 문제 발견 시 Supabase SQL Fix</summary>
-        <pre style="background:#111;padding:12px;border-radius:8px;font-size:12px;margin-top:8px;white-space:pre-wrap;color:#a8ff78">${sql}</pre>
-        <small style="color:var(--text-muted)">Supabase Dashboard → SQL Editor → 위 SQL 실행 → 앱 새로고침</small>
+      <b style="color:var(--gold);margin-top:4px">💾 로컬 데이터 현황</b>
+      <div>행사일지: <b>${localLogs}건</b> / 업무: <b>${localTasks}건</b></div>
+      <details style="margin-top:6px">
+        <summary style="cursor:pointer;color:var(--gold)">🔧 READ/WRITE 실패 시 SQL Fix</summary>
+        <pre style="background:#111;padding:12px;border-radius:8px;font-size:11px;margin-top:8px;white-space:pre-wrap;color:#a8ff78">${sql}</pre>
+        <small style="color:var(--text-muted)">DB 프로젝트 대시보드 → SQL Editor → 위 코드 실행 후 앱 새로고침</small>
       </details>
-      <button onclick="syncTasksToCloud();showToast('업로드 시작…')" style="margin-top:10px;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit">⬆️ 로컬 업무 데이터 전체 업로드</button>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button onclick="syncAllLocalToCloud()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">⬆️ 로컬 전체 업로드 (일지+업무)</button>
+        <button onclick="autoLoadAll();closeDiagModal()" style="flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">☁️ 클라우드에서 불러오기</button>
+      </div>
     </div>`;
+}
+
+// 로컬 전체 → 클라우드 업로드 (행사일지 + 업무)
+async function syncAllLocalToCloud() {
+  showToast('⬆️ 전체 업로드 시작…');
+  const H = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+  let saved = 0, failed = 0;
+
+  // 행사일지
+  for (const log of logs) {
+    try {
+      const payload = { id: log.id, date: log.date, event_name: log.eventName || '', data: JSON.stringify(log), md_content: log.md || '' };
+      let r = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${log.id}`, { method: 'PATCH', headers: H, body: JSON.stringify(payload) });
+      if (!r.ok) { failed++; continue; }
+      const patched = await r.json().catch(()=>[]);
+      if (Array.isArray(patched) && patched.length === 0) {
+        r = await fetch(`${SB_URL}/rest/v1/soundlogs`, { method: 'POST', headers: H, body: JSON.stringify(payload) });
+        if (!r.ok) { failed++; continue; }
+      }
+      saved++;
+    } catch(e) { failed++; }
+  }
+
+  // 업무
+  const allTasks = [
+    ...warehouseTasks.map(t=>({...t,type:'warehouse'})),
+    ...officeTasks.map(t=>({...t,type:'office'})),
+    ...directiveTasks.map(t=>({...t,type:'directive'}))
+  ];
+  for (const t of allTasks) {
+    try {
+      const payload = { id:t.id, type:t.type, title:t.title||'', body:t.body||'', status:t.status||'todo', priority:t.priority||'mid', due:t.due||'', data:JSON.stringify(t) };
+      let r = await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${t.id}`, { method: 'PATCH', headers: H, body: JSON.stringify(payload) });
+      if (!r.ok) { failed++; continue; }
+      const patched = await r.json().catch(()=>[]);
+      if (Array.isArray(patched) && patched.length === 0) {
+        r = await fetch(`${SB_URL}/rest/v1/tasks`, { method: 'POST', headers: H, body: JSON.stringify(payload) });
+        if (!r.ok) { failed++; continue; }
+      }
+      saved++;
+    } catch(e) { failed++; }
+  }
+
+  const total = logs.length + allTasks.length;
+  if (failed === 0) showToast(`✅ 전체 업로드 완료 (${saved}/${total}건)`);
+  else showToast(`⚠️ 업로드: ${saved}성공 / ${failed}실패 — 🔍진단으로 원인 확인`);
 }
 
 function closeDiagModal() {
   const m = document.getElementById('diagModal');
   if (m) m.style.display = 'none';
+}
+
+// ── DB 연결 자동 검증 (로그인 직후) ──
+async function checkDbConnection() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/vehicle_data?select=id&limit=1`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!r.ok) {
+      setTimeout(() => showToast(`⚠️ DB 연결 실패 (${r.status}) — 🔍 버튼으로 진단`), 1500);
+    }
+  } catch(e) {
+    setTimeout(() => showToast('⚠️ DB 네트워크 오류 — 🔍 버튼으로 진단'), 1500);
+  }
 }
 
 // ═══════════════════════════════════════════════
