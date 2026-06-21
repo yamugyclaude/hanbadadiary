@@ -1233,6 +1233,29 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 /* ─── 무대계산기 페이지 ─── */
 #pageStage { flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 #pageStage.active { display:flex; }
+.sc-subtab-bar { display:flex; gap:0; border-bottom:2px solid var(--border); margin:0 0 16px 0; }
+.sc-subtab { flex:1; text-align:center; padding:11px 0; font-size:13px; font-weight:700; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s,border-color .15s; }
+.sc-subtab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.sc-subpage { display:none; }
+.sc-subpage.active { display:block; }
+/* ─── 3D 도면 ─── */
+.dae-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:12px; }
+.dae-section-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:14px; }
+.dae-field { margin-bottom:12px; }
+.dae-field label { display:block; font-size:11px; color:var(--text-muted); margin-bottom:6px; font-weight:600; }
+.dae-field input, .dae-field select { width:100%; padding:10px 12px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; color:var(--text); font-size:14px; font-family:inherit; box-sizing:border-box; }
+.dae-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.dae-info-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+.dae-info-box-row { display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:13px; }
+.dae-info-box-label { color:var(--text-muted); }
+.dae-info-box-val { font-weight:700; color:var(--text); }
+.dae-export-btn { width:100%; padding:14px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:4px; }
+.dae-export-btn:active { opacity:.85; }
+.dae-location-tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.dae-loc-tab { flex:1; min-width:80px; padding:8px 6px; text-align:center; font-size:12px; font-weight:600; border:1.5px solid var(--border2); border-radius:8px; cursor:pointer; color:var(--text-muted); background:var(--surface2); }
+.dae-loc-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(99,102,241,.08); }
+.dae-loc-content { display:none; }
+.dae-loc-content.active { display:block; }
 .stagecalc-wrap { max-width:560px; width:100%; margin:0 auto; padding:16px 14px env(safe-area-inset-bottom,60px); }
 .stagecalc-hdr { display:flex; align-items:center; gap:12px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid var(--border); }
 .stagecalc-logo { width:40px; height:40px; border-radius:11px; background:#d97706; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
@@ -1627,9 +1650,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <div class="stagecalc-logo">🎭</div>
         <div>
           <div class="stagecalc-title">무대 부속 계산기</div>
-          <div class="stagecalc-sub">지지대 · X대 · 클램프 자동 계산</div>
+          <div class="stagecalc-sub">지지대 · X대 · 클램프 · 3D 도면</div>
         </div>
       </div>
+
+      <!-- 서브탭 -->
+      <div class="sc-subtab-bar">
+        <div class="sc-subtab active" id="sc-tab-calc" onclick="scSwitchTab('calc')">📐 계산</div>
+        <div class="sc-subtab" id="sc-tab-3d" onclick="scSwitchTab('3d')">🏗️ 3D 도면</div>
+      </div>
+
+      <!-- 계산 탭 -->
+      <div class="sc-subpage active" id="sc-page-calc">
 
       <div class="stagecalc-card">
         <div class="stagecalc-sec-label">무대 크기 (가로 1.8m × 세로 0.9m 기준)</div>
@@ -1723,6 +1755,86 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
 
       <button class="stagecalc-reset-btn" onclick="scReset()">초기화</button>
+
+      </div><!-- /sc-page-calc -->
+
+      <!-- 3D 도면 탭 -->
+      <div class="sc-subpage" id="sc-page-3d">
+
+        <!-- 무대 크기 -->
+        <div class="dae-section">
+          <div class="dae-section-label">📐 무대 크기</div>
+          <div class="dae-info-box" id="dae-stage-from-calc">
+            <div class="dae-info-box-row"><span class="dae-info-box-label">계산기 연동</span><span class="dae-info-box-val" id="dae-calc-size">—</span></div>
+            <div class="dae-info-box-row"><span class="dae-info-box-label">면적</span><span class="dae-info-box-val" id="dae-calc-area">—</span></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">또는 직접 입력 (계산기 값 덮어씀)</div>
+          <div class="dae-row">
+            <div class="dae-field"><label>가로 (m)</label><input type="number" id="dae-w" placeholder="자동" step="0.1" min="0.1" oninput="daeUpdateInfo()"></div>
+            <div class="dae-field"><label>세로 (m)</label><input type="number" id="dae-d" placeholder="자동" step="0.1" min="0.1" oninput="daeUpdateInfo()"></div>
+          </div>
+          <div class="dae-row">
+            <div class="dae-field"><label>높이 (m)</label><input type="number" id="dae-h" placeholder="1.0" step="0.1" min="0.1" value="1.0"></div>
+            <div class="dae-field"><label>계단 위치</label>
+              <select id="dae-stair">
+                <option value="none">없음</option>
+                <option value="front">앞면</option>
+                <option value="left">좌측</option>
+                <option value="right">우측</option>
+                <option value="both">좌우</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 행사장 위치 -->
+        <div class="dae-section">
+          <div class="dae-section-label">📍 행사장 위치</div>
+          <div class="dae-location-tabs">
+            <div class="dae-loc-tab active" id="dlt-empty" onclick="daeLocTab('empty')">빈 공간</div>
+            <div class="dae-loc-tab" id="dlt-address" onclick="daeLocTab('address')">주소 입력</div>
+            <div class="dae-loc-tab" id="dlt-gps" onclick="daeLocTab('gps')">GPS 좌표</div>
+            <div class="dae-loc-tab" id="dlt-photo" onclick="daeLocTab('photo')">도면/사진</div>
+          </div>
+          <div class="dae-loc-content active" id="dlc-empty">
+            <div style="font-size:12px;color:var(--text-muted);padding:8px 0">위치 정보 없이 무대 구조물만 생성합니다.</div>
+          </div>
+          <div class="dae-loc-content" id="dlc-address">
+            <div class="dae-field"><label>행사장 주소</label><input type="text" id="dae-address" placeholder="예) 서울시 마포구 상암동 월드컵공원"></div>
+          </div>
+          <div class="dae-loc-content" id="dlc-gps">
+            <div class="dae-row">
+              <div class="dae-field"><label>위도 (Lat)</label><input type="number" id="dae-lat" placeholder="37.5665" step="0.000001"></div>
+              <div class="dae-field"><label>경도 (Lng)</label><input type="number" id="dae-lng" placeholder="126.9780" step="0.000001"></div>
+            </div>
+          </div>
+          <div class="dae-loc-content" id="dlc-photo">
+            <div class="dae-field">
+              <label>행사장 도면 또는 사진</label>
+              <div style="border:1.5px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;cursor:pointer" onclick="document.getElementById('dae-photo-input').click()">
+                📁 파일 선택 (jpg/png/pdf)
+              </div>
+              <input type="file" id="dae-photo-input" accept="image/*,.pdf" style="display:none" onchange="daePhotoSelected(this)">
+              <div id="dae-photo-name" style="font-size:12px;color:var(--accent);margin-top:6px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 메모 -->
+        <div class="dae-section">
+          <div class="dae-section-label">📝 배치 메모</div>
+          <div class="dae-field">
+            <label>장비 배치 지시사항</label>
+            <textarea id="dae-memo" rows="4" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="예) 좌우 메인스피커 2조, 무대 앞 서브우퍼 4개, 관객석 15m 지점 콘솔"></textarea>
+          </div>
+        </div>
+
+        <!-- 내보내기 -->
+        <button class="dae-export-btn" onclick="daeExport()">📥 SketchUp 파일 (.dae) 내보내기</button>
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;margin-bottom:20px">SketchUp에서 파일 → 가져오기 → .dae 선택</div>
+
+      </div><!-- /sc-page-3d -->
+
     </div>
   </div>
 
@@ -6730,6 +6842,124 @@ async function autoLoadAll() {
     await loadAlbaFromCloud();
 
   } catch(e) { console.error('자동 불러오기 실패:', e); }
+}
+
+// ═══════════════════════════════════════════════
+// 🏗️ 3D 도면
+// ═══════════════════════════════════════════════
+
+function scSwitchTab(tab) {
+  ['calc','3d'].forEach(t => {
+    document.getElementById('sc-tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('sc-page-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === '3d') daeUpdateInfo();
+}
+
+function daeLocTab(loc) {
+  ['empty','address','gps','photo'].forEach(t => {
+    document.getElementById('dlt-' + t).classList.toggle('active', t === loc);
+    document.getElementById('dlc-' + t).classList.toggle('active', t === loc);
+  });
+}
+
+function daeUpdateInfo() {
+  const w = parseFloat(document.getElementById('dae-w')?.value) || (scM * 1.8);
+  const d = parseFloat(document.getElementById('dae-d')?.value) || (scN * 0.9);
+  const m2 = w * d;
+  const py = m2 / 3.3058;
+  const sizeEl = document.getElementById('dae-calc-size');
+  const areaEl = document.getElementById('dae-calc-area');
+  if (sizeEl) sizeEl.textContent = `${w.toFixed(1)}m × ${d.toFixed(1)}m`;
+  if (areaEl) areaEl.textContent = `${py.toFixed(1)}평 (${m2.toFixed(2)}m²)`;
+}
+
+function daePhotoSelected(input) {
+  const f = input.files[0];
+  if (!f) return;
+  document.getElementById('dae-photo-name').textContent = '✅ ' + f.name;
+}
+
+function daeExport() {
+  const w = parseFloat(document.getElementById('dae-w')?.value) || (scM * 1.8);
+  const d = parseFloat(document.getElementById('dae-d')?.value) || (scN * 0.9);
+  const h = parseFloat(document.getElementById('dae-h')?.value) || 1.0;
+  const stair = document.getElementById('dae-stair')?.value || 'none';
+  const memo = document.getElementById('dae-memo')?.value || '';
+  const dae = daeGenerate({ w, d, h, stair, memo });
+  const blob = new Blob([dae], { type: 'model/vnd.collada+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `stage_${w}x${d}m.dae`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 .dae 파일 다운로드 완료');
+}
+
+function daeGenerate({ w, d, h, stair, memo }) {
+  // 무대 바닥면 꼭짓점 (중심 기준)
+  const hw = w / 2, hd = d / 2;
+  // Collada XML 생성
+  return `<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <created>${new Date().toISOString()}</created>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_materials>
+    <material id="mat-stage" name="Stage">
+      <instance_effect url="#eff-stage"/>
+    </material>
+  </library_materials>
+  <library_effects>
+    <effect id="eff-stage">
+      <profile_COMMON>
+        <technique sid="common">
+          <phong>
+            <diffuse><color>0.6 0.45 0.25 1</color></diffuse>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_geometries>
+    <geometry id="geom-stage" name="Stage">
+      <mesh>
+        <source id="pos-stage">
+          <float_array id="pos-stage-arr" count="24">
+            ${-hw} ${-hd} 0  ${hw} ${-hd} 0  ${hw} ${hd} 0  ${-hw} ${hd} 0
+            ${-hw} ${-hd} ${h}  ${hw} ${-hd} ${h}  ${hw} ${hd} ${h}  ${-hw} ${hd} ${h}
+          </float_array>
+          <technique_common>
+            <accessor source="#pos-stage-arr" count="8" stride="3">
+              <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="verts-stage"><input semantic="POSITION" source="#pos-stage"/></vertices>
+        <polylist material="mat-stage" count="6">
+          <input semantic="VERTEX" source="#verts-stage" offset="0"/>
+          <vcount>4 4 4 4 4 4</vcount>
+          <p>0 1 2 3  4 7 6 5  0 4 5 1  1 5 6 2  2 6 7 3  3 7 4 0</p>
+        </polylist>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="Scene" name="Scene">
+      <node id="Stage" name="Stage_${w}x${d}m_H${h}m" type="NODE">
+        <instance_geometry url="#geom-stage">
+          <bind_material><technique_common>
+            <instance_material symbol="mat-stage" target="#mat-stage"/>
+          </technique_common></bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene><instance_visual_scene url="#Scene"/></scene>
+</COLLADA>`;
 }
 
 // ── 자동저장 ──
