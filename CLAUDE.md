@@ -19,8 +19,8 @@
 ## Supabase 설정
 
 - **대시보드 로그인**: `yamugyhan@gmail.com` (구글 계정)
-- **대시보드 URL**: `https://supabase.com/dashboard/project/poxafvsqxvcaewduhvxt`
-- **프로젝트 URL**: `https://poxafvsqxvcaewduhvxt.supabase.co`
+- **대시보드 URL**: `https://supabase.com/dashboard/project/nifmnigvrjfctdimgmda`
+- **프로젝트 URL**: `https://nifmnigvrjfctdimgmda.supabase.co`
 - **Key**: 코드 내 `SB_KEY` 상수 참조 (anon key)
 
 ### 테이블 구조
