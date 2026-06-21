@@ -8185,38 +8185,45 @@ function lib3dToggleActive(id) {
   showToast(m.active ? `✓ ${m.name} 내보내기에 적용됨` : `${m.name} 적용 해제`);
 }
 
-// .dae 파싱 & 임베드 (비동기)
+// .dae 파싱 & 임베드 (비동기) — 정규식 방식 (XMLSerializer 네임스페이스 오염 방지)
 async function _embedDaeModel(url, prefix) {
   try {
-    const text = await fetch(url).then(r => r.text());
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/xml');
-    if (doc.querySelector('parsererror')) return null;
+    const resp = await fetch(url);
+    if (!resp.ok) return null;
+    let text = await resp.text();
+    if (!text.includes('<COLLADA') && !text.includes('<collada')) return null;
 
-    // 모든 id 수집 후 prefix 추가 (충돌 방지)
-    const xmlStr0 = new XMLSerializer().serializeToString(doc);
+    // 모든 id 수집 (긴 것 먼저 정렬 → 부분 치환 방지)
     const ids = [];
-    xmlStr0.replace(/\sid="([^"]+)"/g, (_, id) => { if (!ids.includes(id)) ids.push(id); });
-    let xmlStr = xmlStr0;
+    text.replace(/\bid="([^"]+)"/g, (_, id) => { if (!ids.includes(id)) ids.push(id); });
+    ids.sort((a, b) => b.length - a.length);
+
     ids.forEach(id => {
+      const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const pid = prefix + id;
-      xmlStr = xmlStr.split(`id="${id}"`).join(`id="${pid}"`);
-      xmlStr = xmlStr.split(`url="#${id}"`).join(`url="#${pid}"`);
-      xmlStr = xmlStr.split(`source="#${id}"`).join(`source="#${pid}"`);
-      xmlStr = xmlStr.split(`target="#${pid}"`).join(`target="#${prefix}${id}"`); // 이미 변경된 것 방지
-      xmlStr = xmlStr.split(`symbol="${id}"`).join(`symbol="${pid}"`);
+      text = text.replace(new RegExp(`\\bid="${esc}"`, 'g'), `id="${pid}"`);
+      text = text.replace(new RegExp(`="#${esc}"`, 'g'), `="#${pid}"`);
+      text = text.replace(new RegExp(`\\bsymbol="${esc}"`, 'g'), `symbol="${pid}"`);
     });
 
-    const doc2 = parser.parseFromString(xmlStr, 'text/xml');
-    const ser = new XMLSerializer();
-    const innerXML = el => el ? Array.from(el.children).map(c => ser.serializeToString(c)).join('') : '';
+    // 라이브러리 섹션 정규식 추출 (xmlns 오염 없음)
+    function extractLib(tag) {
+      const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i');
+      const m = text.match(re);
+      return m ? m[1].trim() : '';
+    }
 
-    const geoms = innerXML(doc2.querySelector('library_geometries'));
-    const mats  = innerXML(doc2.querySelector('library_materials'));
-    const effs  = innerXML(doc2.querySelector('library_effects'));
-    const sceneNodes = innerXML(doc2.querySelector('library_visual_scenes visual_scene'));
+    const geoms = extractLib('library_geometries');
+    const mats  = extractLib('library_materials');
+    const effs  = extractLib('library_effects');
+    const imgs  = extractLib('library_images');
+    // visual_scene 안의 최상위 <node> 자식들 추출
+    const vsRaw = extractLib('visual_scene');
+    const nodeM = vsRaw.match(/^<node[^>]*>([\s\S]*)<\/node>\s*$/i);
+    const sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
 
-    return { geoms, mats, effs, sceneNodes };
+    if (!geoms && !sceneNodes) return null;
+    return { geoms, mats, effs, imgs, sceneNodes };
   } catch(e) {
     console.warn('embed failed:', e);
     return null;
@@ -8276,6 +8283,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
   }
 
   let geoms = boxGeom('geom-stage', w, d, h);
+  let imgs  = '';
   let mats  = `<material id="mat-geom-stage"><instance_effect url="#eff-stage"/></material>`;
   let effs  = `<effect id="eff-stage"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.55 0.38 0.18 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
   let nodes = `<node id="Stage" name="Stage_${w.toFixed(1)}x${d.toFixed(1)}m_H${h}m" type="NODE">
@@ -8320,6 +8328,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       const embedded = await _embedDaeModel(realModel.url, prefix);
       if (embedded) {
         geoms += embedded.geoms;
+        imgs  += embedded.imgs || '';
         mats  += embedded.mats;
         effs  += embedded.effs;
         nodes += `<node id="Item${i}" name="${name}" type="NODE">
@@ -8346,6 +8355,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
   return `<?xml version="1.0" encoding="utf-8"?>
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
   <asset><created>${new Date().toISOString()}</created><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset>
+  ${imgs ? `<library_images>${imgs}</library_images>` : ''}
   <library_materials>${mats}</library_materials>
   <library_effects>${effs}</library_effects>
   <library_geometries>${geoms}</library_geometries>
