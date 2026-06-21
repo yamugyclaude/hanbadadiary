@@ -9,7 +9,7 @@
 
 ## 프로젝트 목록
 
-### 1. 한바다작업일지
+### 1. 한바다작업일지 (hanbadadiary)
 | 항목 | 내용 |
 |---|---|
 | **설명** | 음향 행사 관리 앱 (행사일지, 차량, 장비, 알바 관리) |
@@ -27,15 +27,14 @@
 
 ---
 
-### 2. [프로젝트명]
+### 2. waste-management
 | 항목 | 내용 |
 |---|---|
 | **설명** | |
-| **GitHub repo** | |
+| **GitHub repo** | https://github.com/yamugyclaude/waste-management |
 | **배포 URL** | |
 | **서버** | |
-| **서버 URL** | |
-| **서버 대시보드** | |
+| **서버 URL / 대시보드** | |
 | **API 키** | |
 | **앱 로그인** | |
 | **기술 스택** | |
@@ -44,15 +43,78 @@
 
 ---
 
-### 3. [프로젝트명]
+### 3. stagecal
 | 항목 | 내용 |
 |---|---|
 | **설명** | |
-| **GitHub repo** | |
+| **GitHub repo** | https://github.com/yamugyclaude/stagecal |
 | **배포 URL** | |
 | **서버** | |
-| **서버 URL** | |
-| **서버 대시보드** | |
+| **서버 URL / 대시보드** | |
+| **API 키** | |
+| **앱 로그인** | |
+| **기술 스택** | |
+| **배포 방법** | |
+| **상세 문서** | 해당 repo의 CLAUDE.md 참조 |
+
+---
+
+### 4. father
+| 항목 | 내용 |
+|---|---|
+| **설명** | |
+| **GitHub repo** | https://github.com/yamugyclaude/father |
+| **배포 URL** | |
+| **서버** | |
+| **서버 URL / 대시보드** | |
+| **API 키** | |
+| **앱 로그인** | |
+| **기술 스택** | |
+| **배포 방법** | |
+| **상세 문서** | 해당 repo의 CLAUDE.md 참조 |
+
+---
+
+### 5. JACKSONGUITAR
+| 항목 | 내용 |
+|---|---|
+| **설명** | |
+| **GitHub repo** | https://github.com/yamugyclaude/JACKSONGUITAR |
+| **배포 URL** | |
+| **서버** | |
+| **서버 URL / 대시보드** | |
+| **API 키** | |
+| **앱 로그인** | |
+| **기술 스택** | |
+| **배포 방법** | |
+| **상세 문서** | 해당 repo의 CLAUDE.md 참조 |
+
+---
+
+### 6. guitar-theory
+| 항목 | 내용 |
+|---|---|
+| **설명** | |
+| **GitHub repo** | https://github.com/yamugyclaude/guitar-theory |
+| **배포 URL** | |
+| **서버** | |
+| **서버 URL / 대시보드** | |
+| **API 키** | |
+| **앱 로그인** | |
+| **기술 스택** | |
+| **배포 방법** | |
+| **상세 문서** | 해당 repo의 CLAUDE.md 참조 |
+
+---
+
+### 7. jackson-workspace
+| 항목 | 내용 |
+|---|---|
+| **설명** | |
+| **GitHub repo** | https://github.com/yamugyclaude/jackson-workspace |
+| **배포 URL** | |
+| **서버** | |
+| **서버 URL / 대시보드** | |
 | **API 키** | |
 | **앱 로그인** | |
 | **기술 스택** | |
@@ -65,8 +127,8 @@
 
 새 프로젝트 작업 시작할 때 AI에게 전달할 말:
 ```
-PROJECTS.md 읽고 [프로젝트명] 작업 시작해줘.
-빠진 정보 있으면 채워넣어.
+https://github.com/yamugyclaude/hanbadadiary/blob/main/PROJECTS.md 읽고
+[프로젝트명] 작업 시작해줘. 빠진 정보 있으면 채워넣어.
 ```
 
 각 프로젝트 상세 내용은 해당 repo의 CLAUDE.md에 있습니다.
