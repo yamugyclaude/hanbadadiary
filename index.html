@@ -1490,7 +1490,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-11</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0621-14</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -7361,7 +7361,7 @@ async function autoLoadAll() {
     if (logRes.ok) {
       const rows = await logRes.json();
       if (rows.length) {
-        logs = rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+        logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
         try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) {}
         renderList();
       }
@@ -7380,7 +7380,7 @@ async function autoLoadAll() {
         warehouseTasks = []; officeTasks = []; directiveTasks = [];
         taskRows.forEach(r => {
           try {
-            const t = JSON.parse(r.data);
+            const t = (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data);
             if (r.type === 'warehouse') warehouseTasks.push(t);
             else if (r.type === 'office') officeTasks.push(t);
             else if (r.type === 'directive') directiveTasks.push(t);
