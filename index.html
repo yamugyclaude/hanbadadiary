@@ -1111,7 +1111,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   /* ── 전체 레이아웃 ── */
   html, body { overflow: auto; }
   #app {
-    max-width: 1280px;
+    max-width: 1440px;
     margin: 0 auto;
     height: 100dvh;
   }
@@ -1236,19 +1236,21 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   .theme-modal-overlay.show .theme-modal-sheet { transform: scale(1) !important; }
 
   /* ── 무대계산기 PC 2열 레이아웃 ── */
-  .stagecalc-wrap { max-width: 1400px; padding: 20px 28px env(safe-area-inset-bottom, 60px); }
+  .stagecalc-wrap { max-width: none; padding: 16px 24px env(safe-area-inset-bottom, 60px); }
+  /* 계산 탭: 컨트롤 고정 360px, 다이어그램 나머지 전부 */
   #sc-page-calc {
     display: grid;
-    grid-template-columns: 5fr 6fr;
-    gap: 16px;
+    grid-template-columns: 360px 1fr;
+    gap: 14px;
     align-items: start;
   }
   #sc-page-calc > * { grid-column: 1; }
-  #sc-diagramCard { grid-column: 2; grid-row: 1 / 6; }
+  #sc-diagramCard { grid-column: 2; grid-row: 1 / 6; position: sticky; top: 8px; }
+  /* 3D 도면 탭: 컨트롤 고정 300px, 평면도 나머지 전부 */
   #sc-page-3d {
     display: grid;
-    grid-template-columns: 4fr 5fr;
-    gap: 16px;
+    grid-template-columns: 300px 1fr;
+    gap: 14px;
     align-items: start;
   }
   #sc-page-3d > * { grid-column: 1; }
@@ -1257,6 +1259,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     grid-row: 1 / 12;
     position: sticky;
     top: 8px;
+    max-height: calc(100dvh - 100px);
+    overflow-y: auto;
   }
 
   /* ── 하단 닫기 버튼 — PC에서 불필요 ── */
@@ -1284,6 +1288,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   .task-cards { grid-template-columns: repeat(3, 1fr); }
   .equip-grid { grid-template-columns: repeat(5, 1fr) !important; }
   .alba-grid { grid-template-columns: repeat(5, 1fr) !important; }
+}
+/* PC 와이드 화면 (1400px+) */
+@media (min-width: 1400px) {
+  .log-cards { grid-template-columns: repeat(4, 1fr); }
+  .task-cards { grid-template-columns: repeat(4, 1fr); }
+  .equip-grid { grid-template-columns: repeat(6, 1fr) !important; }
+  .alba-grid { grid-template-columns: repeat(6, 1fr) !important; }
 }
 
 /* ─── 무대계산기 페이지 ─── */
@@ -1584,7 +1595,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-01</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-02</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
