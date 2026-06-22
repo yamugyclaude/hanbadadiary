@@ -1601,7 +1601,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-08</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-09</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2141,12 +2141,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               <div class="truss-inv-rem" id="tinv-rem-2"></div>
             </div>
             <div class="truss-inv-item">
-              <div class="truss-inv-label">큐브 (0.22m)</div>
+              <div class="truss-inv-label">큐브 (0.22m) <span style="color:#f59e0b">★</span></div>
               <div class="truss-inv-stepper">
                 <button onclick="_adjInv('corner',-1)">−</button>
                 <span class="truss-inv-val" id="tinv-corner">0</span>
                 <button onclick="_adjInv('corner',1)">+</button>
               </div>
+              <div style="font-size:9px;color:var(--text-muted);margin-top:3px">사각프레임 1개당 4개 소비</div>
               <div class="truss-inv-rem" id="tinv-rem-corner"></div>
             </div>
           </div>
@@ -2653,14 +2654,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <span class="truss-total-val" id="hTotalSpan" style="font-size:13px">—</span>
       </div>
       <div class="truss-section-grid">
-        <!-- 큐브 (좌) -->
+        <!-- 큐브 (좌) — 고정 1개 -->
         <div class="truss-sect-row truss-cube-row">
           <div class="truss-sect-ico truss-cube-ico"></div>
           <div class="truss-sect-len">큐브 (좌)</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussCube('h','L',-1)">−</button>
-            <span class="truss-modal-step-val" id="htcube-L">1</span>
-            <button class="truss-big-btn" onclick="_adjTrussCube('h','L',1)">+</button>
+            <span class="truss-modal-step-val" id="htcube-L" style="color:#f59e0b">1</span>
+            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
           </div>
           <div class="truss-sect-inv" id="htcube-inv-L"></div>
         </div>
@@ -2708,14 +2708,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
           <div class="truss-sect-inv" id="htsect-inv-0.5"></div>
         </div>
-        <!-- 큐브 (우) -->
+        <!-- 큐브 (우) — 고정 1개 -->
         <div class="truss-sect-row truss-cube-row">
           <div class="truss-sect-ico truss-cube-ico"></div>
           <div class="truss-sect-len">큐브 (우)</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussCube('h','R',-1)">−</button>
-            <span class="truss-modal-step-val" id="htcube-R">1</span>
-            <button class="truss-big-btn" onclick="_adjTrussCube('h','R',1)">+</button>
+            <span class="truss-modal-step-val" id="htcube-R" style="color:#f59e0b">1</span>
+            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
           </div>
           <div class="truss-sect-inv" id="htcube-inv-R"></div>
         </div>
@@ -2730,14 +2729,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <span class="truss-total-val" id="vTotalSpan" style="font-size:13px">—</span>
       </div>
       <div class="truss-section-grid">
-        <!-- 큐브 (상) -->
+        <!-- 큐브 (상) — 고정 1개 -->
         <div class="truss-sect-row truss-cube-row">
           <div class="truss-sect-ico truss-cube-ico"></div>
           <div class="truss-sect-len">큐브 (상)</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussCube('v','T',-1)">−</button>
-            <span class="truss-modal-step-val" id="vtcube-T">1</span>
-            <button class="truss-big-btn" onclick="_adjTrussCube('v','T',1)">+</button>
+            <span class="truss-modal-step-val" id="vtcube-T" style="color:#f59e0b">1</span>
+            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
           </div>
           <div class="truss-sect-inv" id="vtcube-inv-T"></div>
         </div>
@@ -2785,14 +2783,13 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
           <div class="truss-sect-inv" id="vtsect-inv-0.5"></div>
         </div>
-        <!-- 큐브 (하) -->
+        <!-- 큐브 (하) — 고정 1개 -->
         <div class="truss-sect-row truss-cube-row">
           <div class="truss-sect-ico truss-cube-ico"></div>
           <div class="truss-sect-len">큐브 (하)</div>
           <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussCube('v','B',-1)">−</button>
-            <span class="truss-modal-step-val" id="vtcube-B">1</span>
-            <button class="truss-big-btn" onclick="_adjTrussCube('v','B',1)">+</button>
+            <span class="truss-modal-step-val" id="vtcube-B" style="color:#f59e0b">1</span>
+            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
           </div>
           <div class="truss-sect-inv" id="vtcube-inv-B"></div>
         </div>
@@ -7967,6 +7964,7 @@ function daeRenderSVG() {
   const wrap = document.getElementById('daeSVGWrap');
   if (wrap) wrap.innerHTML = s;
   daeRenderPlacedList();
+  _updateInvRemainders();
 }
 
 function _daeShowPopup(cx, cy) {
@@ -8233,11 +8231,7 @@ function _adjTrussSection(axis, len, delta) {
 }
 
 function _adjTrussCube(axis, side, delta) {
-  const keyMap = {h:{L:'hCubesL',R:'hCubesR'}, v:{T:'vCubesT',B:'vCubesB'}};
-  const key = keyMap[axis]?.[side];
-  if (!key) return;
-  _trussCfg[key] = Math.max(0, (_trussCfg[key]||0) + delta);
-  _updateTrussUI();
+  // 큐브는 꼭지점 고정 — 조정 불가
 }
 
 function _adjTrussF(key, delta) {
@@ -8417,10 +8411,12 @@ function _updateTrussUI() {
 
 function daeApplyTrussConfig() {
   const tc = _trussCfg;
+  // 큐브는 항상 각 꼭지점 1개 고정
+  tc.hCubesL = 1; tc.hCubesR = 1; tc.vCubesT = 1; tc.vCubesB = 1;
   const hSpan = _computeSpan(tc.hSections);
   const vSpan = _computeSpan(tc.vSections);
-  const hCubesL = tc.hCubesL??1, hCubesR = tc.hCubesR??1;
-  const vCubesT = tc.vCubesT??1, vCubesB = tc.vCubesB??1;
+  const hCubesL = 1, hCubesR = 1;
+  const vCubesT = 1, vCubesB = 1;
   const hTotalSpan = parseFloat((hSpan+(hCubesL+hCubesR)*0.22).toFixed(3));
   const vTotalSpan = parseFloat((vSpan+(vCubesT+vCubesB)*0.22).toFixed(3));
   const p = daePlacements.find(pl => pl.id === _trussCfgId);
