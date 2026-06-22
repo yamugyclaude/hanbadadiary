@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-27</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-28</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -8174,7 +8174,14 @@ function daeRemovePlacement(id) {
 }
 
 // ── 트러스 재고 ──
-let trussInventory = JSON.parse(localStorage.getItem('trussInventory') || '{"0.5":0,"1":0,"1.5":0,"2":0,"corner":0}');
+// 트러스 창고 실제 보유 수량 (기본값) — 0.5/1/1.5m ×4, 2m ×6, 큐브 ×8
+const TRUSS_INV_DEFAULT = {"0.5":4,"1":4,"1.5":4,"2":6,"corner":8};
+let trussInventory = JSON.parse(localStorage.getItem('trussInventory') || 'null');
+// 미설정이거나 전부 0이면 실제 보유 수량으로 시드 (사용자가 입력한 값은 보존)
+if (!trussInventory || Object.values(trussInventory).every(v => !v)) {
+  trussInventory = {...TRUSS_INV_DEFAULT};
+  localStorage.setItem('trussInventory', JSON.stringify(trussInventory));
+}
 
 function _daeInitInventoryUI() {
   ['0.5','1','1.5','2','corner'].forEach(t => {
