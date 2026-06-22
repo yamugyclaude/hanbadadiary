@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-28</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-29</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9209,7 +9209,9 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       // 트러스 조각별 조립: hSpan/vSpan이 실제로 있는 경우만
       const hasSects = ((t.hTotalSpan||0) > 0.01) || ((t.vTotalSpan||0) > 0.01);
       if (hasSects) {
-        const cx2 = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
+        // 트러스 프레임은 무대 가로 중앙(X=0)에 자동 정렬
+        // SVG 클릭 위치는 Y(무대 앞뒤) 방향만 반영, X는 항상 무대 중심
+        const cx2 = 0;
         const cy2 = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3));
         // 프레임 하단 = 무대 윗면(h) + elevation(기본 0 → 무대 위에 착지)
         const iz2 = h + (t.elevation ?? 0);
@@ -9223,18 +9225,46 @@ async function daeGenerate({ w, d, h, stair, memo }) {
           for (let pi = 0; pi < pieces.length; pi++) {
             const pc = pieces[pi];
             const pid = `truss${i}_${barLabel}_${pi}`;
-            // 트러스 조각은 박스 폴백만 사용 (3D 모델 임베드는 좌표 충돌로 불안정)
             const ry = relY;
+            // boxGeom: X/Y 중심, Z 바닥 기준
+            //  - 가로조각: 시작점+length/2 (X 중심)
+            //  - 세로조각: 시작점 그대로 (Z 바닥, 틈 없이 타일링)
+            const rx_fb = isVertical ? relX : relX + pc.offset + pc.length / 2;
+            const rz_fb = isVertical ? relZ + pc.offset : relZ;
 
-            // 박스 크기: 수직바는 Z로 길이, 수평바는 X로 길이 (단면은 trussSpec 정사각)
+            // 트러스 조각별 .dae 모델 — 0,0,0 기준으로 제작된 경우 임베드
+            const trussType = pc.type === 'cube' ? 'truss_cube' : `truss_${pc.type}`;
+            const realPiece = lib3dGetActive(trussType);
+            if (realPiece) {
+              const prefix = `${pid}_`;
+              const embedded = await _embedDaeModel(realPiece.url, prefix);
+              if (embedded) {
+                geoms    += embedded.geoms;
+                imgs     += embedded.imgs || '';
+                libNodes += embedded.libNodes || '';
+                mats     += embedded.mats;
+                effs     += embedded.effs;
+                const us = embedded.unitScale || 1.0;
+                const userScale = parseFloat(realPiece.scale || 1.0);
+                const finalScale = us * userScale;
+                const scaleTag = Math.abs(finalScale - 1.0) > 0.00001
+                  ? `<scale>${finalScale} ${finalScale} ${finalScale}</scale>` : '';
+                // 수직 조각(세로바)은 Z축 방향 — 회전 불필요 (모델이 Z방향으로 제작됐으면)
+                // 수평 조각(가로바)은 Y축 90도 회전으로 Z→X 방향 전환
+                const rotTag = isVertical ? '' : `<rotate>0 1 0 90</rotate>`;
+                barNodes += `<node id="${pid}" name="${pid}" type="NODE">
+                  <translate>${rx_fb.toFixed(3)} ${ry.toFixed(3)} ${rz_fb.toFixed(3)}</translate>
+                  ${rotTag}${scaleTag}
+                  ${embedded.sceneNodes}
+                </node>`;
+                continue;
+              }
+            }
+
+            // 폴백: 박스
             const pd2 = trussSpec;
             const ph  = isVertical ? pc.length : trussSpec;
             const bw2 = isVertical ? trussSpec : pc.length;
-            // boxGeom: X/Y는 중심 기준, Z는 바닥 기준(0→길이)
-            //  - 가로조각: X로 길이가 뻗음(중심기준) → 시작점+length/2
-            //  - 세로조각: Z로 길이가 뻗음(바닥기준) → 시작점 그대로 (틈 없이 타일링)
-            const rx_fb = isVertical ? relX : relX + pc.offset + pc.length / 2;
-            const rz_fb = isVertical ? relZ + pc.offset : relZ;
             geoms += boxGeom(pid, bw2, pd2, ph);
             mats  += `<material id="mat-${pid}"><instance_effect url="#eff-${pid}"/></material>`;
             effs  += `<effect id="eff-${pid}"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.24 0.36 0.49 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
