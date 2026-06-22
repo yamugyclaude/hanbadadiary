@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-22</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-23</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9050,7 +9050,11 @@ async function _embedDaeModel(url, prefix) {
     // visual_scene 안의 최상위 <node> 자식들 추출
     const vsRaw = extractLib('visual_scene');
     const nodeM = vsRaw.match(/^<node[^>]*>([\s\S]*)<\/node>\s*$/i);
-    const sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
+    // 스케치업은 모델의 world position을 각 node 첫 번째 transform에 기록함
+    // → 임베드 시 우리가 직접 위치를 제어하므로 이 transform 제거
+    let sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
+    sceneNodes = sceneNodes.replace(/(<node\b[^>]*>)\s*<translate>[^<]*<\/translate>\s*/g, '$1\n');
+    sceneNodes = sceneNodes.replace(/(<node\b[^>]*>)\s*<matrix>[\s\S]*?<\/matrix>\s*/g, '$1\n');
 
     // 소스 단위 스케일 자동 감지 (SketchUp 인치=0.0254, mm=0.001 등)
     const unitM = text.match(/<unit[^>]+meter="([^"]+)"/i);
