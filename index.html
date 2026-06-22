@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-13</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-14</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2091,15 +2091,24 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             </div>
             <div class="lib3d-type-bar">
               <select id="lib3d-type-sel" class="lib3d-type-sel">
-                <option value="speaker">메인스피커</option>
-                <option value="sub">서브우퍼</option>
-                <option value="monitor" selected>모니터</option>
-                <option value="console">콘솔</option>
-                <option value="light">조명/LED</option>
-                <option value="stair">계단</option>
-                <option value="tent">텐트</option>
-                <option value="power">전기</option>
-                <option value="mic">마이크스탠드</option>
+                <optgroup label="── 음향/무대 장비 ──">
+                  <option value="speaker">메인스피커</option>
+                  <option value="sub">서브우퍼</option>
+                  <option value="monitor" selected>모니터</option>
+                  <option value="console">콘솔</option>
+                  <option value="light">조명/LED</option>
+                  <option value="stair">계단</option>
+                  <option value="tent">텐트</option>
+                  <option value="power">전기</option>
+                  <option value="mic">마이크스탠드</option>
+                </optgroup>
+                <optgroup label="── 트러스 부품 ──">
+                  <option value="truss_cube">트러스 큐브 (0.22m)</option>
+                  <option value="truss_0.5">트러스 0.5m</option>
+                  <option value="truss_1">트러스 1m</option>
+                  <option value="truss_1.5">트러스 1.5m</option>
+                  <option value="truss_2">트러스 2m</option>
+                </optgroup>
               </select>
               <label class="lib3d-upload-btn">
                 ＋ .dae 업로드
@@ -2688,6 +2697,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('h','2',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="htsect-inv-2"></div>
+          <span id="htsect-3d-2" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 1.5m -->
         <div class="truss-sect-row">
@@ -2699,6 +2709,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('h','1.5',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="htsect-inv-1.5"></div>
+          <span id="htsect-3d-1.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 1m -->
         <div class="truss-sect-row">
@@ -2710,6 +2721,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('h','1',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="htsect-inv-1"></div>
+          <span id="htsect-3d-1" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 0.5m -->
         <div class="truss-sect-row">
@@ -2721,6 +2733,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('h','0.5',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="htsect-inv-0.5"></div>
+          <span id="htsect-3d-0.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 큐브 (우) — 고정 1개 -->
         <div class="truss-sect-row truss-cube-row">
@@ -2763,6 +2776,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('v','2',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="vtsect-inv-2"></div>
+          <span id="vtsect-3d-2" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 1.5m -->
         <div class="truss-sect-row">
@@ -2774,6 +2788,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('v','1.5',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="vtsect-inv-1.5"></div>
+          <span id="vtsect-3d-1.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 1m -->
         <div class="truss-sect-row">
@@ -2785,6 +2800,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('v','1',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="vtsect-inv-1"></div>
+          <span id="vtsect-3d-1" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 0.5m -->
         <div class="truss-sect-row">
@@ -2796,6 +2812,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="truss-big-btn" onclick="_adjTrussSection('v','0.5',1)">+</button>
           </div>
           <div class="truss-sect-inv" id="vtsect-inv-0.5"></div>
+          <span id="vtsect-3d-0.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
         </div>
         <!-- 큐브 (하) — 고정 1개 -->
         <div class="truss-sect-row truss-cube-row">
@@ -8336,6 +8353,14 @@ function _updateTrussUI() {
         invEl.textContent = cnt > 0 ? `×2 = 실제 ${cnt*2}개 / 남은 ${available}개` : `재고 ${inv}개`;
         invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
       }
+      // 3D 모델 등록 상태 뱃지
+      const dae3dEl = document.getElementById(`${axis}tsect-3d-${k}`);
+      if (dae3dEl) {
+        const hasModel = !!lib3dGetActive(`truss_${k}`);
+        dae3dEl.textContent = hasModel ? '🟢3D' : '⬜3D';
+        dae3dEl.title = hasModel ? '3D 모델 등록됨' : '3D 모델 미등록 (3D 라이브러리에서 등록)';
+        dae3dEl.style.color = hasModel ? '#22c55e' : 'var(--text-muted)';
+      }
     });
   };
   updateAxisUI('h');
@@ -8566,7 +8591,9 @@ function daePhotoSelected(input) {
 const LIB3D_BUCKET = 'skp-library';
 const LIB3D_TYPES = {
   speaker:'메인스피커', sub:'서브우퍼', monitor:'모니터', console:'콘솔',
-  light:'조명/LED', stair:'계단', tent:'텐트', power:'전기', mic:'마이크스탠드'
+  light:'조명/LED', stair:'계단', tent:'텐트', power:'전기', mic:'마이크스탠드',
+  truss_cube:'트러스 큐브(0.22m)', 'truss_0.5':'트러스 0.5m', truss_1:'트러스 1m',
+  'truss_1.5':'트러스 1.5m', truss_2:'트러스 2m'
 };
 
 let lib3dModels = JSON.parse(localStorage.getItem('lib3dModels') || '[]');
@@ -8696,7 +8723,8 @@ function lib3dRender() {
     el.innerHTML = '<div class="lib3d-empty">등록된 3D 모델이 없습니다</div>';
     return;
   }
-  const EQ_ICONS = {speaker:'🔊',sub:'📦',monitor:'🎛️',console:'🎚️',light:'💡',stair:'🪜',tent:'⛺',power:'⚡',mic:'🎤'};
+  const EQ_ICONS = {speaker:'🔊',sub:'📦',monitor:'🎛️',console:'🎚️',light:'💡',stair:'🪜',tent:'⛺',power:'⚡',mic:'🎤',
+    truss_cube:'🔲','truss_0.5':'📏',truss_1:'📏','truss_1.5':'📏',truss_2:'📏'};
   el.innerHTML = lib3dModels.map(m => {
     const ico = EQ_ICONS[m.type] || '📐';
     const kb = (m.size / 1024).toFixed(0);
@@ -8830,6 +8858,24 @@ async function daeExport() {
   }
 }
 
+// 트러스 조각 배열 생성 헬퍼
+// 반환: [{type:'cube'|'0.5'|'1'|'1.5'|'2', offset, length}]
+function _buildTrussBar(sections) {
+  const pieces = [];
+  let offset = 0;
+  pieces.push({type:'cube', offset, length:0.22}); offset += 0.22;
+  ['2','1.5','1','0.5'].forEach(k => {
+    const cnt = sections[k] || 0;
+    const len = parseFloat(k);
+    for (let i = 0; i < cnt; i++) {
+      pieces.push({type:k, offset, length:len});
+      offset += len;
+    }
+  });
+  pieces.push({type:'cube', offset, length:0.22}); offset += 0.22;
+  return pieces;
+}
+
 async function daeGenerate({ w, d, h, stair, memo }) {
   const hw = w / 2, hd = d / 2;
 
@@ -8871,7 +8917,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
     let rw = baseSz.rw, rd = baseSz.rd, rh = baseSz.rh, iColor = baseSz.color;
     let itemElev = null;
 
-    // 트러스 — 새 포맷(hSections/vSections) 우선, 구 포맷 폴백
+    // 트러스 — 조각별 조립 (3D 모델 등록 시) 또는 박스 폴백
     if (p.type === 'truss' && p.truss) {
       const t = p.truss;
       const specM = (t.spec || 220) / 1000;
@@ -8884,6 +8930,83 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       }
       rh = specM;
       itemElev = t.elevation ?? 4.0;
+
+      // 트러스 조각별 조립: hSections/vSections가 있고 모델이 하나라도 등록된 경우
+      const hasSects = t.hSections || t.vSections;
+      if (hasSects) {
+        const cx2 = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
+        const cy2 = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3));
+        const iz2 = itemElev;
+        const trussSpec = specM;
+        const pRot = p.rotation || 0;
+
+        // 바(bar) 하나를 조각들로 내보내는 내부 헬퍼
+        const emitBar = async (barSections, baseX, baseY, baseZ, isVertical, barLabel) => {
+          const pieces = _buildTrussBar(barSections);
+          for (let pi = 0; pi < pieces.length; pi++) {
+            const pc = pieces[pi];
+            const ptype = pc.type === 'cube' ? 'truss_cube' : `truss_${pc.type}`;
+            const pModel = lib3dGetActive(ptype);
+            const pid = `truss${i}_${barLabel}_${pi}`;
+            // 조각 위치: isVertical → Y축 방향으로 offset
+            const px = isVertical ? baseX : baseX + pc.offset + pc.length/2;
+            const py = isVertical ? baseY - (pc.offset + pc.length/2) : baseY;
+            const pz = baseZ;
+
+            if (pModel) {
+              const prefix = `${pid}_`;
+              const emb = await _embedDaeModel(pModel.url, prefix);
+              if (emb) {
+                geoms    += emb.geoms;
+                imgs     += emb.imgs || '';
+                libNodes += emb.libNodes || '';
+                mats     += emb.mats;
+                effs     += emb.effs;
+                const us = emb.unitScale || 1.0;
+                const userScale = parseFloat(pModel.scale || 1.0);
+                const fs = us * userScale;
+                const scTag = Math.abs(fs - 1.0) > 0.00001 ? `<scale>${fs} ${fs} ${fs}</scale>` : '';
+                const rotTag = isVertical ? `<rotate>0 0 1 90</rotate>` : '';
+                nodes += `<node id="${pid}" name="${pid}" type="NODE">
+                  <translate>${px.toFixed(3)} ${py.toFixed(3)} ${pz.toFixed(3)}</translate>
+                  ${rotTag}${scTag}${emb.sceneNodes}
+                </node>`;
+                continue;
+              }
+            }
+            // 폴백: 박스
+            const pw = isVertical ? trussSpec : pc.length;
+            const pd = isVertical ? pc.length : trussSpec;
+            geoms += boxGeom(pid, pw, pd, trussSpec);
+            mats  += `<material id="mat-${pid}"><instance_effect url="#eff-${pid}"/></material>`;
+            effs  += `<effect id="eff-${pid}"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.24 0.36 0.49 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
+            nodes += `<node id="${pid}" name="${pid}" type="NODE">
+              <translate>${px.toFixed(3)} ${py.toFixed(3)} ${pz.toFixed(3)}</translate>
+              <instance_geometry url="#${pid}">
+                <bind_material><technique_common><instance_material symbol="mat-${pid}" target="#mat-${pid}"/></technique_common></bind_material>
+              </instance_geometry>
+            </node>`;
+          }
+        };
+
+        const hS = t.hSections || {'0.5':0,'1':0,'1.5':0,'2':0};
+        const vS = t.vSections || {'0.5':0,'1':0,'1.5':0,'2':0};
+        const hSpan = (t.hTotalSpan || 0);
+        const vSpan = (t.vTotalSpan || 0);
+        const hasH = hSpan > 0.01;
+        const hasV = vSpan > 0.01;
+
+        // 상단 H 바 (y = cy2 + vSpan/2)
+        if (hasH) await emitBar(hS, cx2 - hSpan/2, cy2 + (hasV ? vSpan/2 : 0), iz2, false, 'hTop');
+        // 하단 H 바 (y = cy2 - vSpan/2)
+        if (hasH && hasV) await emitBar(hS, cx2 - hSpan/2, cy2 - vSpan/2, iz2, false, 'hBot');
+        // 좌측 V 바 (x = cx2 - hSpan/2)
+        if (hasV) await emitBar(vS, cx2 - (hasH ? hSpan/2 : 0), cy2 + vSpan/2, iz2, true, 'vL');
+        // 우측 V 바 (x = cx2 + hSpan/2)
+        if (hasV && hasH) await emitBar(vS, cx2 + hSpan/2, cy2 + vSpan/2, iz2, true, 'vR');
+
+        continue;
+      }
     }
 
     // SVG venue 좌표 → SketchUp 중심 좌표 (stage center = 0,0)
