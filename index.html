@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-17</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-18</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2122,18 +2122,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
                 <input type="file" id="lib3d-file-input" accept=".dae,.DAE" style="display:none" onchange="lib3dUpload(this)">
               </label>
             </div>
-            <!-- 실제 치수 입력 -->
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-              <span style="font-size:11px;color:var(--text-muted)">실제 치수 (m):</span>
-              <input id="lib3d-dim-w" type="number" step="0.01" min="0.01" placeholder="가로W" title="가로 (좌우)"
-                style="width:68px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
-              <span style="font-size:11px;color:var(--text-muted)">×</span>
-              <input id="lib3d-dim-d" type="number" step="0.01" min="0.01" placeholder="세로D" title="세로 (앞뒤)"
-                style="width:68px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
-              <span style="font-size:11px;color:var(--text-muted)">×</span>
-              <input id="lib3d-dim-h" type="number" step="0.01" min="0.01" placeholder="높이H" title="높이"
-                style="width:68px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
-              <span style="font-size:10px;color:var(--text-muted)">비워두면 기본값 사용</span>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">
+              📐 업로드 시 .dae 파일에서 치수 자동 추출 — 평면도·내보내기에 자동 반영
             </div>
             <!-- 등록 현황 -->
             <div id="lib3d-status-panel" style="margin-bottom:12px;background:var(--surface2);border-radius:10px;padding:10px 12px">
@@ -7956,6 +7946,10 @@ function daeRenderSVG() {
     const it = DAE_ITEMS[p.type] || {label: p.type};
     const baseSz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
     let pw = baseSz.pw, pd = baseSz.pd;
+    // 등록된 3D 모델 치수가 있으면 평면도 크기에 반영
+    const activeModel = lib3dGetActive(p.type);
+    if (activeModel && activeModel.rw) pw = activeModel.rw;
+    if (activeModel && activeModel.rd) pd = activeModel.rd;
     const code = EQ_CODES[p.type] || p.type.slice(0,3).toUpperCase();
 
     // 트러스 사각 프레임
@@ -8744,6 +8738,57 @@ async function lib3dSaveCloud() {
   } catch(e) {}
 }
 
+// .dae 파일에서 바운딩박스 자동 추출 → {rw, rd, rh} (미터 단위)
+function lib3dExtractDims(fileText) {
+  try {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(fileText, 'text/xml');
+    // unitScale 감지
+    let unitScale = 1.0;
+    const unitEl = xml.querySelector('unit');
+    if (unitEl) unitScale = parseFloat(unitEl.getAttribute('meter') || '1') || 1.0;
+
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity, minZ=Infinity, maxZ=-Infinity;
+
+    // 모든 position float_array 순회
+    xml.querySelectorAll('mesh source').forEach(src => {
+      const id = (src.id || src.getAttribute('id') || '').toLowerCase();
+      if (!id.includes('pos') && !id.includes('vert') && !id.includes('position')) return;
+      const fa = src.querySelector('float_array');
+      if (!fa) return;
+      const vals = fa.textContent.trim().split(/\s+/).map(Number);
+      for (let i = 0; i + 2 < vals.length; i += 3) {
+        const x = vals[i], y = vals[i+1], z = vals[i+2];
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+        if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+      }
+    });
+
+    // position source 못 찾으면 모든 float_array 시도
+    if (!isFinite(minX)) {
+      xml.querySelectorAll('float_array').forEach(fa => {
+        const vals = fa.textContent.trim().split(/\s+/).map(Number);
+        if (vals.length < 3) return;
+        for (let i = 0; i + 2 < vals.length; i += 3) {
+          const x = vals[i], y = vals[i+1], z = vals[i+2];
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+          if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+        }
+      });
+    }
+
+    if (!isFinite(minX)) return null;
+
+    const rw = parseFloat(((maxX - minX) * unitScale).toFixed(3));
+    const rd = parseFloat(((maxY - minY) * unitScale).toFixed(3));
+    const rh = parseFloat(((maxZ - minZ) * unitScale).toFixed(3));
+    if (rw <= 0 || rd <= 0 || rh <= 0) return null;
+    return { rw, rd, rh };
+  } catch(e) { return null; }
+}
+
 async function lib3dUpload(input) {
   const file = input.files[0];
   if (!file) return;
@@ -8776,21 +8821,25 @@ async function lib3dUpload(input) {
     }
     if (warn) warn.style.display = 'none';
     const url = `${STORAGE_URL}/storage/v1/object/public/${LIB3D_BUCKET}/${path}`;
-    // 치수 읽기
-    const rw = parseFloat(document.getElementById('lib3d-dim-w')?.value) || null;
-    const rd = parseFloat(document.getElementById('lib3d-dim-d')?.value) || null;
-    const rh = parseFloat(document.getElementById('lib3d-dim-h')?.value) || null;
+    // .dae 파일에서 치수 자동 추출
+    let autoDims = null;
+    try {
+      const text = await file.text();
+      autoDims = lib3dExtractDims(text);
+    } catch(e) {}
     // 같은 타입 기존 모델 비활성화
     lib3dModels.forEach(x => { if (x.type === type) x.active = false; });
-    lib3dModels.push({
+    const entry = {
       id, type, typeName, name: file.name.replace(/\.dae$/i, ''),
       url, path, size: file.size, uploaded: new Date().toISOString().slice(0,10),
       active: true,
-      ...(rw && {rw}), ...(rd && {rd}), ...(rh && {rh})
-    });
+    };
+    if (autoDims) { entry.rw = autoDims.rw; entry.rd = autoDims.rd; entry.rh = autoDims.rh; }
+    lib3dModels.push(entry);
+    if (autoDims) showToast(`✅ ${file.name} 업로드 완료 — 치수 자동 감지: ${autoDims.rw}×${autoDims.rd}×${autoDims.rh}m`);
+    else showToast(`✅ ${file.name} 업로드 완료 (치수 자동감지 실패 — 수동 입력 필요)`);
     await lib3dSaveCloud();
     lib3dRender();
-    showToast(`✅ ${file.name} 업로드 완료`);
   } catch(e) {
     if (warn) warn.style.display = 'block';
     showToast('❌ 업로드 실패');
