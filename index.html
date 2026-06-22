@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-19</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-20</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -8957,10 +8957,15 @@ function lib3dRender() {
             onchange="lib3dSetDim('${m.id}','rh',this.value)">
           <span style="font-size:10px;color:var(--text-muted)">m 단위</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">
           <span style="font-size:11px;color:var(--text-muted)">배율</span>
           <input type="number" step="0.01" min="0.001" value="${sc}" style="width:70px;padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px" onchange="lib3dSetScale('${m.id}',this.value)">
-          <span style="font-size:10px;color:var(--text-muted)">× (자동감지됨)</span>
+          <span style="font-size:10px;color:var(--text-muted)">× │</span>
+          <span style="font-size:11px;color:var(--text-muted)">원점</span>
+          <select onchange="lib3dSetOrigin('${m.id}',this.value)" style="padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px">
+            <option value="center" ${(m.origin||'center')==='center'?'selected':''}>중심 기준</option>
+            <option value="start" ${m.origin==='start'?'selected':''}>시작점 기준</option>
+          </select>
         </div>
       </div>
       <div class="lib3d-item-btns">
@@ -8986,6 +8991,14 @@ function lib3dSetDim(id, axis, val) {
   lib3dSaveCloud();
   lib3dRender();
   showToast('치수 저장됨');
+}
+
+function lib3dSetOrigin(id, origin) {
+  const m = lib3dModels.find(x => x.id === id);
+  if (!m) return;
+  m.origin = origin;
+  lib3dSaveCloud();
+  showToast(origin === 'start' ? '원점: 시작점 기준' : '원점: 중심 기준');
 }
 
 function lib3dToggleActive(id) {
@@ -9168,20 +9181,22 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         const cy2 = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3));
         const iz2 = itemElev;
         const trussSpec = specM;
-        const pRot = p.rotation || 0;
 
-        // 바(bar) 하나를 조각들로 내보내는 내부 헬퍼
-        const emitBar = async (barSections, baseX, baseY, baseZ, isVertical, barLabel) => {
+        // 바(bar) 하나를 조각들로 내보내는 내부 헬퍼 — 상대좌표(부모 기준) 반환
+        const emitBar = async (barSections, relX, relY, relZ, isVertical, barLabel) => {
           const pieces = _buildTrussBar(barSections);
+          let barNodes = '';
           for (let pi = 0; pi < pieces.length; pi++) {
             const pc = pieces[pi];
             const ptype = pc.type === 'cube' ? 'truss_cube' : `truss_${pc.type}`;
             const pModel = lib3dGetActive(ptype);
             const pid = `truss${i}_${barLabel}_${pi}`;
-            // 조각 위치: isVertical → Y축 방향으로 offset
-            const px = isVertical ? baseX : baseX + pc.offset + pc.length/2;
-            const py = isVertical ? baseY - (pc.offset + pc.length/2) : baseY;
-            const pz = baseZ;
+            // 원점 설정: 'start'이면 조각 시작점 기준, 기본은 중심 기준
+            const originMode = pModel?.origin || 'center';
+            const originOff = (originMode === 'start') ? 0 : pc.length / 2;
+            const rx = isVertical ? relX : relX + pc.offset + originOff;
+            const ry = isVertical ? relY - (pc.offset + originOff) : relY;
+            const rz = relZ;
 
             if (pModel) {
               const prefix = `${pid}_`;
@@ -9197,8 +9212,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
                 const fs = us * userScale;
                 const scTag = Math.abs(fs - 1.0) > 0.00001 ? `<scale>${fs} ${fs} ${fs}</scale>` : '';
                 const rotTag = isVertical ? `<rotate>0 0 1 90</rotate>` : '';
-                nodes += `<node id="${pid}" name="${pid}" type="NODE">
-                  <translate>${px.toFixed(3)} ${py.toFixed(3)} ${pz.toFixed(3)}</translate>
+                barNodes += `<node id="${pid}" name="${pid}" type="NODE">
+                  <translate>${rx.toFixed(3)} ${ry.toFixed(3)} ${rz.toFixed(3)}</translate>
                   ${rotTag}${scTag}${emb.sceneNodes}
                 </node>`;
                 continue;
@@ -9206,17 +9221,18 @@ async function daeGenerate({ w, d, h, stair, memo }) {
             }
             // 폴백: 박스
             const pw = isVertical ? trussSpec : pc.length;
-            const pd = isVertical ? pc.length : trussSpec;
-            geoms += boxGeom(pid, pw, pd, trussSpec);
+            const pd2 = isVertical ? pc.length : trussSpec;
+            geoms += boxGeom(pid, pw, pd2, trussSpec);
             mats  += `<material id="mat-${pid}"><instance_effect url="#eff-${pid}"/></material>`;
             effs  += `<effect id="eff-${pid}"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.24 0.36 0.49 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
-            nodes += `<node id="${pid}" name="${pid}" type="NODE">
-              <translate>${px.toFixed(3)} ${py.toFixed(3)} ${pz.toFixed(3)}</translate>
+            barNodes += `<node id="${pid}" name="${pid}" type="NODE">
+              <translate>${rx.toFixed(3)} ${ry.toFixed(3)} ${rz.toFixed(3)}</translate>
               <instance_geometry url="#${pid}">
                 <bind_material><technique_common><instance_material symbol="mat-${pid}" target="#mat-${pid}"/></technique_common></bind_material>
               </instance_geometry>
             </node>`;
           }
+          return barNodes;
         };
 
         const hS = t.hSections || {'0.5':0,'1':0,'1.5':0,'2':0};
@@ -9225,16 +9241,34 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         const vSpan = (t.vTotalSpan || 0);
         const hasH = hSpan > 0.01;
         const hasV = vSpan > 0.01;
+        const trussName = `트러스_${i+1}`;
 
-        // 상단 H 바 (y = cy2 + vSpan/2)
-        if (hasH) await emitBar(hS, cx2 - hSpan/2, cy2 + (hasV ? vSpan/2 : 0), iz2, false, 'hTop');
-        // 하단 H 바 (y = cy2 - vSpan/2)
-        if (hasH && hasV) await emitBar(hS, cx2 - hSpan/2, cy2 - vSpan/2, iz2, false, 'hBot');
-        // 좌측 V 바 (x = cx2 - hSpan/2)
-        if (hasV) await emitBar(vS, cx2 - (hasH ? hSpan/2 : 0), cy2 + vSpan/2, iz2, true, 'vL');
-        // 우측 V 바 (x = cx2 + hSpan/2)
-        if (hasV && hasH) await emitBar(vS, cx2 + hSpan/2, cy2 + vSpan/2, iz2, true, 'vR');
+        // 트러스 전체를 부모 node로 그룹핑 — 스케치업에서 1개 오브젝트로 인식
+        let trussChildren = '';
+        // 각 바를 상대좌표(cx2,cy2,iz2 기준)로 배치
+        if (hasH) {
+          const barY = hasV ? vSpan/2 : 0;
+          const hTopNodes = await emitBar(hS, -hSpan/2, barY, 0, false, 'hTop');
+          trussChildren += `<node id="truss${i}_hTop" name="상단H바" type="NODE">${hTopNodes}</node>`;
+        }
+        if (hasH && hasV) {
+          const hBotNodes = await emitBar(hS, -hSpan/2, -vSpan/2, 0, false, 'hBot');
+          trussChildren += `<node id="truss${i}_hBot" name="하단H바" type="NODE">${hBotNodes}</node>`;
+        }
+        if (hasV) {
+          const barX = hasH ? -hSpan/2 : 0;
+          const vLNodes = await emitBar(vS, barX, vSpan/2, 0, true, 'vL');
+          trussChildren += `<node id="truss${i}_vL" name="좌측V바" type="NODE">${vLNodes}</node>`;
+        }
+        if (hasV && hasH) {
+          const vRNodes = await emitBar(vS, hSpan/2, vSpan/2, 0, true, 'vR');
+          trussChildren += `<node id="truss${i}_vR" name="우측V바" type="NODE">${vRNodes}</node>`;
+        }
 
+        nodes += `<node id="Truss_${i+1}" name="${trussName}" type="NODE">
+          <translate>${cx2.toFixed(3)} ${cy2.toFixed(3)} ${iz2.toFixed(3)}</translate>
+          ${trussChildren}
+        </node>`;
         continue;
       }
     }
