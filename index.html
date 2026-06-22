@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-15</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-16</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2093,7 +2093,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               <select id="lib3d-type-sel" class="lib3d-type-sel">
                 <optgroup label="── 스피커류 ──">
                   <option value="speaker">메인스피커</option>
-                  <option value="sub">서브우퍼</option>
+                  <option value="sub">V SUB</option>
                   <option value="monitor" selected>모니터</option>
                   <option value="front_mon">프론트모니터</option>
                   <option value="sidefill">사이드필모니터</option>
@@ -2126,6 +2126,17 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div id="lib3d-status-panel" style="margin-bottom:12px;background:var(--surface2);border-radius:10px;padding:10px 12px">
               <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600">📋 등록 현황</div>
               <div id="lib3d-status-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px"></div>
+              <!-- 커스텀 타입 추가 -->
+              <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">＋ 직접 타입 추가</div>
+                <div style="display:flex;gap:6px">
+                  <input id="lib3d-custom-input" type="text" placeholder="장비 이름 입력 (예: 하이패스스피커)"
+                    style="flex:1;padding:5px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px"
+                    onkeydown="if(event.key==='Enter')lib3dAddCustomType(this.value)&&(this.value='')">
+                  <button onclick="const v=document.getElementById('lib3d-custom-input');lib3dAddCustomType(v.value);v.value=''"
+                    style="padding:5px 12px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:12px;cursor:pointer">추가</button>
+                </div>
+              </div>
             </div>
             <div id="lib3d-list"><div class="lib3d-empty">등록된 3D 모델이 없습니다</div></div>
             <div id="lib3d-bucket-warn" class="lib3d-warn-box" style="display:none">
@@ -7779,7 +7790,7 @@ async function checkDbConnection() {
 
 const DAE_ITEMS = {
   speaker:      {icon:'🔊', label:'메인스피커'},
-  sub:          {icon:'📦', label:'서브우퍼'},
+  sub:          {icon:'📦', label:'V SUB'},
   monitor:      {icon:'🎛️', label:'모니터'},
   front_mon:    {icon:'🔉', label:'프론트모니터'},
   sidefill:     {icon:'🔈', label:'사이드필모니터'},
@@ -8576,7 +8587,7 @@ function scSwitchTab(tab) {
     document.getElementById('sc-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('sc-page-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); _daeInitInventoryUI(); lib3dRender(); lib3dLoadCloud(); }
+  if (tab === '3d') { daeUpdateInfo(); daeRenderSVG(); _daeInitInventoryUI(); lib3dRender(); lib3dRebuildDropdown(); lib3dLoadCloud(); }
 }
 
 function daeLocTab(loc) {
@@ -8609,9 +8620,9 @@ function daePhotoSelected(input) {
 // ═══════════════════════════════════════════════
 
 const LIB3D_BUCKET = 'skp-library';
-const LIB3D_TYPES = {
+const LIB3D_TYPES_BASE = {
   // 음향
-  speaker:'메인스피커', sub:'서브우퍼', monitor:'모니터',
+  speaker:'메인스피커', sub:'V SUB', monitor:'모니터',
   front_mon:'프론트모니터', sidefill:'사이드필모니터', delay:'딜레이스피커',
   console:'콘솔', mic:'마이크스탠드',
   // 무대/구조물
@@ -8620,6 +8631,60 @@ const LIB3D_TYPES = {
   truss_cube:'트러스 큐브(0.22m)', 'truss_0.5':'트러스 0.5m', truss_1:'트러스 1m',
   'truss_1.5':'트러스 1.5m', truss_2:'트러스 2m'
 };
+
+// 사용자 커스텀 타입 (localStorage)
+let lib3dCustomTypes = JSON.parse(localStorage.getItem('lib3dCustomTypes') || '[]');
+// [{id:'custom_xxx', label:'사용자 이름'}]
+
+function lib3dGetTypes() {
+  const merged = Object.assign({}, LIB3D_TYPES_BASE);
+  lib3dCustomTypes.forEach(c => { merged[c.id] = c.label; });
+  return merged;
+}
+const LIB3D_TYPES = new Proxy({}, {
+  get(_, k) { return lib3dGetTypes()[k]; },
+  ownKeys() { return Object.keys(lib3dGetTypes()); },
+  has(_, k) { return k in lib3dGetTypes(); },
+  getOwnPropertyDescriptor(_, k) { return {enumerable:true, configurable:true, value:lib3dGetTypes()[k]}; }
+});
+
+function lib3dSaveCustomTypes() {
+  localStorage.setItem('lib3dCustomTypes', JSON.stringify(lib3dCustomTypes));
+}
+
+function lib3dAddCustomType(label) {
+  label = label.trim();
+  if (!label) return;
+  const id = 'custom_' + Date.now();
+  lib3dCustomTypes.push({id, label});
+  lib3dSaveCustomTypes();
+  lib3dRender();
+  lib3dRebuildDropdown();
+}
+
+function lib3dDeleteCustomType(id) {
+  lib3dCustomTypes = lib3dCustomTypes.filter(c => c.id !== id);
+  lib3dModels = lib3dModels.filter(m => m.type !== id);
+  lib3dSaveCustomTypes();
+  lib3dSaveCloud();
+  lib3dRender();
+  lib3dRebuildDropdown();
+}
+
+function lib3dRebuildDropdown() {
+  const sel = document.getElementById('lib3d-type-sel');
+  if (!sel) return;
+  // 커스텀 그룹 옵션 갱신
+  let cg = sel.querySelector('optgroup[data-custom]');
+  if (lib3dCustomTypes.length === 0) { if (cg) cg.remove(); return; }
+  if (!cg) {
+    cg = document.createElement('optgroup');
+    cg.label = '── 커스텀 ──';
+    cg.dataset.custom = '1';
+    sel.appendChild(cg);
+  }
+  cg.innerHTML = lib3dCustomTypes.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+}
 
 // 카테고리별 그룹 (등록 현황 표시용)
 const LIB3D_GROUPS = [
@@ -8753,22 +8818,30 @@ function lib3dRenderStatus() {
   const grid = document.getElementById('lib3d-status-grid');
   if (!grid) return;
   let html = '';
+  const renderRow = (t, label, deletable) => {
+    const registered = lib3dModels.find(m => m.type === t);
+    const active = lib3dModels.find(m => m.type === t && m.active);
+    const dot = active ? '🟢' : registered ? '🟡' : '⬜';
+    const status = active ? '적용중' : registered ? '등록됨' : '미등록';
+    const col = active ? '#22c55e' : registered ? '#f59e0b' : 'var(--text-muted)';
+    const delBtn = deletable ? `<button onclick="lib3dDeleteCustomType('${t}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:0 2px" title="삭제">✕</button>` : '';
+    return `<div style="display:flex;align-items:center;gap:4px;font-size:11px">
+      <span>${dot}</span>
+      <span style="color:${col};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>
+      <span style="font-size:10px;color:${col}">${status}</span>${delBtn}
+    </div>`;
+  };
+
   LIB3D_GROUPS.forEach(grp => {
     html += `<div style="grid-column:1/-1;font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">${grp.label}</div>`;
-    grp.types.forEach(t => {
-      const name = LIB3D_TYPES[t] || t;
-      const registered = lib3dModels.find(m => m.type === t);
-      const active = lib3dModels.find(m => m.type === t && m.active);
-      const dot = active ? '🟢' : registered ? '🟡' : '⬜';
-      const status = active ? '적용중' : registered ? '등록됨' : '미등록';
-      const col = active ? '#22c55e' : registered ? '#f59e0b' : 'var(--text-muted)';
-      html += `<div style="display:flex;align-items:center;gap:4px;font-size:11px">
-        <span>${dot}</span>
-        <span style="color:${col};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>
-        <span style="font-size:10px;color:${col}">${status}</span>
-      </div>`;
-    });
+    grp.types.forEach(t => { html += renderRow(t, LIB3D_TYPES_BASE[t] || t, false); });
   });
+
+  if (lib3dCustomTypes.length > 0) {
+    html += `<div style="grid-column:1/-1;font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">⚙️ 커스텀</div>`;
+    lib3dCustomTypes.forEach(c => { html += renderRow(c.id, c.label, true); });
+  }
+
   grid.innerHTML = html;
 }
 
