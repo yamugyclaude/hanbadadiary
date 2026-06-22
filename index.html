@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-29</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-30</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9047,12 +9047,102 @@ function lib3dToggleActive(id) {
 }
 
 // .dae 파싱 & 임베드 (비동기) — 정규식 방식 (XMLSerializer 네임스페이스 오염 방지)
+// 모델 .dae의 전체 노드 트리(matrix·instance_node)를 평탄화해 실제 월드 바운딩박스(미터) 계산
+function _daeModelBBox(xmlText) {
+  let doc;
+  try { doc = new DOMParser().parseFromString(xmlText, 'application/xml'); } catch(e) { return null; }
+  if (!doc || doc.querySelector('parsererror')) return null;
+  const unitEl = doc.querySelector('asset > unit') || doc.querySelector('unit');
+  const unit = parseFloat(unitEl?.getAttribute('meter') || '1') || 1;
+
+  const libNodes = {};
+  doc.querySelectorAll('library_nodes > node').forEach(n => { if (n.id) libNodes[n.id] = n; });
+
+  const geomPos = {};
+  doc.querySelectorAll('library_geometries > geometry').forEach(g => {
+    const mesh = g.querySelector('mesh'); if (!mesh) return;
+    const vts = mesh.querySelector('vertices'); if (!vts) return;
+    let srcId = null;
+    vts.querySelectorAll('input').forEach(inp => {
+      if (inp.getAttribute('semantic') === 'POSITION') srcId = (inp.getAttribute('source') || '').replace('#', '');
+    });
+    if (!srcId) return;
+    let src = null;
+    mesh.querySelectorAll('source').forEach(s => { if (s.id === srcId) src = s; });
+    const fa = src && src.querySelector('float_array');
+    if (!fa) return;
+    geomPos[g.id] = fa.textContent.trim().split(/\s+/).map(parseFloat);
+  });
+
+  const IDENT = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+  const parseM = t => { const a = t.trim().split(/\s+/).map(parseFloat); return a.length === 16 ? a : IDENT; };
+  const mul = (A, B) => { const C = new Array(16); for (let r=0;r<4;r++) for (let c=0;c<4;c++){ let s=0; for (let k=0;k<4;k++) s+=A[r*4+k]*B[k*4+c]; C[r*4+c]=s; } return C; };
+  const mn = [Infinity,Infinity,Infinity], mx = [-Infinity,-Infinity,-Infinity];
+  const applyGeom = (M, pos) => {
+    for (let i=0;i<pos.length;i+=3){
+      const x=pos[i],y=pos[i+1],z=pos[i+2];
+      const nx=M[0]*x+M[1]*y+M[2]*z+M[3], ny=M[4]*x+M[5]*y+M[6]*z+M[7], nz=M[8]*x+M[9]*y+M[10]*z+M[11];
+      if(nx<mn[0])mn[0]=nx; if(nx>mx[0])mx[0]=nx;
+      if(ny<mn[1])mn[1]=ny; if(ny>mx[1])mx[1]=ny;
+      if(nz<mn[2])mn[2]=nz; if(nz>mx[2])mx[2]=nz;
+    }
+  };
+  const childTag = (node, tag) => [...node.children].filter(c => c.tagName === tag);
+  const walk = (node, M) => {
+    const mEls = childTag(node, 'matrix');
+    let Mcur = mEls.length ? mul(M, parseM(mEls[0].textContent)) : M;
+    childTag(node, 'instance_geometry').forEach(ig => {
+      const gid = (ig.getAttribute('url') || '').replace('#', '');
+      if (geomPos[gid]) applyGeom(Mcur, geomPos[gid]);
+    });
+    childTag(node, 'instance_node').forEach(inN => {
+      const nid = (inN.getAttribute('url') || '').replace('#', '');
+      if (libNodes[nid]) walk(libNodes[nid], Mcur);
+    });
+    childTag(node, 'node').forEach(cn => walk(cn, Mcur));
+  };
+  doc.querySelectorAll('visual_scene > node').forEach(n => walk(n, IDENT));
+  if (mn[0] === Infinity) return null;
+  return { min: [mn[0]*unit, mn[1]*unit, mn[2]*unit], max: [mx[0]*unit, mx[1]*unit, mx[2]*unit] };
+}
+
+// 모델 bbox를 트러스 슬롯(정확한 위치·크기)에 중심 맞춰 끼우는 4x4 affine matrix(row-major 16) 생성
+function _trussFitMatrix(bbox, opts) {
+  const s = [bbox.max[0]-bbox.min[0], bbox.max[1]-bbox.min[1], bbox.max[2]-bbox.min[2]];
+  const c = [(bbox.max[0]+bbox.min[0])/2, (bbox.max[1]+bbox.min[1])/2, (bbox.max[2]+bbox.min[2])/2];
+  let La = 0; if (s[1] > s[La]) La = 1; if (s[2] > s[La]) La = 2;   // 길이축 = 최대 extent
+  const t = opts.target;   // 슬롯 길이축: 0=X(수평바), 2=Z(수직바)
+  const rot = (axis, deg) => { const a=deg*Math.PI/180, co=Math.cos(a), si=Math.sin(a);
+    if (axis===0) return [1,0,0, 0,co,-si, 0,si,co];
+    if (axis===1) return [co,0,si, 0,1,0, -si,0,co];
+    return [co,-si,0, si,co,0, 0,0,1];
+  };
+  let R = [1,0,0, 0,1,0, 0,0,1];
+  if (La !== t) {
+    if (La===0&&t===2) R=rot(1,-90); else if (La===2&&t===0) R=rot(1,90);
+    else if (La===1&&t===2) R=rot(0,90); else if (La===2&&t===1) R=rot(0,-90);
+    else if (La===1&&t===0) R=rot(2,-90); else if (La===0&&t===1) R=rot(2,90);
+  }
+  const srcAxis = a => { let b=0,bv=Math.abs(R[a*3]); for(let j=1;j<3;j++){const v=Math.abs(R[a*3+j]); if(v>bv){bv=v;b=j;}} return b; };
+  const desired = [opts.spec, opts.spec, opts.spec]; desired[t] = opts.slotLen;
+  const sc = [0,0,0];
+  for (let a=0;a<3;a++){ const src=srcAxis(a); sc[a] = s[src] > 1e-9 ? desired[a]/s[src] : 1; }
+  const A = new Array(9);
+  for (let r=0;r<3;r++) for (let col=0;col<3;col++) A[r*3+col] = sc[r]*R[r*3+col];
+  const center = [opts.cx, opts.cy, opts.zCenter];
+  const Ac = [A[0]*c[0]+A[1]*c[1]+A[2]*c[2], A[3]*c[0]+A[4]*c[1]+A[5]*c[2], A[6]*c[0]+A[7]*c[1]+A[8]*c[2]];
+  return [A[0],A[1],A[2],center[0]-Ac[0], A[3],A[4],A[5],center[1]-Ac[1], A[6],A[7],A[8],center[2]-Ac[2], 0,0,0,1];
+}
+
 async function _embedDaeModel(url, prefix) {
   try {
     const resp = await fetch(url);
     if (!resp.ok) return null;
     let text = await resp.text();
     if (!text.includes('<COLLADA') && !text.includes('<collada')) return null;
+
+    // id 치환 전 원본으로 실제 월드 바운딩박스(미터) 계산
+    const bbox = _daeModelBBox(text);
 
     // 모든 id 수집 (긴 것 먼저 정렬 → 부분 치환 방지)
     const ids = [];
@@ -9090,7 +9180,7 @@ async function _embedDaeModel(url, prefix) {
 
     console.log('[embed]', prefix, { geoms: geoms.length, libNodes: libNodes.length, sceneNodes: sceneNodes.length, unitScale });
     if (!geoms && !sceneNodes && !libNodes) return null;
-    return { geoms, mats, effs, imgs, libNodes, sceneNodes, unitScale };
+    return { geoms, mats, effs, imgs, libNodes, sceneNodes, unitScale, bbox };
   } catch(e) {
     console.warn('embed failed:', e);
     return null;
@@ -9238,23 +9328,27 @@ async function daeGenerate({ w, d, h, stair, memo }) {
             if (realPiece) {
               const prefix = `${pid}_`;
               const embedded = await _embedDaeModel(realPiece.url, prefix);
-              if (embedded) {
+              if (embedded && embedded.bbox) {
                 geoms    += embedded.geoms;
                 imgs     += embedded.imgs || '';
                 libNodes += embedded.libNodes || '';
                 mats     += embedded.mats;
                 effs     += embedded.effs;
                 const us = embedded.unitScale || 1.0;
-                const userScale = parseFloat(realPiece.scale || 1.0);
-                const finalScale = us * userScale;
-                const scaleTag = Math.abs(finalScale - 1.0) > 0.00001
-                  ? `<scale>${finalScale} ${finalScale} ${finalScale}</scale>` : '';
-                // 수직 조각(세로바)은 Z축 방향 — 회전 불필요 (모델이 Z방향으로 제작됐으면)
-                // 수평 조각(가로바)은 Y축 90도 회전으로 Z→X 방향 전환
-                const rotTag = isVertical ? '' : `<rotate>0 1 0 90</rotate>`;
+                // 모델 bbox를 슬롯에 중심 맞춰 끼움 (단위·스케일·위치·방향 자동 정렬)
+                //  수평슬롯: 길이축=X, Z중심=바닥+spec/2 / 수직슬롯: 길이축=Z, Z중심=바닥+len/2
+                const fit = _trussFitMatrix(embedded.bbox, {
+                  target:   isVertical ? 2 : 0,
+                  slotLen:  pc.length,
+                  spec:     trussSpec,
+                  cx:       rx_fb,
+                  cy:       ry,
+                  zCenter:  isVertical ? rz_fb + pc.length / 2 : rz_fb + trussSpec / 2,
+                });
+                const mtx = fit.map(n => (Math.abs(n) < 1e-12 ? 0 : n).toFixed(6)).join(' ');
                 barNodes += `<node id="${pid}" name="${pid}" type="NODE">
-                  <translate>${rx_fb.toFixed(3)} ${ry.toFixed(3)} ${rz_fb.toFixed(3)}</translate>
-                  ${rotTag}${scaleTag}
+                  <matrix>${mtx}</matrix>
+                  <scale>${us} ${us} ${us}</scale>
                   ${embedded.sceneNodes}
                 </node>`;
                 continue;
