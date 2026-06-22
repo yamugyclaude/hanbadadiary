@@ -1237,30 +1237,28 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
   /* ── 무대계산기 PC 2열 레이아웃 ── */
   .stagecalc-wrap { max-width: none; padding: 16px 24px env(safe-area-inset-bottom, 60px); }
-  /* 계산 탭: 좌측 컨트롤 360px, 다이어그램 나머지 전부 */
-  #sc-page-calc {
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 14px;
-    align-items: start;
-  }
-  .sc-calc-left { display: flex; flex-direction: column; gap: 12px; }
-  #sc-diagramCard { position: sticky; top: 8px; display: flex; flex-direction: column; }
+  /* 계산 탭: 전폭 단일 레이아웃 */
+  #sc-page-calc { display: block; }
+  /* 계산 탭 내부: 2열 그리드 (크기입력+다이어그램 / 결과+클램프 나란히) */
+  .sc-calc-left { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  #sc-sizeCard { grid-column: 1; }
+  #sc-diagramCard { grid-column: 2; grid-row: 1 / 3; position: sticky; top: 8px; }
+  #sc-resultCard { grid-column: 1; }
+  #sc-clampCard { grid-column: 1; }
+  .stagecalc-reset-btn { grid-column: 1; }
+  .sc-calc-left > .dae-export-btn { grid-column: 1; }
   /* 계산결과 5열 가로 배치 */
   #sc-resultCard .stagecalc-result-grid { grid-template-columns: repeat(5, 1fr); }
   #sc-resultCard .stagecalc-result-item { padding: 10px 12px; }
   #sc-resultCard .stagecalc-result-val { font-size: 22px; }
   /* 클램프 4열 가로 배치 */
-  .sc-clamp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .sc-clamp-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
-  .sc-clamp-total-item { border-color: var(--accent); background: var(--accent-dim, rgba(61,186,150,0.08)); }
-  .sc-clamp-total-item .stagecalc-clamp-val { color: var(--accent); }
-  /* 캔버스 내용 폭에 맞게 중앙 정렬 */
+  .sc-clamp-grid { grid-template-columns: repeat(4, 1fr); }
+  /* 캔버스 중앙 정렬 */
   #stagecalcCanvas { display: block; margin: 0 auto; max-width: 100%; }
-  /* 3D 도면 탭: 컨트롤 고정 300px, 평면도 나머지 전부 */
+  /* 3D 도면 탭: 컨트롤 좌측 280px + 평면도 우측 (평면도가 핵심) */
   #sc-page-3d {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 280px 1fr;
     gap: 14px;
     align-items: start;
   }
@@ -1270,8 +1268,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     grid-row: 1 / 12;
     position: sticky;
     top: 8px;
-    max-height: calc(100dvh - 100px);
-    overflow-y: auto;
   }
 
   /* ── 하단 닫기 버튼 — PC에서 불필요 ── */
@@ -1611,7 +1607,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-04</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-05</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1909,7 +1905,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
       <div class="sc-calc-left">
 
-      <div class="stagecalc-card">
+      <div class="stagecalc-card" id="sc-sizeCard">
         <div class="stagecalc-sec-label">무대 크기 (가로 1.8m × 세로 0.9m 기준)</div>
         <div class="stagecalc-input-row">
           <div class="stagecalc-field">
@@ -1996,8 +1992,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <button class="stagecalc-reset-btn" onclick="scReset()">초기화</button>
       <button class="dae-export-btn" style="margin-top:10px" onclick="scLinkTo3D()">🔗 3D 도면에 연동</button>
 
-      </div><!-- /sc-calc-left -->
-
       <div class="stagecalc-card" id="sc-diagramCard">
         <div class="stagecalc-sec-label">배치 다이어그램</div>
         <canvas id="stagecalcCanvas"></canvas>
@@ -2006,6 +2000,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#ea580c"></span>X대</span>
         </div>
       </div>
+
+      </div><!-- /sc-calc-left -->
 
       </div><!-- /sc-page-calc -->
 
