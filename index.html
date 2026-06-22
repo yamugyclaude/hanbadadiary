@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-20</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-21</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9103,10 +9103,10 @@ async function daeExport() {
 
 // 트러스 조각 배열 생성 헬퍼
 // 반환: [{type:'cube'|'0.5'|'1'|'1.5'|'2', offset, length}]
-function _buildTrussBar(sections) {
+function _buildTrussBar(sections, withCubes = true) {
   const pieces = [];
   let offset = 0;
-  pieces.push({type:'cube', offset, length:0.22}); offset += 0.22;
+  if (withCubes) { pieces.push({type:'cube', offset, length:0.22}); offset += 0.22; }
   ['2','1.5','1','0.5'].forEach(k => {
     const cnt = sections[k] || 0;
     const len = parseFloat(k);
@@ -9115,7 +9115,7 @@ function _buildTrussBar(sections) {
       offset += len;
     }
   });
-  pieces.push({type:'cube', offset, length:0.22}); offset += 0.22;
+  if (withCubes) { pieces.push({type:'cube', offset, length:0.22}); }
   return pieces;
 }
 
@@ -9179,12 +9179,14 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       if (hasSects) {
         const cx2 = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
         const cy2 = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3));
-        const iz2 = itemElev;
+        // 설치높이 기준 = 무대 높이 + 트러스 elevation 설정값
+        const iz2 = h + (t.elevation ?? 4.0);
         const trussSpec = specM;
 
         // 바(bar) 하나를 조각들로 내보내는 내부 헬퍼 — 상대좌표(부모 기준) 반환
-        const emitBar = async (barSections, relX, relY, relZ, isVertical, barLabel) => {
-          const pieces = _buildTrussBar(barSections);
+        // isVertical=true: 조각이 Z 방향(높이)으로 쌓임, withCubes=false: 세로바는 큐브 없음
+        const emitBar = async (barSections, relX, relY, relZ, isVertical, barLabel, withCubes = true) => {
+          const pieces = _buildTrussBar(barSections, withCubes);
           let barNodes = '';
           for (let pi = 0; pi < pieces.length; pi++) {
             const pc = pieces[pi];
@@ -9194,9 +9196,10 @@ async function daeGenerate({ w, d, h, stair, memo }) {
             // 원점 설정: 'start'이면 조각 시작점 기준, 기본은 중심 기준
             const originMode = pModel?.origin || 'center';
             const originOff = (originMode === 'start') ? 0 : pc.length / 2;
+            // 수평바: X 방향으로 조각 배치 / 수직바: Z 방향(높이)으로 조각 배치
             const rx = isVertical ? relX : relX + pc.offset + originOff;
-            const ry = isVertical ? relY - (pc.offset + originOff) : relY;
-            const rz = relZ;
+            const ry = relY;
+            const rz = isVertical ? relZ + pc.offset + originOff : relZ;
 
             if (pModel) {
               const prefix = `${pid}_`;
@@ -9211,7 +9214,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
                 const userScale = parseFloat(pModel.scale || 1.0);
                 const fs = us * userScale;
                 const scTag = Math.abs(fs - 1.0) > 0.00001 ? `<scale>${fs} ${fs} ${fs}</scale>` : '';
-                const rotTag = isVertical ? `<rotate>0 0 1 90</rotate>` : '';
+                // 수직바: Y축 -90° 회전 → 모델 길이 방향(X)을 Z축(높이)으로 정렬
+                const rotTag = isVertical ? `<rotate>0 1 0 -90</rotate>` : '';
                 barNodes += `<node id="${pid}" name="${pid}" type="NODE">
                   <translate>${rx.toFixed(3)} ${ry.toFixed(3)} ${rz.toFixed(3)}</translate>
                   ${rotTag}${scTag}${emb.sceneNodes}
@@ -9219,14 +9223,19 @@ async function daeGenerate({ w, d, h, stair, memo }) {
                 continue;
               }
             }
-            // 폴백: 박스
-            const pw = isVertical ? trussSpec : pc.length;
-            const pd2 = isVertical ? pc.length : trussSpec;
-            geoms += boxGeom(pid, pw, pd2, trussSpec);
+            // 폴백: 박스 — 수직바는 Z 방향으로 길이 적용
+            const pw  = trussSpec;
+            const pd2 = trussSpec;
+            const ph  = isVertical ? pc.length : trussSpec;
+            const bw2 = isVertical ? trussSpec : pc.length;
+            // 수평박스: X/Y 중심 기준, 수직박스: X/Y 중심 + Z는 조각 시작점 기준
+            const rx_fb = isVertical ? relX : relX + pc.offset + pc.length / 2;
+            const rz_fb = isVertical ? relZ + pc.offset : relZ;
+            geoms += boxGeom(pid, bw2, pd2, ph);
             mats  += `<material id="mat-${pid}"><instance_effect url="#eff-${pid}"/></material>`;
             effs  += `<effect id="eff-${pid}"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.24 0.36 0.49 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
             barNodes += `<node id="${pid}" name="${pid}" type="NODE">
-              <translate>${rx.toFixed(3)} ${ry.toFixed(3)} ${rz.toFixed(3)}</translate>
+              <translate>${rx_fb.toFixed(3)} ${ry.toFixed(3)} ${rz_fb.toFixed(3)}</translate>
               <instance_geometry url="#${pid}">
                 <bind_material><technique_common><instance_material symbol="mat-${pid}" target="#mat-${pid}"/></technique_common></bind_material>
               </instance_geometry>
@@ -9244,24 +9253,30 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         const trussName = `트러스_${i+1}`;
 
         // 트러스 전체를 부모 node로 그룹핑 — 스케치업에서 1개 오브젝트로 인식
+        // 구조: 직사각형 프레임 — 가로바(상하, 큐브 포함) + 세로바(좌우, 큐브 없음)
+        // 좌표계: X=가로, Y=무대 깊이, Z=높이 / iz2 = 프레임 하단
+        const cubeH = 0.22;
         let trussChildren = '';
-        // 각 바를 상대좌표(cx2,cy2,iz2 기준)로 배치
         if (hasH) {
-          const barY = hasV ? vSpan/2 : 0;
-          const hTopNodes = await emitBar(hS, -hSpan/2, barY, 0, false, 'hTop');
-          trussChildren += `<node id="truss${i}_hTop" name="상단H바" type="NODE">${hTopNodes}</node>`;
-        }
-        if (hasH && hasV) {
-          const hBotNodes = await emitBar(hS, -hSpan/2, -vSpan/2, 0, false, 'hBot');
+          // 하단 가로바: Z 중심 = cubeH/2 (큐브 포함, 프레임 아래)
+          const hBotNodes = await emitBar(hS, -hSpan/2, 0, cubeH / 2, false, 'hBot', true);
           trussChildren += `<node id="truss${i}_hBot" name="하단H바" type="NODE">${hBotNodes}</node>`;
         }
+        if (hasH && hasV) {
+          // 상단 가로바: Z 중심 = vSpan - cubeH/2 (큐브 포함, 프레임 위)
+          const hTopNodes = await emitBar(hS, -hSpan/2, 0, vSpan - cubeH / 2, false, 'hTop', true);
+          trussChildren += `<node id="truss${i}_hTop" name="상단H바" type="NODE">${hTopNodes}</node>`;
+        }
         if (hasV) {
-          const barX = hasH ? -hSpan/2 : 0;
-          const vLNodes = await emitBar(vS, barX, vSpan/2, 0, true, 'vL');
+          // 좌측 세로바: 큐브 없음, X = 왼쪽 큐브 중심, Z = cubeH 에서 시작
+          const vLX = hasH ? -hSpan / 2 + cubeH / 2 : 0;
+          const vLNodes = await emitBar(vS, vLX, 0, cubeH, true, 'vL', false);
           trussChildren += `<node id="truss${i}_vL" name="좌측V바" type="NODE">${vLNodes}</node>`;
         }
         if (hasV && hasH) {
-          const vRNodes = await emitBar(vS, hSpan/2, vSpan/2, 0, true, 'vR');
+          // 우측 세로바: 큐브 없음, X = 오른쪽 큐브 중심, Z = cubeH 에서 시작
+          const vRX = hSpan / 2 - cubeH / 2;
+          const vRNodes = await emitBar(vS, vRX, 0, cubeH, true, 'vR', false);
           trussChildren += `<node id="truss${i}_vR" name="우측V바" type="NODE">${vRNodes}</node>`;
         }
 
