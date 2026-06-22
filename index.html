@@ -1240,40 +1240,30 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   .theme-modal-sheet { border-radius: 16px !important; transform: scale(0.96) !important; max-width: 420px; }
   .theme-modal-overlay.show .theme-modal-sheet { transform: scale(1) !important; }
 
-  /* ── 무대계산기 PC 2열 레이아웃 ── */
+  /* ── 무대계산기 PC 레이아웃 — 단일 스크롤 ── */
   .stagecalc-wrap { max-width: none; padding: 16px 24px env(safe-area-inset-bottom, 60px); }
-  /* 계산 탭: 전폭 단일 레이아웃 */
-  #sc-page-calc { display: block; }
-  /* 계산 탭 내부: 2열 그리드 (크기입력+다이어그램 / 결과+클램프 나란히) */
-  .sc-calc-left { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-  #sc-sizeCard { grid-column: 1; }
-  #sc-diagramCard { grid-column: 2; grid-row: 1 / 3; position: sticky; top: 8px; }
-  #sc-resultCard { grid-column: 1; }
-  #sc-clampCard { grid-column: 1; }
-  .stagecalc-reset-btn { grid-column: 1; }
-  .sc-calc-left > .dae-export-btn { grid-column: 1; }
-  /* 계산결과 5열 가로 배치 */
+  /* 서브탭 PC에서 숨김 — 단일 스크롤 페이지 */
+  .sc-subtab-bar { display: none; }
+  /* 양쪽 탭 모두 표시 */
+  .sc-subpage { display: block !important; }
+  /* sc-calc-left 그리드 해제 — 단일 열 */
+  .sc-calc-left { display: block; }
+  /* 다이어그램 카드 — 전폭, static */
+  #sc-diagramCard { position: static; width: 100%; }
+  #stagecalcCanvas { display: block; margin: 0 auto; max-width: 100%; }
+  /* 계산결과 5열 한 줄 */
   #sc-resultCard .stagecalc-result-grid { grid-template-columns: repeat(5, 1fr); }
+  #sc-resultCard .stagecalc-result-grid > *:nth-child(5) { grid-column: auto; }
   #sc-resultCard .stagecalc-result-item { padding: 10px 12px; }
   #sc-resultCard .stagecalc-result-val { font-size: 22px; }
-  /* 클램프 4열 가로 배치 */
+  /* 클램프 4열 한 줄 */
   .sc-clamp-grid { grid-template-columns: repeat(4, 1fr); }
-  /* 캔버스 중앙 정렬 */
-  #stagecalcCanvas { display: block; margin: 0 auto; max-width: 100%; }
-  /* 3D 도면 탭: 컨트롤 좌측 280px + 평면도 우측 (평면도가 핵심) */
-  #sc-page-3d {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 14px;
-    align-items: start;
-  }
-  #sc-page-3d > * { grid-column: 1; }
-  #sc-page-3d > .dae-section:nth-child(2) {
-    grid-column: 2;
-    grid-row: 1 / 12;
-    position: sticky;
-    top: 8px;
-  }
+  /* 3D 탭 — 단일 열 */
+  #sc-page-3d { display: block; }
+  /* 무대평면도 SVG 전폭 */
+  #daeSVGWrap { width: 100%; min-height: 400px; }
+  /* 행사장위치 + dae업로드 나란히 */
+  .dae-location-and-upload { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
   /* ── 하단 닫기 버튼 — PC에서 불필요 ── */
   .modal-close-bar { display: none; }
@@ -1611,7 +1601,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-07</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-08</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1898,7 +1888,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         </div>
       </div>
 
-      <!-- 서브탭 -->
+      <!-- 서브탭 (모바일 전용 — PC에서 CSS로 숨김) -->
       <div class="sc-subtab-bar">
         <div class="sc-subtab active" id="sc-tab-calc" onclick="scSwitchTab('calc')">📐 계산</div>
         <div class="sc-subtab" id="sc-tab-3d" onclick="scSwitchTab('3d')">🏗️ 3D 도면</div>
@@ -1934,6 +1924,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               <button class="stagecalc-step-btn" onclick="scChangeN(1)">+</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="stagecalc-card" id="sc-diagramCard">
+        <div class="stagecalc-sec-label">배치 다이어그램</div>
+        <canvas id="stagecalcCanvas"></canvas>
+        <div class="stagecalc-legend">
+          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#16a34a;height:6px"></span>지지대</span>
+          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#ea580c"></span>X대</span>
         </div>
       </div>
 
@@ -1996,15 +1995,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <button class="stagecalc-reset-btn" onclick="scReset()">초기화</button>
       <button class="dae-export-btn" style="margin-top:10px" onclick="scLinkTo3D()">🔗 3D 도면에 연동</button>
 
-      <div class="stagecalc-card" id="sc-diagramCard">
-        <div class="stagecalc-sec-label">배치 다이어그램</div>
-        <canvas id="stagecalcCanvas"></canvas>
-        <div class="stagecalc-legend">
-          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#16a34a;height:6px"></span>지지대</span>
-          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#ea580c"></span>X대</span>
-        </div>
-      </div>
-
       </div><!-- /sc-calc-left -->
 
       </div><!-- /sc-page-calc -->
@@ -2012,7 +2002,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <!-- 3D 도면 탭 -->
       <div class="sc-subpage" id="sc-page-3d">
 
-        <!-- 무대 크기 -->
+        <!-- 무대 크기 + 높이 -->
         <div class="dae-section">
           <div class="dae-section-label">📐 무대 크기</div>
           <div class="dae-info-box" id="dae-stage-from-calc">
@@ -2021,21 +2011,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
           <input type="hidden" id="dae-w">
           <input type="hidden" id="dae-d">
-          <div class="dae-row">
-            <div class="dae-field"><label>높이 (m)</label><input type="number" id="dae-h" placeholder="1.0" step="0.1" min="0.1" value="1.0"></div>
-            <div class="dae-field"><label>계단 위치</label>
-              <select id="dae-stair">
-                <option value="none">없음</option>
-                <option value="front">앞면</option>
-                <option value="left">좌측</option>
-                <option value="right">우측</option>
-                <option value="both">좌우</option>
-              </select>
-            </div>
-          </div>
+          <div class="dae-field" style="max-width:180px"><label>높이 (m)</label><input type="number" id="dae-h" placeholder="1.0" step="0.1" min="0.1" value="1.0"></div>
+          <input type="hidden" id="dae-stair" value="none">
         </div>
 
-        <!-- 무대 평면도 -->
+        <!-- 무대 평면도 — 전폭 -->
         <div class="dae-section">
           <div class="dae-section-label">🗺️ 무대 평면도 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 빈 곳 클릭 → 장비 배치 / 장비 클릭 → 삭제</span></div>
           <div class="dae-svg-legend">
@@ -2044,85 +2024,80 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <button class="dae-leg-clear" onclick="daePlacements=[];daeNextId=1;daeRenderSVG();showToast('배치 초기화')">🗑️ 초기화</button>
           </div>
           <div id="daeSVGWrap"></div>
-          <!-- 배치 목록 -->
           <div id="daePlacedList" class="dae-placed-list" style="display:none">
             <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:12px 0 6px">배치된 항목</div>
             <div id="daePlacedItems"></div>
           </div>
         </div>
 
-        <!-- 행사장 위치 -->
-        <div class="dae-section">
-          <div class="dae-section-label">📍 행사장 위치</div>
-          <div class="dae-location-tabs">
-            <div class="dae-loc-tab active" id="dlt-empty" onclick="daeLocTab('empty')">빈 공간</div>
-            <div class="dae-loc-tab" id="dlt-address" onclick="daeLocTab('address')">주소 입력</div>
-            <div class="dae-loc-tab" id="dlt-gps" onclick="daeLocTab('gps')">GPS 좌표</div>
-            <div class="dae-loc-tab" id="dlt-photo" onclick="daeLocTab('photo')">도면/사진</div>
-          </div>
-          <div class="dae-loc-content active" id="dlc-empty">
-            <div style="font-size:12px;color:var(--text-muted);padding:8px 0">위치 정보 없이 무대 구조물만 생성합니다.</div>
-          </div>
-          <div class="dae-loc-content" id="dlc-address">
-            <div class="dae-field"><label>행사장 주소</label><input type="text" id="dae-address" placeholder="예) 서울시 마포구 상암동 월드컵공원"></div>
-          </div>
-          <div class="dae-loc-content" id="dlc-gps">
-            <div class="dae-row">
-              <div class="dae-field"><label>위도 (Lat)</label><input type="number" id="dae-lat" placeholder="37.5665" step="0.000001"></div>
-              <div class="dae-field"><label>경도 (Lng)</label><input type="number" id="dae-lng" placeholder="126.9780" step="0.000001"></div>
+        <!-- 행사장 위치 + 3D 모델 라이브러리 나란히 -->
+        <div class="dae-location-and-upload">
+
+          <!-- 행사장 위치 -->
+          <div class="dae-section">
+            <div class="dae-section-label">📍 행사장 위치</div>
+            <div class="dae-location-tabs">
+              <div class="dae-loc-tab active" id="dlt-empty" onclick="daeLocTab('empty')">빈 공간</div>
+              <div class="dae-loc-tab" id="dlt-address" onclick="daeLocTab('address')">주소 입력</div>
+              <div class="dae-loc-tab" id="dlt-gps" onclick="daeLocTab('gps')">GPS 좌표</div>
+              <div class="dae-loc-tab" id="dlt-photo" onclick="daeLocTab('photo')">도면/사진</div>
             </div>
-          </div>
-          <div class="dae-loc-content" id="dlc-photo">
-            <div class="dae-field">
-              <label>행사장 도면 또는 사진</label>
-              <div style="border:1.5px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;cursor:pointer" onclick="document.getElementById('dae-photo-input').click()">
-                📁 파일 선택 (jpg/png/pdf)
+            <div class="dae-loc-content active" id="dlc-empty">
+              <div style="font-size:12px;color:var(--text-muted);padding:8px 0">위치 정보 없이 무대 구조물만 생성합니다.</div>
+            </div>
+            <div class="dae-loc-content" id="dlc-address">
+              <div class="dae-field"><label>행사장 주소</label><input type="text" id="dae-address" placeholder="예) 서울시 마포구 상암동 월드컵공원"></div>
+            </div>
+            <div class="dae-loc-content" id="dlc-gps">
+              <div class="dae-row">
+                <div class="dae-field"><label>위도 (Lat)</label><input type="number" id="dae-lat" placeholder="37.5665" step="0.000001"></div>
+                <div class="dae-field"><label>경도 (Lng)</label><input type="number" id="dae-lng" placeholder="126.9780" step="0.000001"></div>
               </div>
-              <input type="file" id="dae-photo-input" accept="image/*,.pdf" style="display:none" onchange="daePhotoSelected(this)">
-              <div id="dae-photo-name" style="font-size:12px;color:var(--accent);margin-top:6px"></div>
+            </div>
+            <div class="dae-loc-content" id="dlc-photo">
+              <div class="dae-field">
+                <label>행사장 도면 또는 사진</label>
+                <div style="border:1.5px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;cursor:pointer" onclick="document.getElementById('dae-photo-input').click()">
+                  📁 파일 선택 (jpg/png/pdf)
+                </div>
+                <input type="file" id="dae-photo-input" accept="image/*,.pdf" style="display:none" onchange="daePhotoSelected(this)">
+                <div id="dae-photo-name" style="font-size:12px;color:var(--accent);margin-top:6px"></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- 3D 모델 라이브러리 -->
-        <div class="dae-section">
-          <div class="dae-section-label">🗂️ 3D 모델 라이브러리 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 장비 타입별 실제 .dae 모델 등록</span></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
-            장비 타입 선택 후 <b>.dae 파일</b>을 업로드하면 내보내기 시 박스 대신 실제 3D 형상으로 포함됩니다.<br>
-            <span style="color:#f59e0b">.skp → app.sketchup.com 열기 → 파일 → 다운로드 → Collada(.dae)</span>
+          <!-- 3D 모델 라이브러리 -->
+          <div class="dae-section">
+            <div class="dae-section-label">🗂️ 3D 모델 라이브러리 <span style="font-weight:400;font-size:10px;color:var(--text-muted)">— 장비 타입별 실제 .dae 모델 등록</span></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.6">
+              장비 타입 선택 후 <b>.dae 파일</b>을 업로드하면 내보내기 시 박스 대신 실제 3D 형상으로 포함됩니다.<br>
+              <span style="color:#f59e0b">.skp → app.sketchup.com 열기 → 파일 → 다운로드 → Collada(.dae)</span>
+            </div>
+            <div class="lib3d-type-bar">
+              <select id="lib3d-type-sel" class="lib3d-type-sel">
+                <option value="speaker">메인스피커</option>
+                <option value="sub">서브우퍼</option>
+                <option value="monitor" selected>모니터</option>
+                <option value="console">콘솔</option>
+                <option value="light">조명/LED</option>
+                <option value="stair">계단</option>
+                <option value="tent">텐트</option>
+                <option value="power">전기</option>
+                <option value="mic">마이크스탠드</option>
+              </select>
+              <label class="lib3d-upload-btn">
+                ＋ .dae 업로드
+                <input type="file" id="lib3d-file-input" accept=".dae,.DAE" style="display:none" onchange="lib3dUpload(this)">
+              </label>
+            </div>
+            <div id="lib3d-list"><div class="lib3d-empty">등록된 3D 모델이 없습니다</div></div>
+            <div id="lib3d-bucket-warn" class="lib3d-warn-box" style="display:none">
+              ⚠ Supabase Storage 'skp-library' 버킷이 없거나 업로드 권한이 없습니다.<br>
+              대시보드 → Storage → New Bucket → Name: <b>skp-library</b> / Public: <b>ON</b>
+            </div>
           </div>
-          <div class="lib3d-type-bar">
-            <select id="lib3d-type-sel" class="lib3d-type-sel">
-              <option value="speaker">메인스피커</option>
-              <option value="sub">서브우퍼</option>
-              <option value="monitor" selected>모니터</option>
-              <option value="console">콘솔</option>
-              <option value="light">조명/LED</option>
-              <option value="stair">계단</option>
-              <option value="tent">텐트</option>
-              <option value="power">전기</option>
-              <option value="mic">마이크스탠드</option>
-            </select>
-            <label class="lib3d-upload-btn">
-              ＋ .dae 업로드
-              <input type="file" id="lib3d-file-input" accept=".dae,.DAE" style="display:none" onchange="lib3dUpload(this)">
-            </label>
-          </div>
-          <div id="lib3d-list"><div class="lib3d-empty">등록된 3D 모델이 없습니다</div></div>
-          <div id="lib3d-bucket-warn" class="lib3d-warn-box" style="display:none">
-            ⚠ Supabase Storage 'skp-library' 버킷이 없거나 업로드 권한이 없습니다.<br>
-            대시보드 → Storage → New Bucket → Name: <b>skp-library</b> / Public: <b>ON</b>
-          </div>
-        </div>
 
-        <!-- 메모 -->
-        <div class="dae-section">
-          <div class="dae-section-label">📝 배치 메모</div>
-          <div class="dae-field">
-            <label>장비 배치 지시사항</label>
-            <textarea id="dae-memo" rows="4" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="예) 좌우 메인스피커 2조, 무대 앞 서브우퍼 4개, 관객석 15m 지점 콘솔"></textarea>
-          </div>
-        </div>
+        </div><!-- /dae-location-and-upload -->
 
         <!-- 트러스 창고 재고 -->
         <div class="dae-section">
