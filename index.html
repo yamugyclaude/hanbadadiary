@@ -1601,7 +1601,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-10</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-11</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2655,7 +2655,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <!-- ↔ 가로 섹션 구성 -->
     <div class="truss-cfg-section">
       <div class="truss-cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
-        <span>↔ 가로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 무대 가로 방향 · 상하 대칭</span></span>
+        <span>↔ 가로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 상단 바 + 하단 바 <b style="color:#3dba96">× 2줄 쌍 설치</b></span></span>
         <span class="truss-total-val" id="hTotalSpan" style="font-size:13px">—</span>
       </div>
       <div class="truss-section-grid">
@@ -2730,7 +2730,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <!-- ↕ 세로 섹션 구성 -->
     <div class="truss-cfg-section">
       <div class="truss-cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
-        <span>↕ 세로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 무대 세로 방향 · 좌우 대칭</span></span>
+        <span>↕ 세로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 좌측 바 + 우측 바 <b style="color:#3dba96">× 2줄 쌍 설치</b></span></span>
         <span class="truss-total-val" id="vTotalSpan" style="font-size:13px">—</span>
       </div>
       <div class="truss-section-grid">
@@ -8136,9 +8136,9 @@ function daeGetInventoryUsed() {
     if (p.type === 'truss' && p.truss) {
       const t = p.truss;
       if (t.hSections || t.vSections) {
-        // 신형 포맷
-        if (t.hSections) ['0.5','1','1.5','2'].forEach(k => { used[k] += (t.hSections[k]||0); });
-        if (t.vSections) ['0.5','1','1.5','2'].forEach(k => { used[k] += (t.vSections[k]||0); });
+        // 신형 포맷 — 가로: 상단+하단 ×2, 세로: 좌측+우측 ×2
+        if (t.hSections) ['0.5','1','1.5','2'].forEach(k => { used[k] += (t.hSections[k]||0) * 2; });
+        if (t.vSections) ['0.5','1','1.5','2'].forEach(k => { used[k] += (t.vSections[k]||0) * 2; });
         const hasH = t.hSections && Object.values(t.hSections).some(v=>v>0);
         const hasV = t.vSections && Object.values(t.vSections).some(v=>v>0);
         if (hasH && hasV) used.corner += 4; // 사각 프레임: 코너 4개
@@ -8319,7 +8319,8 @@ function _updateTrussUI() {
         if (inv === 0) { invEl.textContent = ''; invEl.className = 'truss-sect-inv'; return; }
         const available = inv - (used[k] || 0);
         const ok = available >= cnt;
-        invEl.textContent = cnt > 0 ? `${cnt}개 / 남은 ${available}개` : `재고 ${inv}개`;
+        // 쌍 설치: 입력값 cnt는 한쪽 개수, 실제 소비는 ×2
+        invEl.textContent = cnt > 0 ? `×2 = 실제 ${cnt*2}개 / 남은 ${available}개` : `재고 ${inv}개`;
         invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
       }
     });
