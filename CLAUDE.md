@@ -262,6 +262,78 @@ anon 키로는 버킷 생성이 불가능하여 코드로 자동화할 수 없�
 
 ---
 
+## 트러스 .dae 조립 구현 현황 (2026-06-22 기준, v0622-25)
+
+### 완성된 구조
+
+트러스 설정 → .dae 내보내기 시 **직사각형 게이트 프레임** 형태로 조립됨:
+
+```
+[큐브]━━━━━[가로바]━━━━━[큐브]   ← 상단 (hTop)
+  ┃                         ┃
+[세로바]               [세로바]   ← 좌(vL) / 우(vR), 큐브 없음
+  ┃                         ┃
+[큐브]━━━━━[가로바]━━━━━[큐브]   ← 하단 (hBot)
+
+전체 프레임이 iz2 = 무대높이(h) + 설치높이(elevation) 에 위치
+```
+
+### 핵심 함수 위치 (index.html)
+
+| 함수 | 라인 | 역할 |
+|---|---|---|
+| `_buildTrussBar(sections, withCubes=true)` | ~9104 | 조각 배열 생성. 가로바=큐브포함, 세로바=큐브없음 |
+| `emitBar(barSections, relX, relY, relZ, isVertical, barLabel, withCubes=true)` | ~9188 | 박스 XML 생성. 수평/수직 방향 처리 |
+| `daeGenerate({w, d, h, stair, memo})` | ~9060 | 전체 .dae 파일 생성 |
+
+### emitBar 좌표 계산 규칙
+
+```js
+// 수평바 조각: X 방향으로 배치
+rx_fb = relX + pc.offset + pc.length / 2   // X 중심
+rz_fb = relZ                                // Z 일정
+
+// 수직바 조각: Z 방향으로 배치
+rx_fb = relX                                // X 일정
+rz_fb = relZ + pc.offset + pc.length / 2   // Z 중심 (offset+length/2)
+
+// 박스 크기
+ph  = isVertical ? pc.length : trussSpec   // 높이
+bw2 = isVertical ? trussSpec : pc.length   // 가로 길이
+```
+
+### 배치 좌표 (daeGenerate 내부 ~9233)
+
+```js
+const cubeH = 0.22;
+const iz2   = h + (t.elevation ?? 4.0);      // 프레임 하단 Z (무대높이+설치높이)
+const hSpan = t.hTotalSpan || 0;             // 큐브 포함 가로 전체 길이
+const vSpan = t.vTotalSpan || 0;             // 큐브 포함 세로 전체 높이
+
+emitBar(hS, -hSpan/2, 0, cubeH/2,          false, 'hBot', true)   // 하단 가로바
+emitBar(hS, -hSpan/2, 0, vSpan-cubeH/2,    false, 'hTop', true)   // 상단 가로바
+emitBar(vS, -hSpan/2+cubeH/2, 0, cubeH,    true,  'vL',  false)   // 좌측 세로바
+emitBar(vS,  hSpan/2-cubeH/2, 0, cubeH,    true,  'vR',  false)   // 우측 세로바
+```
+
+### 중요 설계 결정
+
+- **3D 모델 임베드 사용 안 함**: SketchUp .dae 파일은 world position이 내장되어 좌표 충돌 발생 → 박스 폴백 전용
+- `_embedDaeModel()` 함수는 현재 원본 상태 유지 (트러스에는 미사용)
+- 가로바 박스에 `<rotate>0 1 0 90</rotate>` 적용으로 수평 방향 배치
+
+### 버그 수정 이력
+
+| 버전 | 수정 |
+|---|---|
+| v0622-21 | 세로바 Y→Z축, 큐브 중복 제거(`withCubes`), `iz2 = h + elevation` |
+| v0622-22 | 가로바 `rotate 0 1 0 90`, 세로바 회전 제거 |
+| v0622-23 | `_embedDaeModel` 위치 초기화 시도 (실패, 다음 버전에서 원복) |
+| v0622-24 | 3D 모델 임베드 제거 → 박스 전용 |
+| v0622-25 | 수직바 `rz_fb = relZ+offset+length/2` (중심점 수정, 겹침 해소) |
+
+---
+
 ```
 저장/변경
   → localStorage 즉시 업데이트
@@ -338,3 +410,7 @@ claude
 | 2026-06-21 | 행사일지 사진 저장 방식 변경: base64 → Supabase Storage URL |
 | 2026-06-21 | `uploadPhotoToStorage`, `deletePhotosFromStorage` 함수 신설 |
 | 2026-06-21 | 일지 삭제 시 Storage 파일도 함께 삭제, 이전 base64 데이터 자동 마이그레이션 |
+| 2026-06-22 | 트러스 .dae 조립 구조 구현 — 직사각형 게이트 프레임 (가로바+큐브, 세로바) |
+| 2026-06-22 | `_buildTrussBar(withCubes)`, `emitBar(isVertical, withCubes)` 구현 |
+| 2026-06-22 | 3D 모델 임베드 제거 → 박스 전용 (좌표계 충돌 문제) |
+| 2026-06-22 | 수직바 Z 중심점 수정 (겹침 해소, v0622-25) |
