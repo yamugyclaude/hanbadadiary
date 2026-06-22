@@ -1392,6 +1392,17 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .truss-inv-rem { font-size:10px; margin-top:4px; min-height:14px; }
 .truss-inv-rem.ok { color:#3dba96; }
 .truss-inv-rem.warn { color:#e74c3c; }
+/* 트러스 전광판 */
+.truss-scoreboard { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; margin-top:8px; }
+.truss-sb-item { background:#0d1117; border:1px solid var(--border); border-radius:12px; padding:12px 10px; text-align:center; transition:border-color 0.2s; }
+.truss-sb-item.active { border-color:#3dba96; }
+.truss-sb-item.over { border-color:#e74c3c; }
+.truss-sb-label { font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:8px; letter-spacing:0.04em; }
+.truss-sb-display { display:flex; align-items:center; justify-content:center; gap:6px; }
+.truss-sb-btn { width:32px; height:32px; border-radius:8px; border:1px solid #2a3a4a; background:#1a2535; color:#7cb9e8; font-size:20px; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center; font-weight:700; transition:background 0.1s,transform 0.08s; user-select:none; }
+.truss-sb-btn:active { background:#253545; transform:scale(0.9); }
+.truss-sb-num { min-width:48px; text-align:center; font-size:36px; font-weight:900; color:#e2f0ff; font-family:'Courier New',monospace; line-height:1; letter-spacing:-1px; text-shadow:0 0 10px rgba(124,185,232,0.4); }
+.truss-sb-used { font-size:10px; margin-top:6px; min-height:14px; color:var(--text-muted); }
 /* 트러스 미리보기 + 무대 경고 */
 .truss-preview-wrap { background:#09091a; border-radius:12px; padding:14px 14px 8px; margin:8px 0; }
 .truss-stage-badge { font-size:12px; padding:8px 13px; border-radius:9px; margin-top:6px; display:none; }
@@ -1601,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-12</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-13</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2107,53 +2118,51 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <!-- 트러스 창고 재고 -->
         <div class="dae-section">
           <div class="dae-section-label">🏭 트러스 창고 재고</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">창고에 있는 트러스 수량을 입력하세요. 배치할 때 남은 재고가 표시됩니다.</div>
-          <div class="truss-inv-grid">
-            <div class="truss-inv-item">
-              <div class="truss-inv-label">0.5m 섹션</div>
-              <div class="truss-inv-stepper">
-                <button onclick="_adjInv('0.5',-1)">−</button>
-                <span class="truss-inv-val" id="tinv-0.5">0</span>
-                <button onclick="_adjInv('0.5',1)">+</button>
+          <div class="truss-scoreboard">
+            <div class="truss-sb-item" id="tsb-0.5">
+              <div class="truss-sb-label">0.5m</div>
+              <div class="truss-sb-display">
+                <button class="truss-sb-btn" onclick="_adjInv('0.5',-1)">−</button>
+                <div class="truss-sb-num" id="tinv-0.5">0</div>
+                <button class="truss-sb-btn" onclick="_adjInv('0.5',1)">+</button>
               </div>
-              <div class="truss-inv-rem" id="tinv-rem-0.5"></div>
+              <div class="truss-sb-used" id="tinv-rem-0.5"></div>
             </div>
-            <div class="truss-inv-item">
-              <div class="truss-inv-label">1m 섹션</div>
-              <div class="truss-inv-stepper">
-                <button onclick="_adjInv('1',-1)">−</button>
-                <span class="truss-inv-val" id="tinv-1">0</span>
-                <button onclick="_adjInv('1',1)">+</button>
+            <div class="truss-sb-item" id="tsb-1">
+              <div class="truss-sb-label">1m</div>
+              <div class="truss-sb-display">
+                <button class="truss-sb-btn" onclick="_adjInv('1',-1)">−</button>
+                <div class="truss-sb-num" id="tinv-1">0</div>
+                <button class="truss-sb-btn" onclick="_adjInv('1',1)">+</button>
               </div>
-              <div class="truss-inv-rem" id="tinv-rem-1"></div>
+              <div class="truss-sb-used" id="tinv-rem-1"></div>
             </div>
-            <div class="truss-inv-item">
-              <div class="truss-inv-label">1.5m 섹션</div>
-              <div class="truss-inv-stepper">
-                <button onclick="_adjInv('1.5',-1)">−</button>
-                <span class="truss-inv-val" id="tinv-1.5">0</span>
-                <button onclick="_adjInv('1.5',1)">+</button>
+            <div class="truss-sb-item" id="tsb-1.5">
+              <div class="truss-sb-label">1.5m</div>
+              <div class="truss-sb-display">
+                <button class="truss-sb-btn" onclick="_adjInv('1.5',-1)">−</button>
+                <div class="truss-sb-num" id="tinv-1.5">0</div>
+                <button class="truss-sb-btn" onclick="_adjInv('1.5',1)">+</button>
               </div>
-              <div class="truss-inv-rem" id="tinv-rem-1.5"></div>
+              <div class="truss-sb-used" id="tinv-rem-1.5"></div>
             </div>
-            <div class="truss-inv-item">
-              <div class="truss-inv-label">2m 섹션</div>
-              <div class="truss-inv-stepper">
-                <button onclick="_adjInv('2',-1)">−</button>
-                <span class="truss-inv-val" id="tinv-2">0</span>
-                <button onclick="_adjInv('2',1)">+</button>
+            <div class="truss-sb-item" id="tsb-2">
+              <div class="truss-sb-label">2m</div>
+              <div class="truss-sb-display">
+                <button class="truss-sb-btn" onclick="_adjInv('2',-1)">−</button>
+                <div class="truss-sb-num" id="tinv-2">0</div>
+                <button class="truss-sb-btn" onclick="_adjInv('2',1)">+</button>
               </div>
-              <div class="truss-inv-rem" id="tinv-rem-2"></div>
+              <div class="truss-sb-used" id="tinv-rem-2"></div>
             </div>
-            <div class="truss-inv-item">
-              <div class="truss-inv-label">큐브 (0.22m) <span style="color:#f59e0b">★</span></div>
-              <div class="truss-inv-stepper">
-                <button onclick="_adjInv('corner',-1)">−</button>
-                <span class="truss-inv-val" id="tinv-corner">0</span>
-                <button onclick="_adjInv('corner',1)">+</button>
+            <div class="truss-sb-item" id="tsb-corner">
+              <div class="truss-sb-label">큐브 <span style="color:#f59e0b;font-size:9px">×4/프레임</span></div>
+              <div class="truss-sb-display">
+                <button class="truss-sb-btn" onclick="_adjInv('corner',-1)">−</button>
+                <div class="truss-sb-num" id="tinv-corner">0</div>
+                <button class="truss-sb-btn" onclick="_adjInv('corner',1)">+</button>
               </div>
-              <div style="font-size:9px;color:var(--text-muted);margin-top:3px">사각프레임 1개당 4개 소비</div>
-              <div class="truss-inv-rem" id="tinv-rem-corner"></div>
+              <div class="truss-sb-used" id="tinv-rem-corner"></div>
             </div>
           </div>
         </div>
@@ -8165,13 +8174,17 @@ function _updateInvRemainders() {
   const used = daeGetInventoryUsed();
   ['0.5', '1', '1.5', '2', 'corner'].forEach(t => {
     const remEl = document.getElementById(`tinv-rem-${t}`);
+    const sbItem = document.getElementById(`tsb-${t}`);
     const inv = trussInventory[t] || 0;
     const u = used[t] || 0;
     const rem = inv - u;
     if (remEl) {
-      if (inv === 0) { remEl.textContent = ''; remEl.className = 'truss-inv-rem'; return; }
-      remEl.textContent = `남은 ${rem}/${inv}개`;
-      remEl.className = 'truss-inv-rem ' + (rem < 0 ? 'warn' : 'ok');
+      if (u === 0) { remEl.textContent = ''; }
+      else { remEl.textContent = `사용 ${u}개`; }
+    }
+    if (sbItem) {
+      sbItem.classList.toggle('active', inv > 0 && rem >= 0);
+      sbItem.classList.toggle('over', rem < 0);
     }
   });
 
