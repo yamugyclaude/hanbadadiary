@@ -1601,7 +1601,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-09</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-10</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2150,6 +2150,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               <div style="font-size:9px;color:var(--text-muted);margin-top:3px">사각프레임 1개당 4개 소비</div>
               <div class="truss-inv-rem" id="tinv-rem-corner"></div>
             </div>
+          </div>
+          <!-- 사용 현황 요약 -->
+          <div id="trussUsageSummary" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px">
+            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">배치된 트러스 부품 합계</div>
+            <div id="trussUsageRows" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px"></div>
           </div>
         </div>
 
@@ -8169,6 +8174,25 @@ function _updateInvRemainders() {
       remEl.className = 'truss-inv-rem ' + (rem < 0 ? 'warn' : 'ok');
     }
   });
+
+  // 사용 현황 요약
+  const sumEl = document.getElementById('trussUsageSummary');
+  const rowsEl = document.getElementById('trussUsageRows');
+  if (!sumEl || !rowsEl) return;
+  const total = Object.values(used).reduce((a, b) => a + b, 0);
+  if (total === 0) { sumEl.style.display = 'none'; return; }
+  sumEl.style.display = '';
+  const labels = {'0.5':'0.5m 섹션','1':'1m 섹션','1.5':'1.5m 섹션','2':'2m 섹션','corner':'큐브 (0.22m)'};
+  rowsEl.innerHTML = Object.entries(labels).map(([k, label]) => {
+    const u = used[k] || 0;
+    if (u === 0) return '';
+    const inv = trussInventory[k] || 0;
+    const short = inv > 0 && (inv - u) < 0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0">
+      <span style="color:var(--text-muted)">${label}</span>
+      <span style="font-weight:700;color:${short?'#e74c3c':'var(--text)'}">${u}개${short?' ⚠':''}</span>
+    </div>`;
+  }).join('');
 }
 
 // ── 트러스 설정 ──
