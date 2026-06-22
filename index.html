@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-18</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-19</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -8827,12 +8827,11 @@ async function lib3dUpload(input) {
       const text = await file.text();
       autoDims = lib3dExtractDims(text);
     } catch(e) {}
-    // 같은 타입 기존 모델 비활성화
-    lib3dModels.forEach(x => { if (x.type === type) x.active = false; });
+    // 같은 타입 기존 모델 교체 (타입당 1개 유지)
+    lib3dModels = lib3dModels.filter(x => x.type !== type);
     const entry = {
       id, type, typeName, name: file.name.replace(/\.dae$/i, ''),
       url, path, size: file.size, uploaded: new Date().toISOString().slice(0,10),
-      active: true,
     };
     if (autoDims) { entry.rw = autoDims.rw; entry.rd = autoDims.rd; entry.rh = autoDims.rh; }
     lib3dModels.push(entry);
@@ -8881,7 +8880,8 @@ async function lib3dDelete(id) {
 }
 
 function lib3dGetActive(type) {
-  return lib3dModels.find(m => m.type === type && m.active) || null;
+  // 등록된 모델은 항상 적용 — active 구분 없음
+  return lib3dModels.find(m => m.type === type) || null;
 }
 
 function lib3dRenderStatus() {
@@ -8890,10 +8890,9 @@ function lib3dRenderStatus() {
   let html = '';
   const renderRow = (t, label, deletable) => {
     const registered = lib3dModels.find(m => m.type === t);
-    const active = lib3dModels.find(m => m.type === t && m.active);
-    const dot = active ? '🟢' : registered ? '🟡' : '⬜';
-    const status = active ? '적용중' : registered ? '등록됨' : '미등록';
-    const col = active ? '#22c55e' : registered ? '#f59e0b' : 'var(--text-muted)';
+    const dot = registered ? '🟢' : '⬜';
+    const status = registered ? '✓ 등록됨' : '미등록';
+    const col = registered ? '#22c55e' : 'var(--text-muted)';
     const delBtn = deletable ? `<button onclick="lib3dDeleteCustomType('${t}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:0 2px" title="삭제">✕</button>` : '';
     return `<div style="display:flex;align-items:center;gap:4px;font-size:11px">
       <span>${dot}</span>
@@ -8943,7 +8942,7 @@ function lib3dRender() {
       <div class="lib3d-item-info">
         <div class="lib3d-item-name">${m.name}</div>
         <div class="lib3d-item-meta">${m.typeName} · ${kb}KB · ${m.uploaded}</div>
-        <span class="lib3d-item-tag${isOn?' active':''}">${isOn?'✓ 내보내기 적용':'미적용'}</span>
+        <span class="lib3d-item-tag active">✓ 항상 적용</span>
         <!-- 치수 표시 + 수정 -->
         <div style="margin-top:6px;font-size:11px">${dimLabel}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap">
@@ -8965,7 +8964,6 @@ function lib3dRender() {
         </div>
       </div>
       <div class="lib3d-item-btns">
-        <button class="set-btn${isOn?' on':''}" onclick="lib3dToggleActive('${m.id}')">${isOn?'적용중':'적용'}</button>
         <button onclick="lib3dDelete('${m.id}')">삭제</button>
       </div>
     </div>`;
@@ -9163,8 +9161,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       rh = specM;
       itemElev = t.elevation ?? 4.0;
 
-      // 트러스 조각별 조립: hSections/vSections가 있고 모델이 하나라도 등록된 경우
-      const hasSects = t.hSections || t.vSections;
+      // 트러스 조각별 조립: hSpan/vSpan이 실제로 있는 경우만
+      const hasSects = ((t.hTotalSpan||0) > 0.01) || ((t.vTotalSpan||0) > 0.01);
       if (hasSects) {
         const cx2 = parseFloat((p.x - DAE_MARGIN - hw).toFixed(3));
         const cy2 = parseFloat((hd - (p.y - DAE_MARGIN)).toFixed(3));
