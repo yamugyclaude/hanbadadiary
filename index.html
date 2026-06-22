@@ -1601,7 +1601,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-11</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-12</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2028,6 +2028,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin:12px 0 6px">배치된 항목</div>
             <div id="daePlacedItems"></div>
           </div>
+          <!-- 트러스 부품 사용 현황 — 평면도 바로 아래 -->
+          <div id="trussUsageSummary" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px">
+            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🔩 배치된 트러스 부품 합계</div>
+            <div id="trussUsageRows" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px 16px"></div>
+          </div>
         </div>
 
         <!-- 행사장 위치 + 3D 모델 라이브러리 나란히 -->
@@ -2150,11 +2155,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               <div style="font-size:9px;color:var(--text-muted);margin-top:3px">사각프레임 1개당 4개 소비</div>
               <div class="truss-inv-rem" id="tinv-rem-corner"></div>
             </div>
-          </div>
-          <!-- 사용 현황 요약 -->
-          <div id="trussUsageSummary" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px">
-            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">배치된 트러스 부품 합계</div>
-            <div id="trussUsageRows" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px"></div>
           </div>
         </div>
 
