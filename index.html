@@ -1237,15 +1237,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
   /* ── 무대계산기 PC 2열 레이아웃 ── */
   .stagecalc-wrap { max-width: none; padding: 16px 24px env(safe-area-inset-bottom, 60px); }
-  /* 계산 탭: 컨트롤 고정 360px, 다이어그램 나머지 전부 */
+  /* 계산 탭: 좌측 래퍼 360px 고정, 다이어그램 나머지 전부 */
   #sc-page-calc {
     display: grid;
     grid-template-columns: 360px 1fr;
     gap: 14px;
     align-items: start;
   }
-  #sc-page-calc > * { grid-column: 1; }
-  #sc-diagramCard { grid-column: 2; grid-row: 1 / 6; position: sticky; top: 8px; }
+  .sc-calc-left { display: flex; flex-direction: column; gap: 14px; }
+  #sc-diagramCard { position: sticky; top: 8px; }
   /* 3D 도면 탭: 컨트롤 고정 300px, 평면도 나머지 전부 */
   #sc-page-3d {
     display: grid;
@@ -1595,7 +1595,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-02</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-03</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1891,6 +1891,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <!-- 계산 탭 -->
       <div class="sc-subpage active" id="sc-page-calc">
 
+      <div class="sc-calc-left">
+
       <div class="stagecalc-card">
         <div class="stagecalc-sec-label">무대 크기 (가로 1.8m × 세로 0.9m 기준)</div>
         <div class="stagecalc-input-row">
@@ -1984,6 +1986,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
       <button class="stagecalc-reset-btn" onclick="scReset()">초기화</button>
       <button class="dae-export-btn" style="margin-top:10px" onclick="scLinkTo3D()">🔗 3D 도면에 연동</button>
+
+      </div><!-- /sc-calc-left -->
 
       </div><!-- /sc-page-calc -->
 
