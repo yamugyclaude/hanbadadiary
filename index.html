@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-21</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-22</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9214,8 +9214,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
                 const userScale = parseFloat(pModel.scale || 1.0);
                 const fs = us * userScale;
                 const scTag = Math.abs(fs - 1.0) > 0.00001 ? `<scale>${fs} ${fs} ${fs}</scale>` : '';
-                // 수직바: Y축 -90° 회전 → 모델 길이 방향(X)을 Z축(높이)으로 정렬
-                const rotTag = isVertical ? `<rotate>0 1 0 -90</rotate>` : '';
+                // 모델 길이가 Z축 기준 → 수평바: Z→X 회전(+90°) / 수직바: 회전 불필요
+                const rotTag = isVertical ? `` : `<rotate>0 1 0 90</rotate>`;
                 barNodes += `<node id="${pid}" name="${pid}" type="NODE">
                   <translate>${rx.toFixed(3)} ${ry.toFixed(3)} ${rz.toFixed(3)}</translate>
                   ${rotTag}${scTag}${emb.sceneNodes}
