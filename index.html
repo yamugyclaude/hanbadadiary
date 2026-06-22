@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-23</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-24</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9050,11 +9050,7 @@ async function _embedDaeModel(url, prefix) {
     // visual_scene 안의 최상위 <node> 자식들 추출
     const vsRaw = extractLib('visual_scene');
     const nodeM = vsRaw.match(/^<node[^>]*>([\s\S]*)<\/node>\s*$/i);
-    // 스케치업은 모델의 world position을 각 node 첫 번째 transform에 기록함
-    // → 임베드 시 우리가 직접 위치를 제어하므로 이 transform 제거
-    let sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
-    sceneNodes = sceneNodes.replace(/(<node\b[^>]*>)\s*<translate>[^<]*<\/translate>\s*/g, '$1\n');
-    sceneNodes = sceneNodes.replace(/(<node\b[^>]*>)\s*<matrix>[\s\S]*?<\/matrix>\s*/g, '$1\n');
+    const sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
 
     // 소스 단위 스케일 자동 감지 (SketchUp 인치=0.0254, mm=0.001 등)
     const unitM = text.match(/<unit[^>]+meter="([^"]+)"/i);
@@ -9194,40 +9190,15 @@ async function daeGenerate({ w, d, h, stair, memo }) {
           let barNodes = '';
           for (let pi = 0; pi < pieces.length; pi++) {
             const pc = pieces[pi];
-            const ptype = pc.type === 'cube' ? 'truss_cube' : `truss_${pc.type}`;
-            const pModel = lib3dGetActive(ptype);
             const pid = `truss${i}_${barLabel}_${pi}`;
-            // 원점 설정: 'start'이면 조각 시작점 기준, 기본은 중심 기준
-            const originMode = pModel?.origin || 'center';
-            const originOff = (originMode === 'start') ? 0 : pc.length / 2;
+            // 트러스 조각은 박스 폴백만 사용 (3D 모델 임베드는 좌표 충돌로 불안정)
+            const originOff = pc.length / 2;
             // 수평바: X 방향으로 조각 배치 / 수직바: Z 방향(높이)으로 조각 배치
             const rx = isVertical ? relX : relX + pc.offset + originOff;
             const ry = relY;
             const rz = isVertical ? relZ + pc.offset + originOff : relZ;
 
-            if (pModel) {
-              const prefix = `${pid}_`;
-              const emb = await _embedDaeModel(pModel.url, prefix);
-              if (emb) {
-                geoms    += emb.geoms;
-                imgs     += emb.imgs || '';
-                libNodes += emb.libNodes || '';
-                mats     += emb.mats;
-                effs     += emb.effs;
-                const us = emb.unitScale || 1.0;
-                const userScale = parseFloat(pModel.scale || 1.0);
-                const fs = us * userScale;
-                const scTag = Math.abs(fs - 1.0) > 0.00001 ? `<scale>${fs} ${fs} ${fs}</scale>` : '';
-                // 모델 길이가 Z축 기준 → 수평바: Z→X 회전(+90°) / 수직바: 회전 불필요
-                const rotTag = isVertical ? `` : `<rotate>0 1 0 90</rotate>`;
-                barNodes += `<node id="${pid}" name="${pid}" type="NODE">
-                  <translate>${rx.toFixed(3)} ${ry.toFixed(3)} ${rz.toFixed(3)}</translate>
-                  ${rotTag}${scTag}${emb.sceneNodes}
-                </node>`;
-                continue;
-              }
-            }
-            // 폴백: 박스 — 수직바는 Z 방향으로 길이 적용
+            // 트러스 조각: 박스로 표현 (3D 모델은 좌표계 불일치로 비활성)
             const pw  = trussSpec;
             const pd2 = trussSpec;
             const ph  = isVertical ? pc.length : trussSpec;
