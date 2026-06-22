@@ -1237,15 +1237,26 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
   /* ── 무대계산기 PC 2열 레이아웃 ── */
   .stagecalc-wrap { max-width: none; padding: 16px 24px env(safe-area-inset-bottom, 60px); }
-  /* 계산 탭: 좌측 래퍼 360px 고정, 다이어그램 나머지 전부 */
+  /* 계산 탭: 좌측 컨트롤 360px, 다이어그램 나머지 전부 */
   #sc-page-calc {
     display: grid;
     grid-template-columns: 360px 1fr;
     gap: 14px;
     align-items: start;
   }
-  .sc-calc-left { display: flex; flex-direction: column; gap: 14px; }
-  #sc-diagramCard { position: sticky; top: 8px; }
+  .sc-calc-left { display: flex; flex-direction: column; gap: 12px; }
+  #sc-diagramCard { position: sticky; top: 8px; display: flex; flex-direction: column; }
+  /* 계산결과 5열 가로 배치 */
+  #sc-resultCard .stagecalc-result-grid { grid-template-columns: repeat(5, 1fr); }
+  #sc-resultCard .stagecalc-result-item { padding: 10px 12px; }
+  #sc-resultCard .stagecalc-result-val { font-size: 22px; }
+  /* 클램프 4열 가로 배치 */
+  .sc-clamp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .sc-clamp-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .sc-clamp-total-item { border-color: var(--accent); background: var(--accent-dim, rgba(61,186,150,0.08)); }
+  .sc-clamp-total-item .stagecalc-clamp-val { color: var(--accent); }
+  /* 캔버스 내용 폭에 맞게 중앙 정렬 */
+  #stagecalcCanvas { display: block; margin: 0 auto; max-width: 100%; }
   /* 3D 도면 탭: 컨트롤 고정 300px, 평면도 나머지 전부 */
   #sc-page-3d {
     display: grid;
@@ -1432,11 +1443,16 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .stagecalc-result-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
 .stagecalc-clamp-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
 .stagecalc-clamp-row:last-child { border-bottom:none; }
-.stagecalc-clamp-label { font-size:13px; color:var(--text); }
-.stagecalc-clamp-val { font-size:16px; font-weight:700; color:var(--text); }
+.stagecalc-clamp-label { font-size:13px; color:var(--text-muted); }
+.stagecalc-clamp-val { font-size:18px; font-weight:700; color:var(--text); }
 .stagecalc-clamp-total { background:var(--text); color:var(--bg); border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
 .stagecalc-clamp-total-label { font-size:13px; font-weight:600; }
 .stagecalc-clamp-total-val { font-size:20px; font-weight:700; }
+/* 클램프 그리드 (모바일: 2열) */
+.sc-clamp-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.sc-clamp-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; }
+.sc-clamp-total-item { border-color:var(--accent); background:rgba(61,186,150,0.07); }
+.sc-clamp-total-item .stagecalc-clamp-val { color:var(--accent); }
 #stagecalcCanvas { width:100%; display:block; border-radius:8px; background:var(--surface2); border:1px solid var(--border); }
 .stagecalc-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
 .stagecalc-leg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
@@ -1595,7 +1611,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-03</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-04</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1921,15 +1937,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         </div>
       </div>
 
-      <div class="stagecalc-card" id="sc-diagramCard">
-        <div class="stagecalc-sec-label">배치 다이어그램</div>
-        <canvas id="stagecalcCanvas"></canvas>
-        <div class="stagecalc-legend">
-          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#16a34a;height:6px"></span>지지대</span>
-          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#ea580c"></span>X대</span>
-        </div>
-      </div>
-
       <div class="stagecalc-card" id="sc-resultCard">
         <div class="stagecalc-sec-label">계산 결과 — <span id="sc-configLabel"></span></div>
         <div class="stagecalc-result-grid">
@@ -1953,11 +1960,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <div class="stagecalc-result-val" id="sc-r-clamp-total">—</div>
             <div class="stagecalc-result-sub">1개+2개+4개짜리</div>
           </div>
-          <div class="stagecalc-result-item" style="grid-column:1/-1">
+          <div class="stagecalc-result-item">
             <div class="stagecalc-result-label">무대 면적</div>
-            <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
-              <div><span class="stagecalc-result-val sc-blue" id="sc-r-pyeong">—</span><span style="font-size:13px;color:var(--text-muted);margin-left:4px">평</span></div>
-              <div><span class="stagecalc-result-val" style="font-size:20px" id="sc-r-m2">—</span><span style="font-size:13px;color:var(--text-muted);margin-left:4px">m²</span></div>
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+              <div><span class="stagecalc-result-val sc-blue" id="sc-r-pyeong">—</span><span style="font-size:11px;color:var(--text-muted);margin-left:2px">평</span></div>
+              <div><span class="stagecalc-result-val" style="font-size:18px" id="sc-r-m2">—</span><span style="font-size:11px;color:var(--text-muted);margin-left:2px">m²</span></div>
             </div>
             <div class="stagecalc-result-sub" id="sc-r-area-sub"></div>
           </div>
@@ -1966,21 +1973,23 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 
       <div class="stagecalc-card" id="sc-clampCard">
         <div class="stagecalc-sec-label">클램프 상세</div>
-        <div class="stagecalc-clamp-row">
-          <div class="stagecalc-clamp-label">1개짜리 (모서리)</div>
-          <div class="stagecalc-clamp-val" id="sc-c1">—</div>
-        </div>
-        <div class="stagecalc-clamp-row">
-          <div class="stagecalc-clamp-label">2개짜리 (가장자리)</div>
-          <div class="stagecalc-clamp-val" id="sc-c2">—</div>
-        </div>
-        <div class="stagecalc-clamp-row">
-          <div class="stagecalc-clamp-label">4개짜리 (내부 교차점)</div>
-          <div class="stagecalc-clamp-val" id="sc-c4">—</div>
-        </div>
-        <div class="stagecalc-clamp-total">
-          <span class="stagecalc-clamp-total-label">합계</span>
-          <span class="stagecalc-clamp-total-val" id="sc-c-total">—</span>
+        <div class="sc-clamp-grid">
+          <div class="sc-clamp-item">
+            <div class="stagecalc-clamp-label">1개짜리 (모서리)</div>
+            <div class="stagecalc-clamp-val" id="sc-c1">—</div>
+          </div>
+          <div class="sc-clamp-item">
+            <div class="stagecalc-clamp-label">2개짜리 (가장자리)</div>
+            <div class="stagecalc-clamp-val" id="sc-c2">—</div>
+          </div>
+          <div class="sc-clamp-item">
+            <div class="stagecalc-clamp-label">4개짜리 (내부 교차점)</div>
+            <div class="stagecalc-clamp-val" id="sc-c4">—</div>
+          </div>
+          <div class="sc-clamp-item sc-clamp-total-item">
+            <div class="stagecalc-clamp-label">합계</div>
+            <div class="stagecalc-clamp-val" id="sc-c-total">—</div>
+          </div>
         </div>
       </div>
 
@@ -1988,6 +1997,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <button class="dae-export-btn" style="margin-top:10px" onclick="scLinkTo3D()">🔗 3D 도면에 연동</button>
 
       </div><!-- /sc-calc-left -->
+
+      <div class="stagecalc-card" id="sc-diagramCard">
+        <div class="stagecalc-sec-label">배치 다이어그램</div>
+        <canvas id="stagecalcCanvas"></canvas>
+        <div class="stagecalc-legend">
+          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#16a34a;height:6px"></span>지지대</span>
+          <span class="stagecalc-leg"><span class="stagecalc-leg-box" style="background:#ea580c"></span>X대</span>
+        </div>
+      </div>
 
       </div><!-- /sc-page-calc -->
 
@@ -9056,14 +9074,17 @@ function scDrawDiagram(M, N, spans, rowSpans) {
   const ctx = cv.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
 
-  const cssW = cv.parentElement.clientWidth - 2;
-  const PL = 28, PR = 18, PT = 22, PB = 24;
-  const usW = cssW - PL - PR;
-  const maxCellH = 36;
-  let cellW = usW / M, cellH = cellW * 0.5;
-  if (cellH > maxCellH) { cellH = maxCellH; cellW = cellH / 0.5; }
+  const parentW = cv.parentElement.clientWidth - 2;
+  const PL = 24, PR = 24, PT = 22, PB = 28;
+  const maxCellW = 72, maxCellH = 48;
+  // 셀 크기: 부모 폭 기준이지만 최대값 제한
+  let cellW = Math.min((parentW - PL - PR) / M, maxCellW);
+  let cellH = Math.min(cellW * 0.5, maxCellH);
+  if (cellH > maxCellH) { cellH = maxCellH; cellW = Math.min(cellH / 0.5, maxCellW); }
   const totalW = cellW * M;
-  const cssH   = PT + cellH * N + PB;
+  // 캔버스는 내용 폭에 맞게, 부모 폭 초과 안 함
+  const cssW = Math.min(parentW, PL + totalW + PR);
+  const cssH = PT + cellH * N + PB;
 
   cv.width  = Math.round(cssW * dpr);
   cv.height = Math.round(cssH * dpr);
@@ -9073,7 +9094,7 @@ function scDrawDiagram(M, N, spans, rowSpans) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, cssW, cssH);
 
-  const ox = PL + (usW - totalW) / 2, oy = PT;
+  const ox = PL, oy = PT;
 
   // 상판
   for (let row = 0; row < N; row++) {
