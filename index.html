@@ -1612,7 +1612,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-26</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-27</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9223,9 +9223,11 @@ async function daeGenerate({ w, d, h, stair, memo }) {
             const pd2 = trussSpec;
             const ph  = isVertical ? pc.length : trussSpec;
             const bw2 = isVertical ? trussSpec : pc.length;
-            // boxGeom은 X/Y 중심·Z 바닥 기준 → 조각 중심점(offset+length/2)으로 배치
+            // boxGeom: X/Y는 중심 기준, Z는 바닥 기준(0→길이)
+            //  - 가로조각: X로 길이가 뻗음(중심기준) → 시작점+length/2
+            //  - 세로조각: Z로 길이가 뻗음(바닥기준) → 시작점 그대로 (틈 없이 타일링)
             const rx_fb = isVertical ? relX : relX + pc.offset + pc.length / 2;
-            const rz_fb = isVertical ? relZ + pc.offset + pc.length / 2 : relZ;
+            const rz_fb = isVertical ? relZ + pc.offset : relZ;
             geoms += boxGeom(pid, bw2, pd2, ph);
             mats  += `<material id="mat-${pid}"><instance_effect url="#eff-${pid}"/></material>`;
             effs  += `<effect id="eff-${pid}"><profile_COMMON><technique sid="common"><phong><diffuse><color>0.24 0.36 0.49 1</color></diffuse></phong></technique></profile_COMMON></effect>`;
@@ -9253,13 +9255,13 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         const cubeH = 0.22;
         let trussChildren = '';
         if (hasH) {
-          // 하단 가로바: Z 중심 = cubeH/2 (큐브 포함, 프레임 아래)
-          const hBotNodes = await emitBar(hS, -hSpan/2, 0, cubeH / 2, false, 'hBot', true);
+          // 하단 가로바: Z 바닥=0 (박스 0→0.22) — 프레임 맨 아래, 무대면에 착지
+          const hBotNodes = await emitBar(hS, -hSpan/2, 0, 0, false, 'hBot', true);
           trussChildren += `<node id="truss${i}_hBot" name="하단H바" type="NODE">${hBotNodes}</node>`;
         }
         if (hasH && hasV) {
-          // 상단 가로바: Z 중심 = vSpan - cubeH/2 (큐브 포함, 프레임 위)
-          const hTopNodes = await emitBar(hS, -hSpan/2, 0, vSpan - cubeH / 2, false, 'hTop', true);
+          // 상단 가로바: Z 바닥=vSpan-cubeH (박스 끝이 프레임 최상단 vSpan에 일치)
+          const hTopNodes = await emitBar(hS, -hSpan/2, 0, vSpan - cubeH, false, 'hTop', true);
           trussChildren += `<node id="truss${i}_hTop" name="상단H바" type="NODE">${hTopNodes}</node>`;
         }
         if (hasV) {
