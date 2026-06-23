@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-42</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-43</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9781,18 +9781,40 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         effs     += embedded.effs;
         const us = embedded.unitScale || 1.0;
         const userScale = parseFloat(realModel.scale || 1.0);
-        const finalScale = us * userScale;
-        const scaleTag = Math.abs(finalScale - 1.0) > 0.00001
-          ? `<scale>${finalScale} ${finalScale} ${finalScale}</scale>` : '';
 
         // 평면도 회전값 → DAE Z축 회전 (SVG CW → DAE CCW)
         const rotZ = -((p.rotation || 0));
         const rotTag = rotZ !== 0 ? `<rotate>0 0 1 ${rotZ}</rotate>` : '';
 
+        // 모델 내부 좌표가 원점이 아니어도 배치 지점에 정확히 놓이도록
+        // 스케일 + 재중심 매트릭스 적용 (트러스와 동일 원리).
+        // bbox(미터): XY 중심 → 0, Z 최저 → 0 으로 이동 후 source→meter 스케일.
+        let fitTag;
+        const bb = embedded.bbox;
+        if (bb) {
+          const sTot = us * userScale;                       // source단위 → 미터 (×사용자배율)
+          const cX = (bb.max[0] + bb.min[0]) / 2;            // 미터 단위 bbox 중심
+          const cY = (bb.max[1] + bb.min[1]) / 2;
+          const minZ = bb.min[2];                            // 미터 단위 바닥
+          // row-major 4x4: 대각 스케일 + 중심 보정 (보정량은 출력=미터 공간)
+          const m = [
+            sTot, 0, 0, -userScale * cX,
+            0, sTot, 0, -userScale * cY,
+            0, 0, sTot, -userScale * minZ,
+            0, 0, 0, 1
+          ];
+          fitTag = `<matrix>${m.map(v => +v.toFixed(6)).join(' ')}</matrix>`;
+        } else {
+          // bbox 계산 실패 시: 기존 방식(스케일만) 폴백
+          const finalScale = us * userScale;
+          fitTag = Math.abs(finalScale - 1.0) > 0.00001
+            ? `<scale>${finalScale} ${finalScale} ${finalScale}</scale>` : '';
+        }
+
         nodes += `<node id="Item${i}" name="${name}" type="NODE">
           <translate>${cx} ${cy} ${iz}</translate>
           ${rotTag}
-          ${scaleTag}
+          ${fitTag}
           ${embedded.sceneNodes}
         </node>`;
         continue;
