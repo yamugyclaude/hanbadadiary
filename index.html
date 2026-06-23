@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-44</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-45</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9459,23 +9459,23 @@ async function _embedDaeModel(url, prefix, _prefetchedText) {
     }
     if (!text.includes('<COLLADA') && !text.includes('<collada')) return null;
 
-    // id 치환 전 원본으로 실제 월드 바운딩박스(미터) 계산
+    // id 치환 전 원본으로 bbox 계산
     const bbox = _daeModelBBox(text);
 
-    // 모든 id 수집 (긴 것 먼저 정렬 → 부분 치환 방지)
-    const ids = [];
-    text.replace(/\bid="([^"]+)"/g, (_, id) => { if (!ids.includes(id)) ids.push(id); });
-    ids.sort((a, b) => b.length - a.length);
+    // ── 단일 패스 id 치환 ──
+    // 기존: id마다 정규식 3개 × 전체 텍스트 반복 → O(N_ids × text_length)
+    // 개선: 패턴 1개로 전체 텍스트 1번 스캔 + Map 조회 → O(text_length)
+    const idMap = new Map();
+    text.replace(/\bid="([^"]+)"/g, (_, id) => { if (!idMap.has(id)) idMap.set(id, prefix + id); });
+    if (idMap.size > 0) {
+      text = text.replace(/\bid="([^"]+)"|="#([^"]+)"|\bsymbol="([^"]+)"/g, (_, g1, g2, g3) => {
+        if (g1 !== undefined) { const p = idMap.get(g1); return p ? `id="${p}"` : `id="${g1}"`; }
+        if (g2 !== undefined) { const p = idMap.get(g2); return p ? `="#${p}"` : `="#${g2}"`; }
+        const p = idMap.get(g3); return p ? `symbol="${p}"` : `symbol="${g3}"`;
+      });
+    }
 
-    ids.forEach(id => {
-      const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const pid = prefix + id;
-      text = text.replace(new RegExp(`\\bid="${esc}"`, 'g'), `id="${pid}"`);
-      text = text.replace(new RegExp(`="#${esc}"`, 'g'), `="#${pid}"`);
-      text = text.replace(new RegExp(`\\bsymbol="${esc}"`, 'g'), `symbol="${pid}"`);
-    });
-
-    // 라이브러리 섹션 정규식 추출 (xmlns 오염 없음)
+    // 라이브러리 섹션 추출
     function extractLib(tag) {
       const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i');
       const m = text.match(re);
@@ -9487,20 +9487,20 @@ async function _embedDaeModel(url, prefix, _prefetchedText) {
     const effs     = extractLib('library_effects');
     const imgs     = extractLib('library_images');
     const libNodes = extractLib('library_nodes');
-    // visual_scene 안의 최상위 <node> 자식들 추출
+
+    // visual_scene 안의 최상위 <node> 모두 추출
+    // (최상위 node가 여러 개인 모델도 지원 — 기존 코드는 첫 번째만 잡아 리프트 등 오류)
     const vsRaw = extractLib('visual_scene');
-    const nodeM = vsRaw.match(/^<node[^>]*>([\s\S]*)<\/node>\s*$/i);
-    const sceneNodes = nodeM ? nodeM[1].trim() : vsRaw;
+    const sceneNodes = vsRaw.trim();
 
     // 소스 단위 스케일 자동 감지 (SketchUp 인치=0.0254, mm=0.001 등)
     const unitM = text.match(/<unit[^>]+meter="([^"]+)"/i);
     const unitScale = unitM ? parseFloat(unitM[1]) : 1.0;
 
-    console.log('[embed]', prefix, { geoms: geoms.length, libNodes: libNodes.length, sceneNodes: sceneNodes.length, unitScale });
     if (!geoms && !sceneNodes && !libNodes) return null;
     return { geoms, mats, effs, imgs, libNodes, sceneNodes, unitScale, bbox };
   } catch(e) {
-    console.warn('embed failed:', e);
+    console.warn('embed failed:', url, e);
     return null;
   }
 }
