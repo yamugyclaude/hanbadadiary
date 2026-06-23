@@ -1371,15 +1371,17 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .truss-axis-card { background:var(--surface2); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
 .truss-asm-row { display:flex; align-items:center; gap:2px; min-height:28px; background:var(--surface); border-radius:8px; padding:3px 6px; margin-bottom:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; }
 .truss-asm-blk { height:22px; border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:7.5px; font-weight:700; color:rgba(255,255,255,0.88); flex-shrink:0; }
-.truss-picker-row { display:flex; gap:8px; align-items:flex-start; overflow-x:auto; padding-bottom:2px; }
-.truss-pc { display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
-.truss-pc-block { height:28px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:rgba(255,255,255,.9); }
-.truss-pc-cnt { font-size:15px; font-weight:800; min-width:18px; text-align:center; color:var(--text); }
-.truss-pc-btns { display:flex; align-items:center; gap:3px; }
-.truss-pc-btns button { width:24px; height:24px; border-radius:6px; border:1px solid var(--border2); background:var(--surface); color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:inherit; }
+.truss-picker-row { display:flex; gap:6px; align-items:flex-start; overflow-x:auto; padding-bottom:2px; justify-content:center; }
+.truss-pc { display:flex; flex-direction:column; align-items:center; gap:5px; flex-shrink:0; width:64px; }
+.truss-pc-block { height:26px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:rgba(255,255,255,.92); flex-shrink:0; }
+.truss-pc-cnt { font-size:15px; font-weight:800; min-width:20px; text-align:center; color:var(--text); }
+.truss-pc-btns { display:flex; align-items:center; gap:2px; }
+.truss-pc-btns button { width:22px; height:22px; border-radius:6px; border:1px solid var(--border2); background:var(--surface); color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:inherit; }
 .truss-pc-btns button:active { opacity:.6; }
-.truss-inv-dots { display:flex; flex-wrap:wrap; gap:2px; width:56px; justify-content:center; min-height:8px; }
-.truss-inv-dot { width:7px; height:7px; border-radius:1.5px; }
+.truss-pc-cube { opacity:.85; }
+.truss-pc-cube-lbl { font-size:8px; text-align:center; line-height:1.2; }
+.truss-inv-dots { display:flex; flex-wrap:wrap; gap:2px; width:60px; justify-content:center; min-height:8px; }
+.truss-inv-dot { width:8px; height:8px; border-radius:1.5px; }
 .truss-inv-dot.free { opacity:.85; }
 .truss-inv-dot.used { background:#22c55e !important; }
 .truss-inv-dot.gone { background:var(--border) !important; opacity:.4; }
@@ -1628,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-35</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-36</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2688,60 +2690,51 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
       <!-- 조각 선택 -->
       <div class="truss-picker-row">
-        <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
-          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+        <div class="truss-pc truss-pc-cube">
+          <div class="truss-pc-block" style="background:#f59e0b;width:22px;min-width:22px">■</div>
+          <div class="truss-pc-cube-lbl" style="color:#f59e0b">큐브 고정</div>
           <span id="htcube-L" style="display:none">1</span>
           <div id="htcube-inv-L" style="display:none"></div>
         </div>
         <div class="truss-pc">
           <div class="truss-pc-block" style="background:#1a3a5c;width:52px">2m</div>
-          <div class="truss-inv-dots" id="inv-blk-h-2"></div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('h','2',-1)">−</button>
             <span class="truss-pc-cnt" id="htsect-2">0</span>
             <button onclick="_adjTrussSection('h','2',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-2" style="font-size:9px;text-align:center"></div>
-          <span id="htsect-3d-2" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-h-2"></div>
         </div>
         <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#1e5279;width:38px">1.5m</div>
-          <div class="truss-inv-dots" id="inv-blk-h-1.5"></div>
+          <div class="truss-pc-block" style="background:#1e5279;width:40px">1.5m</div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('h','1.5',-1)">−</button>
             <span class="truss-pc-cnt" id="htsect-1.5">0</span>
             <button onclick="_adjTrussSection('h','1.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-1.5" style="font-size:9px;text-align:center"></div>
-          <span id="htsect-3d-1.5" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-h-1.5"></div>
         </div>
         <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#21699a;width:26px">1m</div>
-          <div class="truss-inv-dots" id="inv-blk-h-1"></div>
+          <div class="truss-pc-block" style="background:#21699a;width:28px">1m</div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('h','1',-1)">−</button>
             <span class="truss-pc-cnt" id="htsect-1">0</span>
             <button onclick="_adjTrussSection('h','1',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-1" style="font-size:9px;text-align:center"></div>
-          <span id="htsect-3d-1" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-h-1"></div>
         </div>
         <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#2980b9;width:14px;min-width:14px"></div>
-          <div style="font-size:8px;color:#2980b9;text-align:center;line-height:1.2">0.5m</div>
-          <div class="truss-inv-dots" id="inv-blk-h-0.5"></div>
+          <div class="truss-pc-block" style="background:#2980b9;width:22px;font-size:7px">0.5</div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('h','0.5',-1)">−</button>
             <span class="truss-pc-cnt" id="htsect-0.5">0</span>
             <button onclick="_adjTrussSection('h','0.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-0.5" style="font-size:9px;text-align:center"></div>
-          <span id="htsect-3d-0.5" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-h-0.5"></div>
         </div>
-        <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
-          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+        <div class="truss-pc truss-pc-cube">
+          <div class="truss-pc-block" style="background:#f59e0b;width:22px;min-width:22px">■</div>
+          <div class="truss-pc-cube-lbl" style="color:#f59e0b">큐브 고정</div>
           <span id="htcube-R" style="display:none">1</span>
           <div id="htcube-inv-R" style="display:none"></div>
         </div>
@@ -2761,60 +2754,51 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div>
       <!-- 조각 선택 -->
       <div class="truss-picker-row">
-        <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
-          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+        <div class="truss-pc truss-pc-cube">
+          <div class="truss-pc-block" style="background:#f59e0b;width:22px;min-width:22px">■</div>
+          <div class="truss-pc-cube-lbl" style="color:#f59e0b">큐브 고정</div>
           <span id="vtcube-T" style="display:none">1</span>
           <div id="vtcube-inv-T" style="display:none"></div>
         </div>
         <div class="truss-pc">
           <div class="truss-pc-block" style="background:#1a3a5c;width:52px">2m</div>
-          <div class="truss-inv-dots" id="inv-blk-v-2"></div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('v','2',-1)">−</button>
             <span class="truss-pc-cnt" id="vtsect-2">0</span>
             <button onclick="_adjTrussSection('v','2',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-2" style="font-size:9px;text-align:center"></div>
-          <span id="vtsect-3d-2" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-v-2"></div>
         </div>
         <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#1e5279;width:38px">1.5m</div>
-          <div class="truss-inv-dots" id="inv-blk-v-1.5"></div>
+          <div class="truss-pc-block" style="background:#1e5279;width:40px">1.5m</div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('v','1.5',-1)">−</button>
             <span class="truss-pc-cnt" id="vtsect-1.5">0</span>
             <button onclick="_adjTrussSection('v','1.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-1.5" style="font-size:9px;text-align:center"></div>
-          <span id="vtsect-3d-1.5" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-v-1.5"></div>
         </div>
         <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#21699a;width:26px">1m</div>
-          <div class="truss-inv-dots" id="inv-blk-v-1"></div>
+          <div class="truss-pc-block" style="background:#21699a;width:28px">1m</div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('v','1',-1)">−</button>
             <span class="truss-pc-cnt" id="vtsect-1">0</span>
             <button onclick="_adjTrussSection('v','1',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-1" style="font-size:9px;text-align:center"></div>
-          <span id="vtsect-3d-1" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-v-1"></div>
         </div>
         <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#2980b9;width:14px;min-width:14px"></div>
-          <div style="font-size:8px;color:#2980b9;text-align:center;line-height:1.2">0.5m</div>
-          <div class="truss-inv-dots" id="inv-blk-v-0.5"></div>
+          <div class="truss-pc-block" style="background:#2980b9;width:22px;font-size:7px">0.5</div>
           <div class="truss-pc-btns">
             <button onclick="_adjTrussSection('v','0.5',-1)">−</button>
             <span class="truss-pc-cnt" id="vtsect-0.5">0</span>
             <button onclick="_adjTrussSection('v','0.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-0.5" style="font-size:9px;text-align:center"></div>
-          <span id="vtsect-3d-0.5" style="font-size:9px" title=""></span>
+          <div class="truss-inv-dots" id="inv-blk-v-0.5"></div>
         </div>
-        <div class="truss-pc">
-          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
-          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+        <div class="truss-pc truss-pc-cube">
+          <div class="truss-pc-block" style="background:#f59e0b;width:22px;min-width:22px">■</div>
+          <div class="truss-pc-cube-lbl" style="color:#f59e0b">큐브 고정</div>
           <span id="vtcube-B" style="display:none">1</span>
           <div id="vtcube-inv-B" style="display:none"></div>
         </div>
@@ -7773,6 +7757,47 @@ const DAE_ITEMS = {
   mic:          {icon:'🎤', label:'마이크스탠드'},
 };
 
+// 배치 아이콘 (등록 부품용)
+const DAE_PLACE_ICONS = {speaker:'🔊',sub:'📦',monitor:'🎛️',console:'🎚️',light:'💡',stair:'🪜',
+  tent:'⛺',power:'⚡',mic:'🎤',front_mon:'🔉',sidefill:'🔈',delay:'📡',placard:'🪧',
+  piano:'🎹',drum:'🥁',guitar:'🎸',keyboard:'🎹',bass:'🎸'};
+
+// 배치 타입 → {icon,label} 해석 (기본 DAE_ITEMS + 등록 라이브러리 부품)
+function daeMeta(type) {
+  if (DAE_ITEMS[type]) return DAE_ITEMS[type];
+  const m = (typeof lib3dModels !== 'undefined') ? lib3dModels.find(x => x.type === type) : null;
+  if (m) return {icon: DAE_PLACE_ICONS[type] || '📐', label: m.name || ((typeof lib3dGetTypes==='function' && lib3dGetTypes()[type]) || type)};
+  return {icon:'📐', label:type};
+}
+
+// 배치 팝업 그리드를 등록된 부품 기준으로 동적 생성
+function daeBuildPlaceGrid() {
+  const grid = document.querySelector('#daePlacePopup .dae-place-grid');
+  if (!grid) return;
+  let html = '';
+  // 등록된 3D 라이브러리 부품 (트러스 조각은 별도 트러스 버튼으로 처리)
+  const registered = (typeof lib3dModels !== 'undefined' ? lib3dModels : [])
+    .filter(m => !String(m.type).startsWith('truss'));
+  if (registered.length) {
+    registered.forEach(m => {
+      const mt = daeMeta(m.type);
+      html += `<div class="dae-place-item" onclick="daePlaceItem('${m.type}')"><span>${mt.icon}</span><span>${mt.label}</span></div>`;
+    });
+  } else {
+    // 등록된 부품이 없으면 기본 장비 표시
+    ['speaker','sub','monitor','console','mic'].forEach(t => {
+      const mt = DAE_ITEMS[t];
+      html += `<div class="dae-place-item" onclick="daePlaceItem('${t}')"><span>${mt.icon}</span><span>${mt.label}</span></div>`;
+    });
+  }
+  // 항상 제공되는 구조물/액션
+  html += `<div class="dae-place-item" onclick="daePlaceItem('truss')"><span>⬛</span><span>트러스</span></div>`;
+  html += `<div class="dae-place-item" onclick="daePlaceItem('truss_corner')"><span>🔲</span><span>코너</span></div>`;
+  html += `<div class="dae-place-item" onclick="daePlaceItem('person')"><span>👥</span><span>관객석</span></div>`;
+  html += `<div class="dae-place-item del" onclick="daePlaceItem(null)"><span>🗑️</span><span>전체삭제</span></div>`;
+  grid.innerHTML = html;
+}
+
 // pw/pd: 평면도 표시 크기(m) / rw/rd/rh: .dae 실제 크기(m)
 const DAE_SIZES = {
   speaker:   {pw:1.1, pd:0.9, rw:0.8, rd:0.6, rh:1.2, color:'#e74c3c'},
@@ -7906,7 +7931,7 @@ function daeRenderSVG() {
   const EQ_CODES = {speaker:'SPK',sub:'SUB',monitor:'MON',console:'CON',truss:'TRS',truss_corner:'CRN',light:'LGT',stair:'STR',tent:'TNT',power:'PWR',person:'AUD',mic:'MIC'};
 
   daePlacements.forEach(p => {
-    const it = DAE_ITEMS[p.type] || {label: p.type};
+    const it = daeMeta(p.type);
     const baseSz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
     let pw = baseSz.pw, pd = baseSz.pd;
     // 등록된 3D 모델 치수가 있으면 평면도 크기에 반영
@@ -8027,6 +8052,7 @@ function daeSVGClick(e) {
   const onStage = sx >= DAE_MARGIN && sx <= DAE_MARGIN + w && sy >= DAE_MARGIN && sy <= DAE_MARGIN + d;
   const relX = (sx - DAE_MARGIN).toFixed(1), relY = (sy - DAE_MARGIN).toFixed(1);
   document.getElementById('daePlacePopupTitle').textContent = `📍 ${onStage ? '무대 위' : '외부'} (${relX}, ${relY})m`;
+  daeBuildPlaceGrid();
   daeRefreshPopupCurrentItems();
   _daeShowPopup(e.clientX, e.clientY);
 }
@@ -8081,8 +8107,9 @@ function _daeDragEnd(e) {
         openTrussConfig(id, e);
       } else {
         daeSelectedPos = {x: p.x, y: p.y};
-        const it = DAE_ITEMS[p.type];
+        const it = daeMeta(p.type);
         document.getElementById('daePlacePopupTitle').textContent = `${it?.icon} ${it?.label} 선택됨`;
+        daeBuildPlaceGrid();
         daeRefreshPopupCurrentItems();
         _daeShowPopup(e.clientX, e.clientY);
       }
@@ -8114,7 +8141,7 @@ function daeRefreshPopupCurrentItems() {
   el.style.display = 'block';
   el.innerHTML = `<div style="color:#aaa;margin-bottom:3px">이 위치:</div>` +
     nearby.map(p => {
-      const it = DAE_ITEMS[p.type];
+      const it = daeMeta(p.type);
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">
         <span>${it?.icon} ${it?.label}</span>
         <button onclick="daeRemovePlacement(${p.id})" style="background:none;border:none;color:#f66;cursor:pointer;font-size:14px;padding:0 2px">✕</button>
@@ -8288,7 +8315,18 @@ function closeTrussCfg() {
 function _adjTrussSection(axis, len, delta) {
   const key = axis === 'h' ? 'hSections' : 'vSections';
   if (!_trussCfg[key]) _trussCfg[key] = {'0.5':0,'1':0,'1.5':0,'2':0};
-  _trussCfg[key][len] = Math.max(0, (_trussCfg[key][len]||0) + delta);
+  const cur = _trussCfg[key][len] || 0;
+  if (delta > 0) {
+    // 쌍 설치 — 재고 부족 시 추가 차단 (한쪽 +1 = 실제 +2 소비)
+    const used = daeGetInventoryUsed();
+    const total = trussInventory[len] || 0;
+    const usedOther = used[len] || 0;
+    const otherAxisKey = axis === 'h' ? 'vSections' : 'hSections';
+    const otherHere = (_trussCfg[otherAxisKey] && _trussCfg[otherAxisKey][len]) || 0;
+    const wouldUse = usedOther + (otherHere + cur + 1) * 2;
+    if (wouldUse > total) { showToast(`⚠ ${len}m 재고 부족 (보유 ${total}개)`); return; }
+  }
+  _trussCfg[key][len] = Math.max(0, cur + delta);
   _updateTrussUI();
 }
 
@@ -8334,7 +8372,8 @@ function _renderInvDotsAxis(axis) {
     if (!el) return;
     const total = trussInventory[k] || 0;
     const usedByOthers = used[k] || 0;
-    const usedHere = sections ? (sections[k] || 0) : 0;
+    // 쌍 설치 — 한쪽 cnt 가 양쪽(×2) 소비
+    const usedHere = sections ? (sections[k] || 0) * 2 : 0;
     let html = '';
     for (let i = 0; i < total; i++) {
       if (i < usedHere) {
@@ -8399,25 +8438,8 @@ function _updateTrussUI() {
     ['0.5','1','1.5','2'].forEach(k => {
       const cnt = sections[k] || 0;
       const el = document.getElementById(`${axis}tsect-${k}`);
-      if (el) el.textContent = cnt;
-      const invEl = document.getElementById(`${axis}tsect-inv-${k}`);
-      if (invEl) {
-        const inv = trussInventory[k] || 0;
-        if (inv === 0) { invEl.textContent = ''; invEl.className = 'truss-sect-inv'; return; }
-        const available = inv - (used[k] || 0);
-        const ok = available >= cnt;
-        // 쌍 설치: 입력값 cnt는 한쪽 개수, 실제 소비는 ×2
-        invEl.textContent = cnt > 0 ? `×2 = 실제 ${cnt*2}개 / 남은 ${available}개` : `재고 ${inv}개`;
-        invEl.className = 'truss-sect-inv ' + (ok ? 'ok' : 'warn');
-      }
-      // 3D 모델 등록 상태 뱃지
-      const dae3dEl = document.getElementById(`${axis}tsect-3d-${k}`);
-      if (dae3dEl) {
-        const hasModel = !!lib3dGetActive(`truss_${k}`);
-        dae3dEl.textContent = hasModel ? '🟢3D' : '⬜3D';
-        dae3dEl.title = hasModel ? '3D 모델 등록됨' : '3D 모델 미등록 (3D 라이브러리에서 등록)';
-        dae3dEl.style.color = hasModel ? '#22c55e' : 'var(--text-muted)';
-      }
+      // 쌍 설치 — 표시 수치는 실제 소비 개수(한쪽 ×2)
+      if (el) el.textContent = cnt * 2;
     });
   };
   updateAxisUI('h');
@@ -8604,7 +8626,7 @@ function daeRenderPlacedList() {
   if (!daePlacements.length) { listEl.style.display = 'none'; return; }
   listEl.style.display = 'block';
   itemsEl.innerHTML = daePlacements.map(p => {
-    const it = DAE_ITEMS[p.type];
+    const it = daeMeta(p.type);
     const rx = (p.x - DAE_MARGIN).toFixed(1), ry = (p.y - DAE_MARGIN).toFixed(1);
     let detail = `(${rx}, ${ry})m`;
     if (p.type === 'truss' && p.truss) {
@@ -9392,7 +9414,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
 
   for (let i = 0; i < daePlacements.length; i++) {
     const p = daePlacements[i];
-    const it = DAE_ITEMS[p.type] || {label: p.type};
+    const it = daeMeta(p.type);
     const baseSz = DAE_SIZES[p.type] || {rw:0.6, rd:0.6, rh:0.6, color:'#888888'};
     let rw = baseSz.rw, rd = baseSz.rd, rh = baseSz.rh, iColor = baseSz.color;
     let itemElev = null;
