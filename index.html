@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-36</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-37</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -7927,18 +7927,28 @@ function daeRenderSVG() {
   s += `<rect x="${(dvX-lbgH/2).toFixed(3)}" y="${(msy-vlbW/2).toFixed(3)}" width="${lbgH.toFixed(3)}" height="${vlbW.toFixed(3)}" fill="${C.bg}" rx="${(lbgH/2).toFixed(3)}" transform="rotate(-90,${dvX.toFixed(3)},${msy.toFixed(3)})"/>`;
   s += `<text x="${dvX.toFixed(3)}" y="${msy.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="${dimC}" font-size="${dimFS}" font-weight="700" transform="rotate(-90,${dvX.toFixed(3)},${msy.toFixed(3)})">${d.toFixed(1)} m</text>`;
 
+  // SVG 텍스트 노드 XML 이스케이프 (& < > " 방지)
+  const esc = (str) => String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
   // ── 장비 항목 ──
-  const EQ_CODES = {speaker:'SPK',sub:'SUB',monitor:'MON',console:'CON',truss:'TRS',truss_corner:'CRN',light:'LGT',stair:'STR',tent:'TNT',power:'PWR',person:'AUD',mic:'MIC'};
+  const EQ_CODES = {speaker:'SPK',sub:'SUB',monitor:'MON',console:'CON',truss:'TRS',truss_corner:'CRN',light:'LGT',stair:'STR',tent:'TNT',power:'PWR',person:'AUD',mic:'MIC',front_mon:'FMN',sidefill:'SFL',delay:'DLY',placard:'PLC'};
 
   daePlacements.forEach(p => {
+    try {
     const it = daeMeta(p.type);
     const baseSz = DAE_SIZES[p.type] || {pw:0.9, pd:0.9, color:'#666'};
-    let pw = baseSz.pw, pd = baseSz.pd;
-    // 등록된 3D 모델 치수가 있으면 평면도 크기에 반영
+    let pw = baseSz.pw || 0.9, pd = baseSz.pd || 0.9;
+    // 등록된 3D 모델 치수가 있으면 평면도 크기에 반영 (숫자 보장)
     const activeModel = lib3dGetActive(p.type);
-    if (activeModel && activeModel.rw) pw = activeModel.rw;
-    if (activeModel && activeModel.rd) pd = activeModel.rd;
-    const code = EQ_CODES[p.type] || p.type.slice(0,3).toUpperCase();
+    const mrw = activeModel && parseFloat(activeModel.rw);
+    const mrd = activeModel && parseFloat(activeModel.rd);
+    if (mrw > 0) pw = mrw;
+    if (mrd > 0) pd = mrd;
+    // NaN 방지
+    if (!isFinite(pw) || pw <= 0) pw = 0.9;
+    if (!isFinite(pd) || pd <= 0) pd = 0.9;
+    const typeStr = String(p.type || 'unk');
+    const code = EQ_CODES[typeStr] || typeStr.replace('custom_','').slice(0,3).toUpperCase() || 'EQ';
 
     // 트러스 사각 프레임
     if (p.type === 'truss' && p.truss) {
@@ -7988,8 +7998,8 @@ function daeRenderSVG() {
     s += `<rect x="${(p.x-hw+0.05).toFixed(3)}" y="${(p.y-hd+0.05).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="rgba(0,0,0,0.45)" rx="0.09"/>`;
     s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${pd.toFixed(3)}" fill="${col}" fill-opacity="0.9" stroke="rgba(255,255,255,0.28)" stroke-width="0.038" rx="0.09"/>`;
     s += `<rect x="${(p.x-hw).toFixed(3)}" y="${(p.y-hd).toFixed(3)}" width="${pw.toFixed(3)}" height="${acH.toFixed(3)}" fill="rgba(255,255,255,0.13)" rx="0.09"/>`;
-    s += `<text x="${pcx}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${codeFS}" font-weight="800">${code}</text>`;
-    s += `<text x="${pcx}" y="${(p.y+hd*0.63).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.58)" font-size="${nameFS}">${it.label}</text>`;
+    s += `<text x="${pcx}" y="${(p.y-hd*0.1).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${codeFS}" font-weight="800">${esc(code)}</text>`;
+    s += `<text x="${pcx}" y="${(p.y+hd*0.63).toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.58)" font-size="${nameFS}">${esc(it.label)}</text>`;
     // 방향 화살표 (위쪽 = 전면)
     const aw = minD * 0.18;
     const aTip = p.y - hd + aw * 0.5;
@@ -8000,6 +8010,7 @@ function daeRenderSVG() {
     s += `<circle cx="${bx.toFixed(3)}" cy="${by.toFixed(3)}" r="${br.toFixed(3)}" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.4)" stroke-width="0.018" onpointerdown="event.stopPropagation();daeRotatePlacement(${p.id})" style="cursor:pointer"/>`;
     s += `<text x="${bx.toFixed(3)}" y="${by.toFixed(3)}" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="${(br*1.4).toFixed(3)}" onpointerdown="event.stopPropagation();daeRotatePlacement(${p.id})" style="cursor:pointer">↻</text>`;
     s += `</g>`;
+    } catch(e) { console.warn('daeRenderSVG item error', p.type, e); }
   });
 
   // ── 스케일 바 (우하단) ──
