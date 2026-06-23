@@ -1323,13 +1323,14 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .lib3d-type-sel { flex:1; padding:9px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:9px; color:var(--text); font-size:13px; font-family:inherit; }
 .lib3d-upload-btn { display:inline-flex; align-items:center; gap:5px; padding:9px 14px; background:var(--surface2); border:1.5px solid var(--accent); border-radius:9px; color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
 .lib3d-upload-btn:hover { background:rgba(var(--accent-rgb,79,131,243),0.1); }
-.lib3d-empty { font-size:12px; color:var(--text-muted); text-align:center; padding:18px 0; }
-.lib3d-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; }
+.lib3d-empty { font-size:12px; color:var(--text-muted); text-align:center; padding:18px 0; grid-column:1/-1; }
+#lib3d-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; }
+.lib3d-item { display:flex; align-items:center; gap:9px; padding:8px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; }
 .lib3d-item.active { border-color:var(--accent); }
-.lib3d-item-ico { width:36px; height:36px; border-radius:8px; background:#1e3a5f; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.lib3d-item-ico { width:30px; height:30px; border-radius:7px; background:#1e3a5f; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
 .lib3d-item-info { flex:1; min-width:0; }
-.lib3d-item-name { font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.lib3d-item-meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.lib3d-item-name { font-size:12.5px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lib3d-item-meta { font-size:10px; color:var(--text-muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .lib3d-item-tag { display:inline-block; font-size:10px; padding:2px 7px; border-radius:10px; background:rgba(var(--accent-rgb,79,131,243),0.15); color:var(--accent); font-weight:600; margin-top:3px; }
 .lib3d-item-tag.active { background:var(--accent); color:#fff; }
 .lib3d-item-btns { display:flex; flex-direction:column; gap:5px; flex-shrink:0; }
@@ -1610,7 +1611,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-32</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-33</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2053,14 +2054,14 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           </div>
           <div class="lib3d-type-bar">
             <select id="lib3d-type-sel" class="lib3d-type-sel">
-              <optgroup label="── 트러스 부품 ──">
+              <optgroup label="── 트러스 부품 ──" data-cat="truss">
                 <option value="truss_cube">트러스 큐브 (0.22m)</option>
                 <option value="truss_0.5">트러스 0.5m</option>
                 <option value="truss_1">트러스 1m</option>
                 <option value="truss_1.5">트러스 1.5m</option>
                 <option value="truss_2">트러스 2m</option>
               </optgroup>
-              <optgroup label="── 스피커류 ──">
+              <optgroup label="── 스피커류 ──" data-cat="speaker">
                 <option value="speaker">메인스피커</option>
                 <option value="sub">V SUB</option>
                 <option value="monitor">모니터</option>
@@ -2068,11 +2069,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
                 <option value="sidefill">사이드필모니터</option>
                 <option value="delay">딜레이스피커</option>
               </optgroup>
-              <optgroup label="── 콘솔/마이크 ──">
+              <optgroup label="── 콘솔/마이크 ──" data-cat="console">
                 <option value="console">콘솔</option>
                 <option value="mic">마이크스탠드</option>
               </optgroup>
-              <optgroup label="── 무대/구조물 ──">
+              <optgroup label="── 무대/구조물 ──" data-cat="stage">
                 <option value="stair">계단</option>
                 <option value="tent">텐트</option>
                 <option value="placard">플랭카드</option>
@@ -2094,11 +2095,18 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
             <!-- 커스텀 타입 추가 -->
             <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
               <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">＋ 직접 타입 추가</div>
-              <div style="display:flex;gap:6px">
-                <input id="lib3d-custom-input" type="text" placeholder="장비 이름 입력 (예: 하이패스스피커)"
-                  style="flex:1;padding:5px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px"
-                  onkeydown="if(event.key==='Enter')lib3dAddCustomType(this.value)&&(this.value='')">
-                <button onclick="const v=document.getElementById('lib3d-custom-input');lib3dAddCustomType(v.value);v.value=''"
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <select id="lib3d-custom-cat"
+                  style="padding:5px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
+                  <option value="speaker">🔊 스피커류</option>
+                  <option value="console">🎚️ 콘솔/마이크</option>
+                  <option value="stage">🏗️ 무대/구조물</option>
+                  <option value="truss">🔧 트러스 부품</option>
+                </select>
+                <input id="lib3d-custom-input" type="text" placeholder="장비 이름 (예: 하이패스스피커)"
+                  style="flex:1;min-width:120px;padding:5px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px"
+                  onkeydown="if(event.key==='Enter'){lib3dAddCustomType(this.value,document.getElementById('lib3d-custom-cat').value);this.value=''}">
+                <button onclick="const v=document.getElementById('lib3d-custom-input');lib3dAddCustomType(v.value,document.getElementById('lib3d-custom-cat').value);v.value=''"
                   style="padding:5px 12px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:12px;cursor:pointer">추가</button>
               </div>
             </div>
@@ -8633,7 +8641,9 @@ const LIB3D_TYPES_BASE = {
 
 // 사용자 커스텀 타입 (localStorage)
 let lib3dCustomTypes = JSON.parse(localStorage.getItem('lib3dCustomTypes') || '[]');
-// [{id:'custom_xxx', label:'사용자 이름'}]
+// [{id:'custom_xxx', label:'사용자 이름', cat:'speaker'}]
+// 카테고리 키 ↔ 그룹 인덱스 매핑
+const LIB3D_CAT_KEYS = { speaker:0, console:1, stage:2, truss:3 };
 
 function lib3dGetTypes() {
   const merged = Object.assign({}, LIB3D_TYPES_BASE);
@@ -8651,11 +8661,11 @@ function lib3dSaveCustomTypes() {
   localStorage.setItem('lib3dCustomTypes', JSON.stringify(lib3dCustomTypes));
 }
 
-function lib3dAddCustomType(label) {
+function lib3dAddCustomType(label, cat) {
   label = label.trim();
   if (!label) return;
   const id = 'custom_' + Date.now();
-  lib3dCustomTypes.push({id, label});
+  lib3dCustomTypes.push({id, label, cat: cat || 'speaker'});
   lib3dSaveCustomTypes();
   lib3dRender();
   lib3dRebuildDropdown();
@@ -8676,24 +8686,25 @@ function lib3dDeleteCustomType(id) {
 function lib3dRebuildDropdown() {
   const sel = document.getElementById('lib3d-type-sel');
   if (!sel) return;
-  // 커스텀 그룹 옵션 갱신
-  let cg = sel.querySelector('optgroup[data-custom]');
-  if (lib3dCustomTypes.length === 0) { if (cg) cg.remove(); return; }
-  if (!cg) {
-    cg = document.createElement('optgroup');
-    cg.label = '── 커스텀 ──';
-    cg.dataset.custom = '1';
-    sel.appendChild(cg);
-  }
-  cg.innerHTML = lib3dCustomTypes.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+  // 기존 커스텀 옵션 전부 제거 후 카테고리별로 재삽입
+  sel.querySelectorAll('option[data-custom]').forEach(o => o.remove());
+  lib3dCustomTypes.forEach(c => {
+    const grp = sel.querySelector(`optgroup[data-cat="${c.cat || 'speaker'}"]`) || sel.querySelector('optgroup');
+    if (!grp) return;
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = '⚙ ' + c.label;
+    opt.dataset.custom = '1';
+    grp.appendChild(opt);
+  });
 }
 
 // 카테고리별 그룹 (등록 현황 표시용)
 const LIB3D_GROUPS = [
-  { label:'🔊 스피커류', types:['speaker','sub','monitor','front_mon','sidefill','delay'] },
-  { label:'🎚️ 콘솔/마이크', types:['console','mic'] },
-  { label:'🏗️ 무대/구조물', types:['stair','tent','placard','power'] },
-  { label:'🔧 트러스 부품', types:['truss_cube','truss_0.5','truss_1','truss_1.5','truss_2'] },
+  { cat:'truss',   label:'🔧 트러스 부품', types:['truss_cube','truss_0.5','truss_1','truss_1.5','truss_2'] },
+  { cat:'speaker', label:'🔊 스피커류', types:['speaker','sub','monitor','front_mon','sidefill','delay'] },
+  { cat:'console', label:'🎚️ 콘솔/마이크', types:['console','mic'] },
+  { cat:'stage',   label:'🏗️ 무대/구조물', types:['stair','tent','placard','power'] },
 ];
 
 let lib3dModels = JSON.parse(localStorage.getItem('lib3dModels') || '[]');
@@ -8899,12 +8910,11 @@ function lib3dRenderStatus() {
   LIB3D_GROUPS.forEach(grp => {
     html += `<div style="grid-column:1/-1;font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">${grp.label}</div>`;
     grp.types.forEach(t => { html += renderRow(t, LIB3D_TYPES_BASE[t] || t, false); });
+    // 이 카테고리에 속한 커스텀 타입
+    lib3dCustomTypes.filter(c => (c.cat || 'speaker') === grp.cat).forEach(c => {
+      html += renderRow(c.id, '⚙ ' + c.label, true);
+    });
   });
-
-  if (lib3dCustomTypes.length > 0) {
-    html += `<div style="grid-column:1/-1;font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">⚙️ 커스텀</div>`;
-    lib3dCustomTypes.forEach(c => { html += renderRow(c.id, c.label, true); });
-  }
 
   grid.innerHTML = html;
 }
@@ -8925,38 +8935,30 @@ function lib3dRender() {
     const kb = (m.size / 1024).toFixed(0);
     const hasDim = m.rw || m.rd || m.rh;
     const dimLabel = hasDim
-      ? `<div style="font-size:10px;color:#22c55e;margin-top:2px">📐 ${m.rw||'?'}W × ${m.rd||'?'}D × ${m.rh||'?'}H m</div>`
-      : `<div style="font-size:10px;color:var(--text-muted);margin-top:2px">📐 치수 미입력 — 편집에서 수정</div>`;
+      ? `<div style="font-size:9.5px;color:#22c55e;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📐 ${m.rw||'?'}×${m.rd||'?'}×${m.rh||'?'}m</div>`
+      : `<div style="font-size:9.5px;color:var(--text-muted);margin-top:1px">📐 치수 미입력</div>`;
     return `<div class="lib3d-item" onclick="lib3dOpenEditModal('${m.id}')" style="cursor:pointer">
       <div class="lib3d-item-ico">${ico}</div>
       <div class="lib3d-item-info">
         <div class="lib3d-item-name">${m.name}</div>
-        <div class="lib3d-item-meta">${m.typeName} · ${kb}KB · ${m.uploaded}</div>
+        <div class="lib3d-item-meta">${m.typeName} · ${kb}KB</div>
         ${dimLabel}
       </div>
-      <div class="lib3d-item-btns" style="flex-direction:row;gap:6px">
-        <button onclick="event.stopPropagation();lib3dOpenEditModal('${m.id}')" class="set-btn" title="편집">✏️</button>
-        <button onclick="event.stopPropagation();if(confirm('삭제하시겠습니까?'))lib3dDelete('${m.id}')" title="삭제" style="color:#ef4444;border-color:#ef4444">🗑️</button>
+      <div class="lib3d-item-btns" style="flex-direction:column;gap:4px">
+        <button onclick="event.stopPropagation();lib3dOpenEditModal('${m.id}')" class="set-btn" title="편집" style="padding:3px 7px">✏️</button>
+        <button onclick="event.stopPropagation();if(confirm('삭제하시겠습니까?'))lib3dDelete('${m.id}')" title="삭제" style="padding:3px 7px;color:#ef4444;border-color:#ef4444">🗑️</button>
       </div>
     </div>`;
   }).join('');
 }
 
 function lib3dBuildTypeOptions(selected) {
-  const groups = [
-    { label:'── 트러스 부품 ──', types:['truss_cube','truss_0.5','truss_1','truss_1.5','truss_2'] },
-    { label:'── 스피커류 ──', types:['speaker','sub','monitor','front_mon','sidefill','delay'] },
-    { label:'── 콘솔/마이크 ──', types:['console','mic'] },
-    { label:'── 무대/구조물 ──', types:['stair','tent','placard','power'] },
-  ];
-  const allTypes = lib3dGetTypes();
-  let html = groups.map(g =>
-    `<optgroup label="${g.label}">${g.types.map(t => `<option value="${t}" ${t===selected?'selected':''}>${LIB3D_TYPES_BASE[t]||t}</option>`).join('')}</optgroup>`
-  ).join('');
-  if (lib3dCustomTypes.length > 0) {
-    html += `<optgroup label="── 커스텀 ──">${lib3dCustomTypes.map(c => `<option value="${c.id}" ${c.id===selected?'selected':''}>${c.label}</option>`).join('')}</optgroup>`;
-  }
-  return html;
+  return LIB3D_GROUPS.map(g => {
+    const base = g.types.map(t => `<option value="${t}" ${t===selected?'selected':''}>${LIB3D_TYPES_BASE[t]||t}</option>`).join('');
+    const custom = lib3dCustomTypes.filter(c => (c.cat || 'speaker') === g.cat)
+      .map(c => `<option value="${c.id}" ${c.id===selected?'selected':''}>⚙ ${c.label}</option>`).join('');
+    return `<optgroup label="${g.label}">${base}${custom}</optgroup>`;
+  }).join('');
 }
 
 function lib3dOpenEditModal(id) {
@@ -9024,6 +9026,14 @@ function lib3dSaveEdit(id) {
   const name = document.getElementById('ledit-name').value.trim();
   if (name) m.name = name;
   const newType = document.getElementById('ledit-type').value;
+  // 중복 방지 — 옮기려는 타입에 이미 다른 모델이 있으면 교체 확인
+  if (newType !== m.type) {
+    const occupied = lib3dModels.find(x => x.type === newType && x.id !== id);
+    if (occupied) {
+      if (!confirm(`'${lib3dGetTypes()[newType]||newType}' 타입에 이미 '${occupied.name}' 모델이 있습니다.\n기존 모델을 삭제하고 교체할까요?`)) return;
+      lib3dDelete(occupied.id);
+    }
+  }
   m.type = newType;
   m.typeName = lib3dGetTypes()[newType] || newType;
   const w = parseFloat(document.getElementById('ledit-w').value);
