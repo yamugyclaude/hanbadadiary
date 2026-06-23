@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-39</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-40</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9614,12 +9614,12 @@ async function daeGenerate({ w, d, h, stair, memo }) {
     const iz = itemElev !== null ? itemElev : (onStage ? h : 0);
     const name = `${it.label.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_${i+1}`;
 
-    // 트러스 외 객체는 1×1×1m 위치 마커로 균일화 (세부 모델·편집은 스케치업에서)
+    // 트러스 외 객체는 등록 모델이 없을 때만 1×1×1m 박스 마커로 균일화.
+    // 등록된 3D 모델이 있으면 실제 형상을 그대로 내보냄(트러스처럼).
     const uniformMarker = p.type !== 'truss';
-    if (uniformMarker) { rw = 1; rd = 1; rh = 1; }
 
-    // ── 실제 3D 모델 있으면 임베드 (균일 마커 대상은 건너뜀) ──
-    const realModel = uniformMarker ? null : lib3dGetActive(p.type);
+    // ── 실제 3D 모델 있으면 임베드 ──
+    const realModel = lib3dGetActive(p.type);
     if (realModel) {
       const prefix = `mdl${i}_`;
       const embedded = await _embedDaeModel(realModel.url, prefix);
@@ -9649,13 +9649,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       }
     }
 
-    // ── 폴백: 박스 (트러스는 등록 모델 치수 우선, 그 외는 1×1×1 균일 마커) ──
-    const modelForDim = uniformMarker ? null : lib3dGetActive(p.type);
-    if (modelForDim) {
-      if (modelForDim.rw) rw = modelForDim.rw;
-      if (modelForDim.rd) rd = modelForDim.rd;
-      if (modelForDim.rh) rh = modelForDim.rh;
-    }
+    // ── 폴백: 박스 (등록 모델 없음) — 트러스 외는 1×1×1 균일 위치 마커 ──
+    if (uniformMarker) { rw = 1; rd = 1; rh = 1; }
     const gid = `geom-i${i}`;
     geoms += boxGeom(gid, rw, rd, rh);
     mats  += `<material id="mat-${gid}"><instance_effect url="#eff-i${i}"/></material>`;
