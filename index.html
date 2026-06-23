@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-43</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-44</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9593,26 +9593,34 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       </instance_geometry>
     </node>`;
 
-  // 등록된 3D 모델 URL을 병렬로 미리 fetch → 캐시에 저장 (내보내기 속도 개선)
-  const _modelFetchCache = new Map(); // url → embedded result (prefix='cache_')
+  // 등록된 3D 모델: 고유 URL별로 "딱 1회만" 파싱·id치환 후 library_nodes에 등록.
+  // 배치는 instance_node 참조만 → 객체가 많아도 무거운 처리 반복 없음(속도 핵심).
+  const _preparedModels = new Map(); // url → { rootId, bbox, unitScale } | null(실패)
   {
-    const uniqueUrls = [...new Set(
-      daePlacements.map(p => { const m = (typeof lib3dGetActive==='function') ? lib3dGetActive(p.type) : null; return m ? m.url : null; })
-        .filter(Boolean)
-    )];
-    if (uniqueUrls.length > 0) {
-      showToast(`⏳ 3D 모델 ${uniqueUrls.length}개 로딩 중...`);
-      await Promise.all(uniqueUrls.map(async url => {
-        try {
-          const resp = await fetch(url);
-          if (!resp.ok) return;
-          const text = await resp.text();
-          if (text.includes('<COLLADA') || text.includes('<collada')) {
-            _modelFetchCache.set(url, text);
-          }
-        } catch(e) { console.warn('pre-fetch failed:', url, e); }
-      }));
-    }
+    const urlModel = new Map();
+    daePlacements.forEach(p => {
+      const m = (typeof lib3dGetActive === 'function') ? lib3dGetActive(p.type) : null;
+      if (m && m.url && !urlModel.has(m.url)) urlModel.set(m.url, m);
+    });
+    const entries = [...urlModel.entries()];
+    if (entries.length) showToast(`⏳ 3D 모델 ${entries.length}종 준비 중...`);
+    // 고유 모델만 병렬 fetch + 1회 처리
+    const prepared = await Promise.all(entries.map(async ([url], k) => {
+      const prep = await _embedDaeModel(url, `U${k}_`);
+      return { url, k, prep };
+    }));
+    // 공통 라이브러리에 1회만 추가 (순서 고정: 결정적 출력)
+    prepared.forEach(({ url, k, prep }) => {
+      if (!prep) { _preparedModels.set(url, null); return; }
+      geoms    += prep.geoms;
+      imgs     += prep.imgs || '';
+      mats     += prep.mats;
+      effs     += prep.effs;
+      libNodes += prep.libNodes || '';
+      const rootId = `U${k}_modelRoot`;
+      libNodes += `<node id="${rootId}" name="model${k}">${prep.sceneNodes}</node>`;
+      _preparedModels.set(url, { rootId, bbox: prep.bbox, unitScale: prep.unitScale });
+    });
   }
 
   for (let i = 0; i < daePlacements.length; i++) {
@@ -9767,19 +9775,12 @@ async function daeGenerate({ w, d, h, stair, memo }) {
     // 등록된 3D 모델이 있으면 실제 형상을 그대로 내보냄(트러스처럼).
     const uniformMarker = p.type !== 'truss';
 
-    // ── 실제 3D 모델 있으면 임베드 (캐시 우선) ──
+    // ── 실제 3D 모델 있으면 instance_node 참조 (사전 준비된 모델 재사용) ──
     const realModel = lib3dGetActive(p.type);
     if (realModel) {
-      const prefix = `mdl${i}_`;
-      const cachedText = _modelFetchCache.get(realModel.url) || null;
-      const embedded = await _embedDaeModel(realModel.url, prefix, cachedText);
-      if (embedded) {
-        geoms    += embedded.geoms;
-        imgs     += embedded.imgs || '';
-        libNodes += embedded.libNodes || '';
-        mats     += embedded.mats;
-        effs     += embedded.effs;
-        const us = embedded.unitScale || 1.0;
+      const prep = _preparedModels.get(realModel.url);
+      if (prep) {
+        const us = prep.unitScale || 1.0;
         const userScale = parseFloat(realModel.scale || 1.0);
 
         // 평면도 회전값 → DAE Z축 회전 (SVG CW → DAE CCW)
@@ -9790,7 +9791,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         // 스케일 + 재중심 매트릭스 적용 (트러스와 동일 원리).
         // bbox(미터): XY 중심 → 0, Z 최저 → 0 으로 이동 후 source→meter 스케일.
         let fitTag;
-        const bb = embedded.bbox;
+        const bb = prep.bbox;
         if (bb) {
           const sTot = us * userScale;                       // source단위 → 미터 (×사용자배율)
           const cX = (bb.max[0] + bb.min[0]) / 2;            // 미터 단위 bbox 중심
@@ -9815,7 +9816,7 @@ async function daeGenerate({ w, d, h, stair, memo }) {
           <translate>${cx} ${cy} ${iz}</translate>
           ${rotTag}
           ${fitTag}
-          ${embedded.sceneNodes}
+          <instance_node url="#${prep.rootId}"/>
         </node>`;
         continue;
       }
