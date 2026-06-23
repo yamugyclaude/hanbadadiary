@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-40</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-41</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -9325,11 +9325,14 @@ function _trussFitMatrix(bbox, opts) {
   return [A[0],A[1],A[2],center[0]-Ac[0], A[3],A[4],A[5],center[1]-Ac[1], A[6],A[7],A[8],center[2]-Ac[2], 0,0,0,1];
 }
 
-async function _embedDaeModel(url, prefix) {
+async function _embedDaeModel(url, prefix, _prefetchedText) {
   try {
-    const resp = await fetch(url);
-    if (!resp.ok) return null;
-    let text = await resp.text();
+    let text = _prefetchedText || null;
+    if (!text) {
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
+      text = await resp.text();
+    }
     if (!text.includes('<COLLADA') && !text.includes('<collada')) return null;
 
     // id 치환 전 원본으로 실제 월드 바운딩박스(미터) 계산
@@ -9465,6 +9468,28 @@ async function daeGenerate({ w, d, h, stair, memo }) {
         <bind_material><technique_common><instance_material symbol="mat-geom-stage" target="#mat-geom-stage"/></technique_common></bind_material>
       </instance_geometry>
     </node>`;
+
+  // 등록된 3D 모델 URL을 병렬로 미리 fetch → 캐시에 저장 (내보내기 속도 개선)
+  const _modelFetchCache = new Map(); // url → embedded result (prefix='cache_')
+  {
+    const uniqueUrls = [...new Set(
+      daePlacements.map(p => { const m = (typeof lib3dGetActive==='function') ? lib3dGetActive(p.type) : null; return m ? m.url : null; })
+        .filter(Boolean)
+    )];
+    if (uniqueUrls.length > 0) {
+      showToast(`⏳ 3D 모델 ${uniqueUrls.length}개 로딩 중...`);
+      await Promise.all(uniqueUrls.map(async url => {
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) return;
+          const text = await resp.text();
+          if (text.includes('<COLLADA') || text.includes('<collada')) {
+            _modelFetchCache.set(url, text);
+          }
+        } catch(e) { console.warn('pre-fetch failed:', url, e); }
+      }));
+    }
+  }
 
   for (let i = 0; i < daePlacements.length; i++) {
     const p = daePlacements[i];
@@ -9618,11 +9643,12 @@ async function daeGenerate({ w, d, h, stair, memo }) {
     // 등록된 3D 모델이 있으면 실제 형상을 그대로 내보냄(트러스처럼).
     const uniformMarker = p.type !== 'truss';
 
-    // ── 실제 3D 모델 있으면 임베드 ──
+    // ── 실제 3D 모델 있으면 임베드 (캐시 우선) ──
     const realModel = lib3dGetActive(p.type);
     if (realModel) {
       const prefix = `mdl${i}_`;
-      const embedded = await _embedDaeModel(realModel.url, prefix);
+      const cachedText = _modelFetchCache.get(realModel.url) || null;
+      const embedded = await _embedDaeModel(realModel.url, prefix, cachedText);
       if (embedded) {
         geoms    += embedded.geoms;
         imgs     += embedded.imgs || '';
