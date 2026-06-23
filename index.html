@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-38</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-39</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -7986,6 +7986,8 @@ function daeRenderSVG() {
     }
 
     // ── 일반 장비 ──
+    // 트러스 외 객체는 1×1m 위치 마커로 균일화 (세부 크기·편집은 스케치업에서)
+    if (p.type !== 'truss') { pw = 1; pd = 1; }
     const hw = pw/2, hd = pd/2;
     const minD = Math.min(pw, pd);
     const codeFS = Math.max(minD * 0.34, 0.17).toFixed(3);
@@ -9612,8 +9614,12 @@ async function daeGenerate({ w, d, h, stair, memo }) {
     const iz = itemElev !== null ? itemElev : (onStage ? h : 0);
     const name = `${it.label.replace(/[^a-zA-Z0-9가-힣]/g, '_')}_${i+1}`;
 
-    // ── 실제 3D 모델 있으면 임베드 ──
-    const realModel = lib3dGetActive(p.type);
+    // 트러스 외 객체는 1×1×1m 위치 마커로 균일화 (세부 모델·편집은 스케치업에서)
+    const uniformMarker = p.type !== 'truss';
+    if (uniformMarker) { rw = 1; rd = 1; rh = 1; }
+
+    // ── 실제 3D 모델 있으면 임베드 (균일 마커 대상은 건너뜀) ──
+    const realModel = uniformMarker ? null : lib3dGetActive(p.type);
     if (realModel) {
       const prefix = `mdl${i}_`;
       const embedded = await _embedDaeModel(realModel.url, prefix);
@@ -9643,8 +9649,8 @@ async function daeGenerate({ w, d, h, stair, memo }) {
       }
     }
 
-    // ── 폴백: 박스 (등록 모델 치수 있으면 우선 적용) ──
-    const modelForDim = lib3dGetActive(p.type);
+    // ── 폴백: 박스 (트러스는 등록 모델 치수 우선, 그 외는 1×1×1 균일 마커) ──
+    const modelForDim = uniformMarker ? null : lib3dGetActive(p.type);
     if (modelForDim) {
       if (modelForDim.rw) rw = modelForDim.rw;
       if (modelForDim.rd) rd = modelForDim.rd;
