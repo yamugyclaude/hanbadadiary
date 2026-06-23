@@ -1363,9 +1363,26 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .dae-placed-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:12px; }
 .dae-placed-row:last-child { border-bottom:none; }
 /* ── 트러스 설정 모달 ── */
-.truss-cfg-sheet { max-width:580px !important; max-height:92vh; overflow-y:auto; }
+.truss-cfg-sheet { max-width:540px !important; max-height:92vh; overflow-y:auto; }
 .truss-cfg-section { margin-bottom:16px; }
 .truss-cfg-section-label { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
+/* 트러스 시각적 피커 */
+.truss-sm-btn { width:28px; height:28px; border-radius:7px; border:1.5px solid var(--border2); background:var(--surface); color:var(--text); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.truss-axis-card { background:var(--surface2); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
+.truss-asm-row { display:flex; align-items:center; gap:2px; min-height:28px; background:var(--surface); border-radius:8px; padding:3px 6px; margin-bottom:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; }
+.truss-asm-blk { height:22px; border-radius:3px; display:inline-flex; align-items:center; justify-content:center; font-size:7.5px; font-weight:700; color:rgba(255,255,255,0.88); flex-shrink:0; }
+.truss-picker-row { display:flex; gap:8px; align-items:flex-start; overflow-x:auto; padding-bottom:2px; }
+.truss-pc { display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
+.truss-pc-block { height:28px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:rgba(255,255,255,.9); }
+.truss-pc-cnt { font-size:15px; font-weight:800; min-width:18px; text-align:center; color:var(--text); }
+.truss-pc-btns { display:flex; align-items:center; gap:3px; }
+.truss-pc-btns button { width:24px; height:24px; border-radius:6px; border:1px solid var(--border2); background:var(--surface); color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:inherit; }
+.truss-pc-btns button:active { opacity:.6; }
+.truss-inv-dots { display:flex; flex-wrap:wrap; gap:2px; width:56px; justify-content:center; min-height:8px; }
+.truss-inv-dot { width:7px; height:7px; border-radius:1.5px; }
+.truss-inv-dot.free { opacity:.85; }
+.truss-inv-dot.used { background:#22c55e !important; }
+.truss-inv-dot.gone { background:var(--border) !important; opacity:.4; }
 .truss-dir-group { display:flex; gap:8px; }
 .truss-dir-btn { flex:1; padding:12px 8px; border-radius:11px; border:1.5px solid var(--border2); background:var(--surface2); color:var(--text2); cursor:pointer; font-size:13px; font-weight:600; line-height:1.6; text-align:center; transition:all 0.15s; }
 .truss-dir-btn.active { border-color:#3dba96; background:rgba(61,186,150,0.15); color:#3dba96; }
@@ -1611,7 +1628,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-33</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-34</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2102,6 +2119,8 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
                   <option value="console">🎚️ 콘솔/마이크</option>
                   <option value="stage">🏗️ 무대/구조물</option>
                   <option value="truss">🔧 트러스 부품</option>
+                  <option value="instrument">🎸 악기류</option>
+                  <option value="etc">📦 그외</option>
                 </select>
                 <input id="lib3d-custom-input" type="text" placeholder="장비 이름 (예: 하이패스스피커)"
                   style="flex:1;min-width:120px;padding:5px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px"
@@ -2111,7 +2130,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
               </div>
             </div>
           </div>
-          <div id="lib3d-list"><div class="lib3d-empty">등록된 3D 모델이 없습니다</div></div>
           <div id="lib3d-bucket-warn" class="lib3d-warn-box" style="display:none">
             ⚠ Supabase Storage 'skp-library' 버킷이 없거나 업로드 권한이 없습니다.<br>
             대시보드 → Storage → New Bucket → Name: <b>skp-library</b> / Public: <b>ON</b>
@@ -2647,194 +2665,171 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <!-- 트러스 설정 모달 -->
 <div class="modal-overlay" id="trussCfgModal">
   <div class="modal-sheet truss-cfg-sheet">
-    <div class="modal-title" style="font-size:17px;margin-bottom:14px">
-      ⬛ 트러스 설정
-      <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">큐브 220mm 고정 · 가로/세로 독립 설정</span>
-    </div>
-
-    <!-- 설치 높이 -->
-    <div class="truss-cfg-section">
-      <div class="truss-cfg-section-label">추가 높이 (0 = 무대 위에 착지)</div>
-      <div class="truss-elev-row">
-        <button class="truss-big-btn" onclick="_adjTrussF('elevation',-0.5)">−</button>
-        <div class="truss-elev-val">
-          <span id="tElevVal">0.0</span><span style="font-size:14px;font-weight:400;opacity:0.6">m</span>
-        </div>
-        <button class="truss-big-btn" onclick="_adjTrussF('elevation',0.5)">+</button>
+    <!-- 헤더 + 높이 한 줄 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="modal-title" style="margin-bottom:0;font-size:15px">⬛ 트러스 설정</div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <span style="font-size:10px;color:var(--text-muted)">높이</span>
+        <button class="truss-sm-btn" onclick="_adjTrussF('elevation',-0.5)">−</button>
+        <span id="tElevVal" style="font-size:15px;font-weight:700;min-width:30px;text-align:center">0.0</span><span style="font-size:11px;opacity:.6">m</span>
+        <button class="truss-sm-btn" onclick="_adjTrussF('elevation',0.5)">+</button>
       </div>
     </div>
 
-    <!-- ↔ 가로 섹션 구성 -->
-    <div class="truss-cfg-section">
-      <div class="truss-cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
-        <span>↔ 가로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 상단 바 + 하단 바 <b style="color:#3dba96">× 2줄 쌍 설치</b></span></span>
-        <span class="truss-total-val" id="hTotalSpan" style="font-size:13px">—</span>
+    <!-- ↔ 가로 바 -->
+    <div class="truss-axis-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:700;color:var(--text)">↔ 가로 바 <span style="font-weight:400;color:var(--text-muted)">× 상하 2줄 쌍</span></span>
+        <span class="truss-total-val" id="hTotalSpan" style="font-size:12px">—</span>
       </div>
-      <div class="truss-section-grid">
-        <!-- 큐브 (좌) — 고정 1개 -->
-        <div class="truss-sect-row truss-cube-row">
-          <div class="truss-sect-ico truss-cube-ico"></div>
-          <div class="truss-sect-len">큐브 (좌)</div>
-          <div class="truss-modal-step">
-            <span class="truss-modal-step-val" id="htcube-L" style="color:#f59e0b">1</span>
-            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
-          </div>
-          <div class="truss-sect-inv" id="htcube-inv-L"></div>
+      <!-- 조립 미리보기 행 -->
+      <div class="truss-asm-row" id="truss-asm-h">
+        <span style="font-size:10px;color:var(--text-muted)">+ 버튼을 눌러 조립</span>
+      </div>
+      <!-- 조각 선택 -->
+      <div class="truss-picker-row">
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
+          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+          <span id="htcube-L" style="display:none">1</span>
+          <div id="htcube-inv-L" style="display:none"></div>
         </div>
-        <!-- 2m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#1a3a5c"></div>
-          <div class="truss-sect-len">2m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','2',-1)">−</button>
-            <span class="truss-modal-step-val" id="htsect-2">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','2',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#1a3a5c;width:52px">2m</div>
+          <div class="truss-inv-dots" id="inv-blk-h-2"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('h','2',-1)">−</button>
+            <span class="truss-pc-cnt" id="htsect-2">0</span>
+            <button onclick="_adjTrussSection('h','2',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-2"></div>
-          <span id="htsect-3d-2" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="htsect-inv-2" style="font-size:9px;text-align:center"></div>
+          <span id="htsect-3d-2" style="font-size:9px" title=""></span>
         </div>
-        <!-- 1.5m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#1e5279"></div>
-          <div class="truss-sect-len">1.5m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','1.5',-1)">−</button>
-            <span class="truss-modal-step-val" id="htsect-1.5">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','1.5',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#1e5279;width:38px">1.5m</div>
+          <div class="truss-inv-dots" id="inv-blk-h-1.5"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('h','1.5',-1)">−</button>
+            <span class="truss-pc-cnt" id="htsect-1.5">0</span>
+            <button onclick="_adjTrussSection('h','1.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-1.5"></div>
-          <span id="htsect-3d-1.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="htsect-inv-1.5" style="font-size:9px;text-align:center"></div>
+          <span id="htsect-3d-1.5" style="font-size:9px" title=""></span>
         </div>
-        <!-- 1m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#21699a"></div>
-          <div class="truss-sect-len">1m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','1',-1)">−</button>
-            <span class="truss-modal-step-val" id="htsect-1">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','1',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#21699a;width:26px">1m</div>
+          <div class="truss-inv-dots" id="inv-blk-h-1"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('h','1',-1)">−</button>
+            <span class="truss-pc-cnt" id="htsect-1">0</span>
+            <button onclick="_adjTrussSection('h','1',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-1"></div>
-          <span id="htsect-3d-1" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="htsect-inv-1" style="font-size:9px;text-align:center"></div>
+          <span id="htsect-3d-1" style="font-size:9px" title=""></span>
         </div>
-        <!-- 0.5m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#2980b9"></div>
-          <div class="truss-sect-len">0.5m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','0.5',-1)">−</button>
-            <span class="truss-modal-step-val" id="htsect-0.5">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('h','0.5',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#2980b9;width:14px;min-width:14px"></div>
+          <div style="font-size:8px;color:#2980b9;text-align:center;line-height:1.2">0.5m</div>
+          <div class="truss-inv-dots" id="inv-blk-h-0.5"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('h','0.5',-1)">−</button>
+            <span class="truss-pc-cnt" id="htsect-0.5">0</span>
+            <button onclick="_adjTrussSection('h','0.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="htsect-inv-0.5"></div>
-          <span id="htsect-3d-0.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="htsect-inv-0.5" style="font-size:9px;text-align:center"></div>
+          <span id="htsect-3d-0.5" style="font-size:9px" title=""></span>
         </div>
-        <!-- 큐브 (우) — 고정 1개 -->
-        <div class="truss-sect-row truss-cube-row">
-          <div class="truss-sect-ico truss-cube-ico"></div>
-          <div class="truss-sect-len">큐브 (우)</div>
-          <div class="truss-modal-step">
-            <span class="truss-modal-step-val" id="htcube-R" style="color:#f59e0b">1</span>
-            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
-          </div>
-          <div class="truss-sect-inv" id="htcube-inv-R"></div>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
+          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+          <span id="htcube-R" style="display:none">1</span>
+          <div id="htcube-inv-R" style="display:none"></div>
         </div>
       </div>
-      <div class="truss-stage-badge" id="trussStageWarnH" style="margin-top:6px"></div>
+      <div class="truss-stage-badge" id="trussStageWarnH" style="margin-top:4px"></div>
     </div>
 
-    <!-- ↕ 세로 섹션 구성 -->
-    <div class="truss-cfg-section">
-      <div class="truss-cfg-section-label" style="display:flex;align-items:center;justify-content:space-between">
-        <span>↕ 세로 섹션 <span style="text-transform:none;font-weight:400;font-size:10px">— 좌측 바 + 우측 바 <b style="color:#3dba96">× 2줄 쌍 설치</b></span></span>
-        <span class="truss-total-val" id="vTotalSpan" style="font-size:13px">—</span>
+    <!-- ↕ 세로 바 -->
+    <div class="truss-axis-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:700;color:var(--text)">↕ 세로 바 <span style="font-weight:400;color:var(--text-muted)">× 좌우 2줄 쌍</span></span>
+        <span class="truss-total-val" id="vTotalSpan" style="font-size:12px">—</span>
       </div>
-      <div class="truss-section-grid">
-        <!-- 큐브 (상) — 고정 1개 -->
-        <div class="truss-sect-row truss-cube-row">
-          <div class="truss-sect-ico truss-cube-ico"></div>
-          <div class="truss-sect-len">큐브 (상)</div>
-          <div class="truss-modal-step">
-            <span class="truss-modal-step-val" id="vtcube-T" style="color:#f59e0b">1</span>
-            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
-          </div>
-          <div class="truss-sect-inv" id="vtcube-inv-T"></div>
+      <!-- 조립 미리보기 행 -->
+      <div class="truss-asm-row" id="truss-asm-v">
+        <span style="font-size:10px;color:var(--text-muted)">+ 버튼을 눌러 조립</span>
+      </div>
+      <!-- 조각 선택 -->
+      <div class="truss-picker-row">
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
+          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+          <span id="vtcube-T" style="display:none">1</span>
+          <div id="vtcube-inv-T" style="display:none"></div>
         </div>
-        <!-- 2m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#1a3a5c"></div>
-          <div class="truss-sect-len">2m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','2',-1)">−</button>
-            <span class="truss-modal-step-val" id="vtsect-2">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','2',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#1a3a5c;width:52px">2m</div>
+          <div class="truss-inv-dots" id="inv-blk-v-2"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('v','2',-1)">−</button>
+            <span class="truss-pc-cnt" id="vtsect-2">0</span>
+            <button onclick="_adjTrussSection('v','2',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-2"></div>
-          <span id="vtsect-3d-2" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="vtsect-inv-2" style="font-size:9px;text-align:center"></div>
+          <span id="vtsect-3d-2" style="font-size:9px" title=""></span>
         </div>
-        <!-- 1.5m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#1e5279"></div>
-          <div class="truss-sect-len">1.5m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','1.5',-1)">−</button>
-            <span class="truss-modal-step-val" id="vtsect-1.5">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','1.5',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#1e5279;width:38px">1.5m</div>
+          <div class="truss-inv-dots" id="inv-blk-v-1.5"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('v','1.5',-1)">−</button>
+            <span class="truss-pc-cnt" id="vtsect-1.5">0</span>
+            <button onclick="_adjTrussSection('v','1.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-1.5"></div>
-          <span id="vtsect-3d-1.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="vtsect-inv-1.5" style="font-size:9px;text-align:center"></div>
+          <span id="vtsect-3d-1.5" style="font-size:9px" title=""></span>
         </div>
-        <!-- 1m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#21699a"></div>
-          <div class="truss-sect-len">1m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','1',-1)">−</button>
-            <span class="truss-modal-step-val" id="vtsect-1">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','1',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#21699a;width:26px">1m</div>
+          <div class="truss-inv-dots" id="inv-blk-v-1"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('v','1',-1)">−</button>
+            <span class="truss-pc-cnt" id="vtsect-1">0</span>
+            <button onclick="_adjTrussSection('v','1',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-1"></div>
-          <span id="vtsect-3d-1" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="vtsect-inv-1" style="font-size:9px;text-align:center"></div>
+          <span id="vtsect-3d-1" style="font-size:9px" title=""></span>
         </div>
-        <!-- 0.5m -->
-        <div class="truss-sect-row">
-          <div class="truss-sect-ico" style="background:#2980b9"></div>
-          <div class="truss-sect-len">0.5m</div>
-          <div class="truss-modal-step">
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','0.5',-1)">−</button>
-            <span class="truss-modal-step-val" id="vtsect-0.5">0</span>
-            <button class="truss-big-btn" onclick="_adjTrussSection('v','0.5',1)">+</button>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#2980b9;width:14px;min-width:14px"></div>
+          <div style="font-size:8px;color:#2980b9;text-align:center;line-height:1.2">0.5m</div>
+          <div class="truss-inv-dots" id="inv-blk-v-0.5"></div>
+          <div class="truss-pc-btns">
+            <button onclick="_adjTrussSection('v','0.5',-1)">−</button>
+            <span class="truss-pc-cnt" id="vtsect-0.5">0</span>
+            <button onclick="_adjTrussSection('v','0.5',1)">+</button>
           </div>
-          <div class="truss-sect-inv" id="vtsect-inv-0.5"></div>
-          <span id="vtsect-3d-0.5" style="font-size:10px;cursor:pointer" title="" onclick="document.getElementById('sc-page-3d').scrollIntoView({behavior:'smooth'})"></span>
+          <div class="truss-sect-inv" id="vtsect-inv-0.5" style="font-size:9px;text-align:center"></div>
+          <span id="vtsect-3d-0.5" style="font-size:9px" title=""></span>
         </div>
-        <!-- 큐브 (하) — 고정 1개 -->
-        <div class="truss-sect-row truss-cube-row">
-          <div class="truss-sect-ico truss-cube-ico"></div>
-          <div class="truss-sect-len">큐브 (하)</div>
-          <div class="truss-modal-step">
-            <span class="truss-modal-step-val" id="vtcube-B" style="color:#f59e0b">1</span>
-            <span style="font-size:10px;color:var(--text-muted);margin-left:4px">고정</span>
-          </div>
-          <div class="truss-sect-inv" id="vtcube-inv-B"></div>
+        <div class="truss-pc">
+          <div class="truss-pc-block" style="background:#f59e0b;width:14px;min-width:14px"></div>
+          <div style="font-size:8px;color:#f59e0b;text-align:center;line-height:1.2">큐브<br>고정</div>
+          <span id="vtcube-B" style="display:none">1</span>
+          <div id="vtcube-inv-B" style="display:none"></div>
         </div>
       </div>
-      <div class="truss-stage-badge" id="trussStageWarnV" style="margin-top:6px"></div>
+      <div class="truss-stage-badge" id="trussStageWarnV" style="margin-top:4px"></div>
     </div>
 
-    <!-- 미리보기 -->
-    <div class="truss-preview-wrap" id="trussMiniPreviewWrap">
-      <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:6px">가로·세로 섹션을 추가하면 미리보기가 표시됩니다</div>
-    </div>
-
-    <div id="trussInvStatus" style="font-size:12px;padding:6px 2px;display:none"></div>
+    <div id="trussInvStatus" style="font-size:12px;padding:4px 2px;display:none"></div>
 
     <!-- 버튼 -->
-    <div style="display:flex;gap:8px;margin-top:18px">
-      <button class="btn btn-secondary" style="flex:1;padding:14px 0;font-size:14px" onclick="closeTrussCfg()">취소</button>
-      <button class="btn btn-primary" style="flex:2;padding:14px 0;font-size:16px;font-weight:700" onclick="daeApplyTrussConfig()">✔ 적용</button>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" style="flex:1;padding:12px 0;font-size:14px" onclick="closeTrussCfg()">취소</button>
+      <button class="btn btn-primary" style="flex:2;padding:12px 0;font-size:16px;font-weight:700" onclick="daeApplyTrussConfig()">✔ 적용</button>
     </div>
-    <button class="modal-close-bar-btn" style="margin-top:12px" onclick="closeTrussCfg()">✕ 닫기</button>
+    <button class="modal-close-bar-btn" style="margin-top:10px" onclick="closeTrussCfg()">✕ 닫기</button>
   </div>
 </div>
 
@@ -8306,6 +8301,55 @@ function _adjTrussF(key, delta) {
   _updateTrussUI();
 }
 
+function _renderAsmRow(axis) {
+  const tc = _trussCfg;
+  const sections = axis === 'h' ? tc.hSections : tc.vSections;
+  const el = document.getElementById('truss-asm-' + axis);
+  if (!el) return;
+  const SEC_COLORS = {'2':'#1a3a5c','1.5':'#1e5279','1':'#21699a','0.5':'#2980b9'};
+  const SEC_PX = {'2':52,'1.5':38,'1':26,'0.5':13};
+  const hasAny = sections && Object.values(sections).some(v => v > 0);
+  if (!sections || !hasAny) {
+    el.innerHTML = '<span style="font-size:10px;color:var(--text-muted)">+ 버튼을 눌러 조립</span>';
+    return;
+  }
+  let html = '<div class="truss-asm-blk" style="background:#f59e0b;width:13px" title="큐브"></div>';
+  ['2','1.5','1','0.5'].forEach(k => {
+    const cnt = sections[k] || 0;
+    for (let i = 0; i < cnt; i++) {
+      html += '<div class="truss-asm-blk" style="background:' + SEC_COLORS[k] + ';width:' + SEC_PX[k] + 'px" title="' + k + 'm">' + k + 'm</div>';
+    }
+  });
+  html += '<div class="truss-asm-blk" style="background:#f59e0b;width:13px" title="큐브"></div>';
+  el.innerHTML = html;
+}
+
+function _renderInvDotsAxis(axis) {
+  const tc = _trussCfg;
+  const sections = axis === 'h' ? tc.hSections : tc.vSections;
+  const used = daeGetInventoryUsed();
+  const SEC_COLORS = {'2':'#1a3a5c','1.5':'#1e5279','1':'#21699a','0.5':'#2980b9'};
+  ['2','1.5','1','0.5'].forEach(k => {
+    const el = document.getElementById('inv-blk-' + axis + '-' + k);
+    if (!el) return;
+    const total = trussInventory[k] || 0;
+    const usedByOthers = used[k] || 0;
+    const usedHere = sections ? (sections[k] || 0) : 0;
+    let html = '';
+    for (let i = 0; i < total; i++) {
+      if (i < usedHere) {
+        html += '<div class="truss-inv-dot used"></div>';
+      } else if (i < usedByOthers + usedHere) {
+        html += '<div class="truss-inv-dot gone"></div>';
+      } else {
+        html += '<div class="truss-inv-dot free" style="background:' + SEC_COLORS[k] + '"></div>';
+      }
+    }
+    if (total === 0) html = '<div style="font-size:8px;color:var(--text-muted)">재고0</div>';
+    el.innerHTML = html;
+  });
+}
+
 function _updateTrussUI() {
   const tc = _trussCfg;
   if (!tc.hSections) tc.hSections = {'0.5':0,'1':0,'1.5':0,'2':0};
@@ -8378,6 +8422,10 @@ function _updateTrussUI() {
   };
   updateAxisUI('h');
   updateAxisUI('v');
+  _renderAsmRow('h');
+  _renderAsmRow('v');
+  _renderInvDotsAxis('h');
+  _renderInvDotsAxis('v');
 
   // 스팬 표시
   const hSpanEl = document.getElementById('hTotalSpan');
@@ -8632,18 +8680,22 @@ const LIB3D_TYPES_BASE = {
   speaker:'메인스피커', sub:'V SUB', monitor:'모니터',
   front_mon:'프론트모니터', sidefill:'사이드필모니터', delay:'딜레이스피커',
   console:'콘솔', mic:'마이크스탠드',
+  // 악기류
+  piano:'피아노', drum:'드럼', guitar:'기타', keyboard:'키보드', bass:'베이스',
   // 무대/구조물
   stair:'계단', tent:'텐트', placard:'플랭카드', power:'전기',
   // 트러스 부품
   truss_cube:'트러스 큐브(0.22m)', 'truss_0.5':'트러스 0.5m', truss_1:'트러스 1m',
-  'truss_1.5':'트러스 1.5m', truss_2:'트러스 2m'
+  'truss_1.5':'트러스 1.5m', truss_2:'트러스 2m',
+  // 그외
+  etc1:'기타장비'
 };
 
 // 사용자 커스텀 타입 (localStorage)
 let lib3dCustomTypes = JSON.parse(localStorage.getItem('lib3dCustomTypes') || '[]');
 // [{id:'custom_xxx', label:'사용자 이름', cat:'speaker'}]
 // 카테고리 키 ↔ 그룹 인덱스 매핑
-const LIB3D_CAT_KEYS = { speaker:0, console:1, stage:2, truss:3 };
+const LIB3D_CAT_KEYS = { speaker:0, console:1, stage:2, truss:3, instrument:4, etc:5 };
 
 function lib3dGetTypes() {
   const merged = Object.assign({}, LIB3D_TYPES_BASE);
@@ -8683,6 +8735,19 @@ function lib3dDeleteCustomType(id) {
   lib3dRebuildDropdown();
 }
 
+function lib3dDeleteCustomTypeWithPw(id) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) alert('암호가 틀렸습니다.'); return; }
+  lib3dDeleteCustomType(id);
+}
+
+function lib3dDeleteModelByType(typeId) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) alert('암호가 틀렸습니다.'); return; }
+  const m = lib3dModels.find(x => x.type === typeId);
+  if (m) lib3dDelete(m.id);
+}
+
 function lib3dRebuildDropdown() {
   const sel = document.getElementById('lib3d-type-sel');
   if (!sel) return;
@@ -8705,6 +8770,8 @@ const LIB3D_GROUPS = [
   { cat:'speaker', label:'🔊 스피커류', types:['speaker','sub','monitor','front_mon','sidefill','delay'] },
   { cat:'console', label:'🎚️ 콘솔/마이크', types:['console','mic'] },
   { cat:'stage',   label:'🏗️ 무대/구조물', types:['stair','tent','placard','power'] },
+  { cat:'instrument', label:'🎸 악기류', types:['piano','drum','guitar','keyboard','bass'] },
+  { cat:'etc',     label:'📦 그외', types:['etc1'] },
 ];
 
 let lib3dModels = JSON.parse(localStorage.getItem('lib3dModels') || '[]');
@@ -8894,23 +8961,27 @@ function lib3dRenderStatus() {
   const grid = document.getElementById('lib3d-status-grid');
   if (!grid) return;
   let html = '';
-  const renderRow = (t, label, deletable) => {
-    const registered = lib3dModels.find(m => m.type === t);
-    const dot = registered ? '🟢' : '⬜';
-    const status = registered ? '✓ 등록됨' : '미등록';
-    const col = registered ? '#22c55e' : 'var(--text-muted)';
-    const delBtn = deletable ? `<button onclick="lib3dDeleteCustomType('${t}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:0 2px" title="삭제">✕</button>` : '';
-    return `<div style="display:flex;align-items:center;gap:4px;font-size:11px">
+  const renderRow = (t, label, isCustom) => {
+    const model = lib3dModels.find(m => m.type === t);
+    const dot = model ? '🟢' : '⬜';
+    const col = model ? '#22c55e' : 'var(--text-muted)';
+    const editBtn = model ? `<button onclick="lib3dOpenEditModal('${model.id}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:10px;padding:0 2px" title="편집">✏️</button>` : '';
+    const delFn = isCustom
+      ? `lib3dDeleteCustomTypeWithPw('${t}')`
+      : `lib3dDeleteModelByType('${t}')`;
+    const delBtn = model
+      ? `<button onclick="${delFn}" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:10px;padding:0 2px" title="삭제">✕</button>`
+      : (isCustom ? `<button onclick="lib3dDeleteCustomTypeWithPw('${t}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:0 2px" title="타입삭제">✕</button>` : '');
+    return `<div style="display:flex;align-items:center;gap:3px;font-size:11px">
       <span>${dot}</span>
       <span style="color:${col};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>
-      <span style="font-size:10px;color:${col}">${status}</span>${delBtn}
+      ${editBtn}${delBtn}
     </div>`;
   };
 
   LIB3D_GROUPS.forEach(grp => {
     html += `<div style="grid-column:1/-1;font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">${grp.label}</div>`;
     grp.types.forEach(t => { html += renderRow(t, LIB3D_TYPES_BASE[t] || t, false); });
-    // 이 카테고리에 속한 커스텀 타입
     lib3dCustomTypes.filter(c => (c.cat || 'speaker') === grp.cat).forEach(c => {
       html += renderRow(c.id, '⚙ ' + c.label, true);
     });
@@ -8969,8 +9040,8 @@ function lib3dOpenEditModal(id) {
     `<input id="${id2}" type="number" step="0.001" min="0.001" value="${val}" placeholder="${ph}"
       style="flex:1;padding:6px 8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit" ${extra}>`;
   document.body.insertAdjacentHTML('beforeend', `
-    <div id="lib3d-edit-modal" class="modal-overlay" onclick="if(event.target===this)this.remove()">
-      <div class="modal-box" style="max-width:400px;width:94%">
+    <div id="lib3d-edit-modal" class="modal-overlay show" onclick="if(event.target===this)this.remove()">
+      <div class="modal-sheet" style="max-width:400px;width:94%">
         <div class="modal-title">✏️ 모델 편집</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div>
@@ -9010,7 +9081,7 @@ function lib3dOpenEditModal(id) {
         <div style="display:flex;gap:8px;margin-top:18px">
           <button onclick="lib3dSaveEdit('${id}')"
             style="flex:2;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">저장</button>
-          <button onclick="if(confirm('삭제하시겠습니까?')){lib3dDelete('${id}');document.getElementById('lib3d-edit-modal')?.remove()}"
+          <button onclick="const pw=prompt('삭제 암호:');if(pw==='2375'){lib3dDelete('${id}');document.getElementById('lib3d-edit-modal')?.remove();}else if(pw!==null)alert('암호가 틀렸습니다.')"
             style="flex:1;padding:11px;background:none;border:1.5px solid #ef4444;border-radius:10px;color:#ef4444;font-size:14px;cursor:pointer;font-family:inherit">삭제</button>
           <button onclick="document.getElementById('lib3d-edit-modal').remove()"
             style="flex:1;padding:11px;background:none;border:1px solid var(--border2);border-radius:10px;color:var(--text-muted);font-size:14px;cursor:pointer;font-family:inherit">닫기</button>
