@@ -1628,7 +1628,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-34</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-35</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -2108,7 +2108,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
           <!-- 등록 현황 -->
           <div id="lib3d-status-panel" style="margin-bottom:12px;background:var(--surface2);border-radius:10px;padding:10px 12px">
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600">📋 등록 현황</div>
-            <div id="lib3d-status-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px"></div>
+            <div id="lib3d-status-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 12px"></div>
             <!-- 커스텀 타입 추가 -->
             <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">
               <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">＋ 직접 타입 추가</div>
@@ -8965,16 +8965,17 @@ function lib3dRenderStatus() {
     const model = lib3dModels.find(m => m.type === t);
     const dot = model ? '🟢' : '⬜';
     const col = model ? '#22c55e' : 'var(--text-muted)';
-    const editBtn = model ? `<button onclick="lib3dOpenEditModal('${model.id}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:10px;padding:0 2px" title="편집">✏️</button>` : '';
-    const delFn = isCustom
-      ? `lib3dDeleteCustomTypeWithPw('${t}')`
-      : `lib3dDeleteModelByType('${t}')`;
-    const delBtn = model
-      ? `<button onclick="${delFn}" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:10px;padding:0 2px" title="삭제">✕</button>`
-      : (isCustom ? `<button onclick="lib3dDeleteCustomTypeWithPw('${t}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:0 2px" title="타입삭제">✕</button>` : '');
+    const editBtn = model ? `<button onclick="lib3dOpenEditModal('${model.id}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:1px 3px;flex-shrink:0" title="편집">✏️</button>` : '';
+    // 삭제 버튼: 등록된 모델이 있으면 모델 삭제, 없는 커스텀 타입이면 타입 자체 삭제 (모두 암호 2375)
+    let delBtn = '';
+    if (model) {
+      delBtn = `<button onclick="lib3dDeleteModelByType('${t}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px;padding:1px 3px;flex-shrink:0" title="삭제 (암호)">🗑️</button>`;
+    } else if (isCustom) {
+      delBtn = `<button onclick="lib3dDeleteCustomTypeWithPw('${t}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:1px 3px;flex-shrink:0" title="타입삭제 (암호)">🗑️</button>`;
+    }
     return `<div style="display:flex;align-items:center;gap:3px;font-size:11px">
-      <span>${dot}</span>
-      <span style="color:${col};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>
+      <span style="flex-shrink:0">${dot}</span>
+      <span style="color:${col};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>
       ${editBtn}${delBtn}
     </div>`;
   };
