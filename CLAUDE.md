@@ -68,6 +68,7 @@
 | `checklist` | 행사 전 체크리스트 items + checked 상태 |
 | `equipment` | 장비관리대장 (음향·무대·사무실·조명·특효·기타) |
 | `alba` | 알바관리 (workers + schedules) |
+| `dae_setups` | 3D 도면 세팅 배열 (name·w·d·h·placements·nextId, v15 컬럼) |
 
 ---
 
