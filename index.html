@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-37</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-38</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -8726,6 +8726,8 @@ const LIB3D_TYPES_BASE = {
 
 // 사용자 커스텀 타입 (localStorage)
 let lib3dCustomTypes = JSON.parse(localStorage.getItem('lib3dCustomTypes') || '[]');
+// 등록현황에서 숨긴 기본(내장) 타입 목록
+let lib3dHiddenTypes = JSON.parse(localStorage.getItem('lib3dHiddenTypes') || '[]');
 // [{id:'custom_xxx', label:'사용자 이름', cat:'speaker'}]
 // 카테고리 키 ↔ 그룹 인덱스 매핑
 const LIB3D_CAT_KEYS = { speaker:0, console:1, stage:2, truss:3, instrument:4, etc:5 };
@@ -8774,6 +8776,25 @@ function lib3dDeleteCustomTypeWithPw(id) {
   lib3dDeleteCustomType(id);
 }
 
+// 기본(내장) 타입을 등록현황에서 숨김 (암호 2375) — 등록된 모델이 있으면 함께 삭제
+function lib3dHideTypeWithPw(typeId) {
+  const pw = prompt('삭제 암호를 입력하세요:');
+  if (pw !== '2375') { if (pw !== null) alert('암호가 틀렸습니다.'); return; }
+  const m = lib3dModels.find(x => x.type === typeId);
+  if (m) { lib3dDelete(m.id); }
+  if (!lib3dHiddenTypes.includes(typeId)) lib3dHiddenTypes.push(typeId);
+  localStorage.setItem('lib3dHiddenTypes', JSON.stringify(lib3dHiddenTypes));
+  lib3dRender();
+  lib3dRebuildDropdown();
+}
+
+function lib3dRestoreHiddenTypes() {
+  lib3dHiddenTypes = [];
+  localStorage.setItem('lib3dHiddenTypes', '[]');
+  lib3dRender();
+  lib3dRebuildDropdown();
+}
+
 function lib3dDeleteModelByType(typeId) {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) alert('암호가 틀렸습니다.'); return; }
@@ -8784,6 +8805,10 @@ function lib3dDeleteModelByType(typeId) {
 function lib3dRebuildDropdown() {
   const sel = document.getElementById('lib3d-type-sel');
   if (!sel) return;
+  // 숨긴 기본 타입 옵션은 드롭다운에서도 제외
+  sel.querySelectorAll('option:not([data-custom])').forEach(o => {
+    o.hidden = lib3dHiddenTypes.includes(o.value);
+  });
   // 기존 커스텀 옵션 전부 제거 후 카테고리별로 재삽입
   sel.querySelectorAll('option[data-custom]').forEach(o => o.remove());
   lib3dCustomTypes.forEach(c => {
@@ -8999,12 +9024,17 @@ function lib3dRenderStatus() {
     const dot = model ? '🟢' : '⬜';
     const col = model ? '#22c55e' : 'var(--text-muted)';
     const editBtn = model ? `<button onclick="lib3dOpenEditModal('${model.id}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:1px 3px;flex-shrink:0" title="편집">✏️</button>` : '';
-    // 삭제 버튼: 등록된 모델이 있으면 모델 삭제, 없는 커스텀 타입이면 타입 자체 삭제 (모두 암호 2375)
+    // 삭제 버튼 (모두 암호 2375):
+    //  - 등록된 모델: 모델 삭제
+    //  - 커스텀 타입(미등록): 타입 자체 삭제
+    //  - 기본 타입(미등록): 등록현황에서 숨김
     let delBtn = '';
     if (model) {
       delBtn = `<button onclick="lib3dDeleteModelByType('${t}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px;padding:1px 3px;flex-shrink:0" title="삭제 (암호)">🗑️</button>`;
     } else if (isCustom) {
       delBtn = `<button onclick="lib3dDeleteCustomTypeWithPw('${t}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:1px 3px;flex-shrink:0" title="타입삭제 (암호)">🗑️</button>`;
+    } else {
+      delBtn = `<button onclick="lib3dHideTypeWithPw('${t}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:1px 3px;flex-shrink:0" title="목록에서 숨김 (암호)">🗑️</button>`;
     }
     return `<div style="display:flex;align-items:center;gap:3px;font-size:11px">
       <span style="flex-shrink:0">${dot}</span>
@@ -9014,12 +9044,23 @@ function lib3dRenderStatus() {
   };
 
   LIB3D_GROUPS.forEach(grp => {
+    const visibleTypes = grp.types.filter(t => !lib3dHiddenTypes.includes(t));
+    const customInGrp = lib3dCustomTypes.filter(c => (c.cat || 'speaker') === grp.cat);
+    // 그룹 안에 보일 항목이 하나도 없으면 헤더도 생략
+    if (!visibleTypes.length && !customInGrp.length) return;
     html += `<div style="grid-column:1/-1;font-size:10px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">${grp.label}</div>`;
-    grp.types.forEach(t => { html += renderRow(t, LIB3D_TYPES_BASE[t] || t, false); });
-    lib3dCustomTypes.filter(c => (c.cat || 'speaker') === grp.cat).forEach(c => {
+    visibleTypes.forEach(t => { html += renderRow(t, LIB3D_TYPES_BASE[t] || t, false); });
+    customInGrp.forEach(c => {
       html += renderRow(c.id, '⚙ ' + c.label, true);
     });
   });
+
+  // 숨긴 기본 타입 복원 버튼
+  if (lib3dHiddenTypes.length) {
+    html += `<div style="grid-column:1/-1;margin-top:6px;text-align:center">
+      <button onclick="lib3dRestoreHiddenTypes()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-muted);cursor:pointer;font-size:10px;padding:3px 10px">↩ 숨긴 기본 항목 ${lib3dHiddenTypes.length}개 복원</button>
+    </div>`;
+  }
 
   grid.innerHTML = html;
 }
