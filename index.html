@@ -1627,7 +1627,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-51</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-52</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -5474,7 +5474,10 @@ function initEquipmentDefault(cloudOk) {
   (equipmentData['음향장비'] || []).forEach(item => {
     if (!item.subcat && nameToSubcat[item.name]) { item.subcat = nameToSubcat[item.name]; changed = true; }
   });
-  if (changed) { localStorage.setItem('equipmentData', JSON.stringify(equipmentData)); _syncEquipmentCloud(); }
+  if (changed) {
+    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    EQUIP_CATS.forEach(cat => (equipmentData[cat] || []).forEach(item => _syncEquipmentCloud(item)));
+  }
 }
 
 function onEqSearch(val) {
@@ -5560,10 +5563,11 @@ function confirmRenameSubcat(i) {
   const oldName = soundSubcats[i];
   soundSubcats[i] = val;
   // 기존 장비들의 subcat도 함께 변경
-  (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === oldName) item.subcat = val; });
+  const renamedItems = [];
+  (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === oldName) { item.subcat = val; renamedItems.push(item); } });
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
+  renamedItems.forEach(item => _syncEquipmentCloud(item));
   renderSubcatManagerBody();
   renderEqSubcatBar();
   showToast('✅ 소분류 수정 완료');
@@ -5588,10 +5592,11 @@ function deleteSoundSubcat(i) {
   const msg = count > 0 ? `'${name}' 소분류에 장비 ${count}개가 있습니다. 삭제하면 해당 장비들의 소분류가 비워집니다. 계속하시겠습니까?` : `'${name}' 소분류를 삭제하시겠습니까?`;
   if (!confirm(msg)) return;
   soundSubcats.splice(i, 1);
-  (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === name) item.subcat = ''; });
+  const clearedItems = [];
+  (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === name) { item.subcat = ''; clearedItems.push(item); } });
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
+  clearedItems.forEach(item => _syncEquipmentCloud(item));
   renderSubcatManagerBody();
   renderEqSubcatBar();
   if (eqCurrentSubcat === name) { eqCurrentSubcat = '전체'; renderEquipGrid(); }
@@ -5645,7 +5650,7 @@ function quickAddPhoto(id) {
         const url = await uploadEquipPhoto(id, base64);
         found.item.photos = [url || base64]; // 업로드 실패 시 base64 폴백
         localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-        _syncEquipmentCloud();
+        _syncEquipmentCloud(found.item);
         renderEquipGrid();
         showToast(url ? '✅ 사진 저장 완료' : '⚠ 사진 임시저장(업로드 실패)');
       };
@@ -5960,7 +5965,7 @@ function addEquipLog() {
   if (!Array.isArray(found.item.logs)) found.item.logs = [];
   found.item.logs.unshift({ date: date || new Date().toISOString().slice(0,10), desc, place: place || '' });
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
+  _syncEquipmentCloud(found.item);
   renderEquipModal();
   renderEquipGrid();
   showToast('✅ 관리내역 추가');
@@ -5973,7 +5978,7 @@ function deleteEquipLog(logIdx) {
   if (!found) return;
   found.item.logs.splice(logIdx, 1);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
+  _syncEquipmentCloud(found.item);
   renderEquipModal();
   showToast('✓ 삭제 완료');
 }
@@ -6049,10 +6054,11 @@ async function saveEquipEdit() {
     form.photos = await _migrateEquipPhotos(eqModalId, form.photos);
     equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
     if (!equipmentData[newCat]) equipmentData[newCat] = [];
-    equipmentData[newCat].push({ id: eqModalId, ...form, logs });
+    const updatedItem = { id: eqModalId, ...form, logs };
+    equipmentData[newCat].push(updatedItem);
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     eqCurrentCat = newCat;
-    const ok = await _syncEquipmentCloud();
+    const ok = await _syncEquipmentCloud(updatedItem);
     showToast(ok ? '✅ 수정 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
     setTimeout(() => { switchEqCat(newCat); closeEquipModal(); }, 300);
   } finally { _eqSaving = false; }
@@ -6067,10 +6073,11 @@ async function saveEquipAdd() {
     const cat = form.cat;
     form.photos = await _migrateEquipPhotos(eqEditDraft.id, form.photos);
     if (!equipmentData[cat]) equipmentData[cat] = [];
-    equipmentData[cat].push({ id: eqEditDraft.id, ...form, logs: [] });
+    const newItem = { id: eqEditDraft.id, ...form, logs: [] };
+    equipmentData[cat].push(newItem);
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     eqCurrentCat = cat;
-    const ok = await _syncEquipmentCloud();
+    const ok = await _syncEquipmentCloud(newItem);
     showToast(ok ? '✅ 장비 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
     setTimeout(() => { switchEqCat(cat); closeEquipModal(); }, 300);
   } finally { _eqSaving = false; }
@@ -6082,20 +6089,22 @@ function deleteEquipItem() {
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   deleteEquipPhotos(found.item); // Storage 사진 파일도 삭제(백그라운드)
+  _deleteEquipCloud(eqModalId);  // DB 행 삭제(백그라운드)
   equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
   closeEquipModal();
   renderEquipGrid();
   showToast('✓ 장비 삭제 완료');
 }
 
-async function _syncEquipmentCloud() {
+async function _syncEquipmentCloud(item) {
+  if (!item) return false;
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.equipment`, {
+    const rowId = 'eq_' + item.id;
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.${encodeURIComponent(rowId)}`, {
       method: 'PATCH',
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ v15: equipmentData })
+      body: JSON.stringify({ v15: item })
     });
     if (!res.ok) throw new Error('PATCH 실패');
     const patched = await res.json();
@@ -6103,12 +6112,21 @@ async function _syncEquipmentCloud() {
       const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'equipment', v15: equipmentData })
+        body: JSON.stringify({ id: rowId, v15: item })
       });
       if (!r2.ok) throw new Error('POST 실패');
     }
     return true;
   } catch(e) { console.error('장비 클라우드 저장 실패:', e); return false; }
+}
+
+async function _deleteEquipCloud(itemId) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.${encodeURIComponent('eq_' + itemId)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+  } catch(e) { console.error('장비 행 삭제 실패:', e); }
 }
 
 async function manualLoadEquipment() {
@@ -6120,15 +6138,47 @@ async function manualLoadEquipment() {
 
 async function loadEquipmentFromCloud() {
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.equipment&select=v15`, {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=like.eq_%25&select=id,v15`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
     if (!res.ok) return false;
     const rows = await res.json();
-    if (!rows.length || !rows[0].v15) return false;
-    const d = rows[0].v15;
-    EQUIP_CATS.forEach(c => { if (!Array.isArray(d[c])) d[c] = []; });
-    equipmentData = d;
+
+    // 마이그레이션: eq_ 행이 없고 구행(id='equipment')이 있으면 자동 이전
+    if (rows.length === 0) {
+      const oldRes = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.equipment&select=v15`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+      });
+      if (oldRes.ok) {
+        const oldRows = await oldRes.json();
+        if (oldRows.length && oldRows[0].v15) {
+          const d = oldRows[0].v15;
+          const items = [];
+          EQUIP_CATS.forEach(cat => { (d[cat] || []).forEach(item => { if (item.id) items.push({...item, cat}); }); });
+          await Promise.all(items.map(item => _syncEquipmentCloud(item)));
+          await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.equipment`, {
+            method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+          });
+          const newData = {};
+          EQUIP_CATS.forEach(c => { newData[c] = []; });
+          items.forEach(({cat, ...rest}) => { if (newData[cat]) newData[cat].push(rest); });
+          equipmentData = newData;
+          localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+          return true;
+        }
+      }
+      return false;
+    }
+
+    const newData = {};
+    EQUIP_CATS.forEach(c => { newData[c] = []; });
+    rows.forEach(row => {
+      const item = row.v15;
+      if (item && item.id && item.cat && newData[item.cat] !== undefined) {
+        newData[item.cat].push(item);
+      }
+    });
+    equipmentData = newData;
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     return true;
   } catch(e) { console.error('장비 클라우드 불러오기 실패:', e); return false; }
@@ -7234,11 +7284,24 @@ function initRealtime() {
             if (d.checked) { checklistChecked = d.checked; localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked)); }
             if (document.getElementById('checklistOverlay')?.classList.contains('open')) renderChecklistBody();
           }
-          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'equipment' && record.v15) {
-            EQUIP_CATS.forEach(c => { if (!Array.isArray(record.v15[c])) record.v15[c] = []; });
-            equipmentData = record.v15;
-            localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-            if (document.getElementById('pageEquipment')?.classList.contains('active')) renderEquipGrid();
+          if (record?.id?.startsWith('eq_') && record.v15) {
+            const item = record.v15;
+            if (item && item.id && item.cat && equipmentData[item.cat] !== undefined) {
+              if (eventType === 'INSERT' || eventType === 'UPDATE') {
+                const idx = equipmentData[item.cat].findIndex(x => x.id === item.id);
+                if (idx >= 0) equipmentData[item.cat][idx] = item; else equipmentData[item.cat].push(item);
+              }
+              localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+              if (document.getElementById('pageEquipment')?.classList.contains('active')) renderEquipGrid();
+            }
+          }
+          if (eventType === 'DELETE' && old_record?.id?.startsWith('eq_')) {
+            const delId = old_record.v15?.id;
+            if (delId) {
+              EQUIP_CATS.forEach(cat => { equipmentData[cat] = (equipmentData[cat] || []).filter(x => x.id !== delId); });
+              localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+              if (document.getElementById('pageEquipment')?.classList.contains('active')) renderEquipGrid();
+            }
           }
         }
       } catch(err) { console.error('Realtime 오류:', err); }
