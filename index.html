@@ -1627,7 +1627,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-50</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-51</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -1867,6 +1867,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <input class="equip-search-input" id="equipSearchInput" type="text" placeholder="모델명 / 제조회사 검색…" oninput="onEqSearch(this.value)">
         <button class="equip-search-clear" id="equipSearchClear" onclick="clearEqSearch()" style="display:none">✕</button>
       </div>
+      <button onclick="manualLoadEquipment()" title="클라우드에서 다시 불러오기" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:13px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0;">☁️</button>
       <button class="equip-add-btn" onclick="openEquipAdd()">＋ 장비 추가</button>
     </div>
     <div class="equip-cat-tabs">
@@ -6108,6 +6109,13 @@ async function _syncEquipmentCloud() {
     }
     return true;
   } catch(e) { console.error('장비 클라우드 저장 실패:', e); return false; }
+}
+
+async function manualLoadEquipment() {
+  showToast('☁️ 불러오는 중…');
+  const ok = await loadEquipmentFromCloud();
+  if (ok) { switchEqCat(eqCurrentCat); showToast('✅ 장비 데이터 불러오기 완료'); }
+  else showToast('⚠ 불러오기 실패 — 네트워크 확인');
 }
 
 async function loadEquipmentFromCloud() {
