@@ -1627,7 +1627,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-52</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-53</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -5631,7 +5631,7 @@ function _renderEquipCard(item, showCat) {
 
 function quickAddPhoto(id) {
   const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+  input.type = 'file'; input.accept = 'image/*';
   input.onchange = e => {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -5833,7 +5833,7 @@ function renderEquipModal() {
             <div class="equip-photo-col-inner" id="efPhotoGrid" onclick="document.getElementById('efPImg0').click()">
               ${_renderPhotosEdit(item.photos)}
             </div>
-            <input type="file" id="efPImg0" accept="image/*" capture="environment" style="display:none" onchange="handleEquipPhoto(event,0)">
+            <input type="file" id="efPImg0" accept="image/*" style="display:none" onchange="handleEquipPhoto(event,0)">
             <div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center;">클릭하여 사진 변경</div>
           </div>
         </div>
