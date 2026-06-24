@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-48</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-49</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -5376,6 +5376,7 @@ let eqModalId = null;
 let eqEditDraft = {};
 let _eqFormStatus = 'active';
 let _eqEditPhotos = [];
+let _eqSaving = false;
 
 const EQUIP_DEFAULT = {
   음향장비: [
@@ -6053,35 +6054,43 @@ async function _migrateEquipPhotos(equipId, photos) {
 }
 
 async function saveEquipEdit() {
+  if (_eqSaving) return;
   const form = _readEquipForm();
   if (!form.name) { showToast('모델명을 입력하세요'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
-  const logs = found.item.logs || [];
-  const newCat = form.cat;
-  form.photos = await _migrateEquipPhotos(eqModalId, form.photos);
-  equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
-  if (!equipmentData[newCat]) equipmentData[newCat] = [];
-  equipmentData[newCat].push({ id: eqModalId, ...form, logs });
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  eqCurrentCat = newCat;
-  const ok = await _syncEquipmentCloud();
-  showToast(ok ? '✅ 수정 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
-  setTimeout(() => { switchEqCat(newCat); closeEquipModal(); }, 300);
+  _eqSaving = true;
+  try {
+    const logs = found.item.logs || [];
+    const newCat = form.cat;
+    form.photos = await _migrateEquipPhotos(eqModalId, form.photos);
+    equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
+    if (!equipmentData[newCat]) equipmentData[newCat] = [];
+    equipmentData[newCat].push({ id: eqModalId, ...form, logs });
+    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    eqCurrentCat = newCat;
+    const ok = await _syncEquipmentCloud();
+    showToast(ok ? '✅ 수정 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
+    setTimeout(() => { switchEqCat(newCat); closeEquipModal(); }, 300);
+  } finally { _eqSaving = false; }
 }
 
 async function saveEquipAdd() {
+  if (_eqSaving) return;
   const form = _readEquipForm();
   if (!form.name) { showToast('모델명을 입력하세요'); return; }
-  const cat = form.cat;
-  form.photos = await _migrateEquipPhotos(eqEditDraft.id, form.photos);
-  if (!equipmentData[cat]) equipmentData[cat] = [];
-  equipmentData[cat].push({ id: eqEditDraft.id, ...form, logs: [] });
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  eqCurrentCat = cat;
-  const ok = await _syncEquipmentCloud();
-  showToast(ok ? '✅ 장비 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
-  setTimeout(() => { switchEqCat(cat); closeEquipModal(); }, 300);
+  _eqSaving = true;
+  try {
+    const cat = form.cat;
+    form.photos = await _migrateEquipPhotos(eqEditDraft.id, form.photos);
+    if (!equipmentData[cat]) equipmentData[cat] = [];
+    equipmentData[cat].push({ id: eqEditDraft.id, ...form, logs: [] });
+    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    eqCurrentCat = cat;
+    const ok = await _syncEquipmentCloud();
+    showToast(ok ? '✅ 장비 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
+    setTimeout(() => { switchEqCat(cat); closeEquipModal(); }, 300);
+  } finally { _eqSaving = false; }
 }
 
 function deleteEquipItem() {
