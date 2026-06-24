@@ -1630,7 +1630,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <button class="login-btn" onclick="doRegister()">등록 요청</button>
     <button class="login-register-btn" onclick="showLoginForm()" style="margin-top:-4px;">← 로그인으로 돌아가기</button>
   </div>
-  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-47</div>
+  <div style="margin-top:24px;font-size:11px;color:var(--text-muted);opacity:0.5;text-align:center">v0622-48</div>
 </div>
 
 <!-- ═══ 사용자 관리 모달 ═══ -->
@@ -4183,6 +4183,40 @@ async function uploadPhotoToStorage(logId, type, idx, base64) {
   } catch(e) { return null; }
 }
 
+// 장비 사진 → Storage 업로드 (base64 → 공개 URL). 실패 시 null.
+async function uploadEquipPhoto(equipId, base64) {
+  try {
+    const byteStr = atob(base64.split(',')[1]);
+    const ab = new ArrayBuffer(byteStr.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+    const blob = new Blob([ab], { type: 'image/jpeg' });
+    const path = `equipment/${equipId}/0.jpg`;
+    const res = await fetch(`${STORAGE_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+      method: 'POST',
+      headers: { 'apikey': STORAGE_KEY, 'Authorization': `Bearer ${STORAGE_KEY}`, 'Content-Type': 'image/jpeg', 'x-upsert': 'true' },
+      body: blob
+    });
+    if (!res.ok) return null;
+    return `${STORAGE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
+  } catch(e) { return null; }
+}
+
+// 장비 항목의 Storage 사진 파일 삭제
+async function deleteEquipPhotos(item) {
+  for (const url of (item.photos || [])) {
+    if (typeof url !== 'string' || !url.startsWith('http')) continue;
+    try {
+      const marker = `/storage/v1/object/public/${PHOTO_BUCKET}/`;
+      const path = url.split(marker)[1];
+      if (!path) continue;
+      await fetch(`${STORAGE_URL}/storage/v1/object/${PHOTO_BUCKET}/${path}`, {
+        method: 'DELETE', headers: { 'apikey': STORAGE_KEY, 'Authorization': `Bearer ${STORAGE_KEY}` }
+      });
+    } catch(e) {}
+  }
+}
+
 async function deletePhotosFromStorage(log) {
   const all = [...(log.soundPhotos||[]), ...(log.stagePhotos||[])].filter(Boolean);
   for (const url of all) {
@@ -5406,7 +5440,11 @@ const EQUIP_DEFAULT = {
 
 function _makeEquipId() { return 'eq_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
-function initEquipmentDefault() {
+function initEquipmentDefault(cloudOk) {
+  // 클라우드 로드가 실패(네트워크 등)했는데 로컬에 데이터가 이미 있으면
+  // 기본값 시드/클라우드 push를 건너뛴다 → 실데이터를 기본값으로 덮어쓰는 소실 방지
+  const hasLocal = EQUIP_CATS.some(c => (equipmentData[c] || []).length > 0);
+  if (cloudOk === false && hasLocal) return;
   let changed = false;
   EQUIP_CATS.forEach(cat => {
     if (!equipmentData[cat] || equipmentData[cat].length === 0) {
@@ -5606,7 +5644,7 @@ function quickAddPhoto(id) {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         const canvas = document.createElement('canvas');
         const MAX = 800; let w = img.width, h = img.height;
         if (w > MAX) { h = h*MAX/w; w = MAX; }
@@ -5615,11 +5653,13 @@ function quickAddPhoto(id) {
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const found = _findEquipItem(id);
         if (!found) return;
-        found.item.photos = [canvas.toDataURL('image/jpeg', 0.7)];
+        const base64 = canvas.toDataURL('image/jpeg', 0.7);
+        const url = await uploadEquipPhoto(id, base64);
+        found.item.photos = [url || base64]; // 업로드 실패 시 base64 폴백
         localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
         _syncEquipmentCloud();
         renderEquipGrid();
-        showToast('✅ 사진 저장 완료');
+        showToast(url ? '✅ 사진 저장 완료' : '⚠ 사진 임시저장(업로드 실패)');
       };
       img.src = ev.target.result;
     };
@@ -5860,16 +5900,25 @@ function handleEquipPhoto(event, idx) {
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       const canvas = document.createElement('canvas');
       const MAX = 800; let w = img.width, h = img.height;
       if (w > MAX) { h = h*MAX/w; w = MAX; }
       if (h > MAX) { w = w*MAX/h; h = MAX; }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      _eqEditPhotos[0] = canvas.toDataURL('image/jpeg', 0.7);
+      const base64 = canvas.toDataURL('image/jpeg', 0.7);
+      // 즉시 미리보기(base64) → Storage 업로드 후 URL로 교체
+      _eqEditPhotos[0] = base64;
       const grid = document.getElementById('efPhotoGrid');
       if (grid) grid.innerHTML = _renderPhotosEdit(_eqEditPhotos);
+      const equipId = eqModalId || eqEditDraft.id;
+      const url = await uploadEquipPhoto(equipId, base64);
+      if (url) {
+        _eqEditPhotos[0] = url; // 실패하면 base64 그대로(저장 시 재시도)
+        const g2 = document.getElementById('efPhotoGrid');
+        if (g2) g2.innerHTML = _renderPhotosEdit(_eqEditPhotos);
+      }
     };
     img.src = e.target.result;
   };
@@ -5991,33 +6040,47 @@ function _getTagSuggestions() {
   return [...tags].map(t => `<option value="${_escEq(t)}">`).join('');
 }
 
-function saveEquipEdit() {
+// 폼의 photos에 base64가 남아있으면 Storage로 올려 URL로 교체 (DB 행 경량화)
+async function _migrateEquipPhotos(equipId, photos) {
+  if (!Array.isArray(photos)) return photos;
+  for (let i = 0; i < photos.length; i++) {
+    if (typeof photos[i] === 'string' && photos[i].startsWith('data:')) {
+      const url = await uploadEquipPhoto(equipId, photos[i]);
+      if (url) photos[i] = url;
+    }
+  }
+  return photos;
+}
+
+async function saveEquipEdit() {
   const form = _readEquipForm();
   if (!form.name) { showToast('모델명을 입력하세요'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   const logs = found.item.logs || [];
   const newCat = form.cat;
+  form.photos = await _migrateEquipPhotos(eqModalId, form.photos);
   equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
   if (!equipmentData[newCat]) equipmentData[newCat] = [];
   equipmentData[newCat].push({ id: eqModalId, ...form, logs });
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
   eqCurrentCat = newCat;
-  showToast('✅ 수정 저장 완료');
+  const ok = await _syncEquipmentCloud();
+  showToast(ok ? '✅ 수정 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
   setTimeout(() => { switchEqCat(newCat); closeEquipModal(); }, 300);
 }
 
-function saveEquipAdd() {
+async function saveEquipAdd() {
   const form = _readEquipForm();
   if (!form.name) { showToast('모델명을 입력하세요'); return; }
   const cat = form.cat;
+  form.photos = await _migrateEquipPhotos(eqEditDraft.id, form.photos);
   if (!equipmentData[cat]) equipmentData[cat] = [];
   equipmentData[cat].push({ id: eqEditDraft.id, ...form, logs: [] });
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud();
   eqCurrentCat = cat;
-  showToast('✅ 장비 추가 완료');
+  const ok = await _syncEquipmentCloud();
+  showToast(ok ? '✅ 장비 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
   setTimeout(() => { switchEqCat(cat); closeEquipModal(); }, 300);
 }
 
@@ -6026,6 +6089,7 @@ function deleteEquipItem() {
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
+  deleteEquipPhotos(found.item); // Storage 사진 파일도 삭제(백그라운드)
   equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
   _syncEquipmentCloud();
@@ -6044,13 +6108,15 @@ async function _syncEquipmentCloud() {
     if (!res.ok) throw new Error('PATCH 실패');
     const patched = await res.json();
     if (Array.isArray(patched) && patched.length === 0) {
-      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+      const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: 'equipment', v15: equipmentData })
       });
+      if (!r2.ok) throw new Error('POST 실패');
     }
-  } catch(e) { console.error('장비 클라우드 저장 실패:', e); }
+    return true;
+  } catch(e) { console.error('장비 클라우드 저장 실패:', e); return false; }
 }
 
 async function loadEquipmentFromCloud() {
@@ -6825,7 +6891,7 @@ renderVehiclePage();
 } else if (tab === 'equipment') {
 document.getElementById('tab-equipment').classList.add('active');
 const p = document.getElementById('pageEquipment'); p.style.display='flex'; p.classList.add('active');
-renderEquipGrid();
+switchEqCat(eqCurrentCat);
 } else if (tab === 'alba') {
 document.getElementById('tab-directive').classList.add('active');
 const p = document.getElementById('pageAlba'); p.style.display='flex'; p.classList.add('active');
@@ -7574,8 +7640,8 @@ async function autoLoadAll() {
 
   // 6. 장비관리대장
   try {
-    await loadEquipmentFromCloud();
-    initEquipmentDefault();
+    const eqCloudOk = await loadEquipmentFromCloud();
+    initEquipmentDefault(eqCloudOk);
     renderEqSubcatBar();
     document.getElementById('eqSubcatBar').style.display = '';
     ok++;

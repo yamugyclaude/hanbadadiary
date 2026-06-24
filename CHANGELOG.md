@@ -4,6 +4,21 @@
 
 ---
 
+## [2026-06-23] v0622-48 — 장비관리 데이터 소실·동기화 실패 근본 수정
+
+### 수정 (저장 사라짐 / 기기 간 동기화 안 됨 / 화면 이상)
+- **장비 사진 base64 → Supabase Storage URL 전환** (핵심 원인)
+  - 기존: 사진을 base64로 `equipmentData`에 넣고 전체를 `vehicle_data.v15` 한 칸에 통째 업로드
+    → 행이 비대해져 저장 실패/Realtime 누락 → 소실·동기화 실패
+  - 신규 `uploadEquipPhoto()` — `event-photos` 버킷 `equipment/{id}/0.jpg` 경로 (행사일지와 동일 패턴)
+  - 사진 선택 시 즉시 업로드, 실패 시 base64 폴백
+  - 저장 시 남은 base64 자동 마이그레이션(`_migrateEquipPhotos`), 삭제 시 Storage 파일도 제거
+- **일시 로드 실패 시 기본값 덮어쓰기 방지**: `initEquipmentDefault(cloudOk)` — 클라우드 로드 실패+로컬 데이터 존재 시 시드/sync 건너뜀(실데이터 보존)
+- **동기화 실패 알림**: `_syncEquipmentCloud` 성공/실패 반환, 저장 시 실패하면 "⚠ 로컬 저장됨 · 클라우드 실패" 토스트
+- 탭 진입 시 `switchEqCat`로 카테고리/소분류 바 상태 정합
+
+---
+
 ## [2026-06-23] v0622-47 — 장비관리 토스트 수정 + 필드명 변경
 
 ### 수정
