@@ -514,8 +514,8 @@ font-family: 'Noto Sans KR', sans-serif;
 .modal-btn-new { background: var(--accent); color: #0a0c10; }
 
 /* ─── TOAST ─── */
-.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--accent); color: #0a0c10; padding: 10px 26px; border-radius: 24px; font-weight: 700; font-size: 13px; z-index: 99999; opacity: 0; transition: all 0.25s; white-space: nowrap; pointer-events: none; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #7c3aed; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; z-index: 99999; opacity: 0; transition: opacity 0.3s ease; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.toast.show { opacity: 1; }
 
 .tl-day-btn {
 background: var(--unselected-bg);
@@ -6760,10 +6760,12 @@ showToast('📄 전체 내보내기 완료');
 let toastTimeout;
 function showToast(msg, duration = 3500) {
 const el = document.getElementById('toast');
+if (!el) { console.error('toast element not found'); return; }
 clearTimeout(toastTimeout);
 el.textContent = msg;
 el.classList.add('show');
-toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
+console.log('🍞 toast:', msg, 'duration:', duration);
+toastTimeout = setTimeout(() => { el.classList.remove('show'); console.log('🍞 toast hidden'); }, duration);
 }
 
 // ── Supabase 설정 ──
