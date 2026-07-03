@@ -10212,9 +10212,9 @@ function toggleAiChat() {
 function buildSystemPrompt() {
   const today = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
 
-  // 행사일지: 날짜·행사명·장소 위주로 간결하게
+  // 행사일지: 날짜·행사명·장소·인력 위주로 간결하게
   const logLines = (logs || []).slice(0, 60).map(l =>
-    `${l.date} | ${l.eventName||'(제목없음)'} | ${l.venue||''} | 이슈:${l.issue||'없음'}`
+    `${l.date} | ${l.eventName||'(제목없음)'} | ${l.venue||''} | 인력:${l.engineer||'-'}/${l.stagedirector||'-'} | 이슈:${l.issue||'없음'}`
   ).join('\n');
 
   // 미완료 업무만
