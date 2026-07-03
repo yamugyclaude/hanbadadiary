@@ -2360,7 +2360,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <!-- 단일세팅 패널 -->
         <div id="sndSinglePanel">
           <div id="soundEquipChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
-          <div id="soundEquipPicker" style="margin-bottom:14px;"></div>
         </div>
         <!-- 복수세팅 패널 -->
         <div id="sndMultiPanel" style="display:none;">
@@ -3386,27 +3385,8 @@ function setSoundMode(mode) {
   document.getElementById('sndModeBtn_multi').classList.toggle('active', mode === 'multi');
   document.getElementById('sndSinglePanel').style.display = mode === 'single' ? '' : 'none';
   document.getElementById('sndMultiPanel').style.display  = mode === 'multi'  ? '' : 'none';
-  if (mode === 'single') { renderSoundEquipPicker(); renderSoundEquipChips(); }
+  if (mode === 'single') { renderSoundEquipChips(); }
   if (mode === 'multi')  { renderSndZoneList(); }
-}
-
-function renderSoundEquipPicker() {
-  const el = document.getElementById('soundEquipPicker');
-  if (!el) return;
-  const items = (equipmentData['음향장비'] || []).filter(e => e.status !== 'retired');
-  if (!items.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">장비관리 탭에서 음향장비를 먼저 등록하세요.</div>';
-    return;
-  }
-  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
-    items.map(function(eq) {
-      const sel = soundEquipItems.some(function(x) { return x.equipId === eq.id; });
-      return '<button class="sound-equip-btn' + (sel ? ' sel' : '') + '" ' +
-        'data-eid="' + eq.id + '" data-ename="' + eq.name.replace(/"/g,'&quot;') + '" data-emodel="' + (eq.model||'').replace(/"/g,'&quot;') + '" ' +
-        'onclick="toggleSoundEquip(this)">' +
-        eq.name + (eq.model ? ' <span style="font-size:10px;color:var(--text-muted);">' + eq.model + '</span>' : '') +
-        '</button>';
-    }).join('') + '</div>';
 }
 
 function toggleSoundEquip(btn) {
@@ -3420,7 +3400,6 @@ function toggleSoundEquip(btn) {
     const qty = prompt('수량을 입력하세요 (예: 2조, 1EA — 빈칸도 가능):') || '';
     soundEquipItems.push({ equipId: equipId, name: name, model: model, qty: qty.trim() });
   }
-  renderSoundEquipPicker();
   renderSoundEquipChips();
 }
 
@@ -3439,7 +3418,6 @@ function renderSoundEquipChips() {
 
 function removeSoundEquip(equipId) {
   soundEquipItems = soundEquipItems.filter(function(x) { return x.equipId !== equipId; });
-  renderSoundEquipPicker();
   renderSoundEquipChips();
 }
 
