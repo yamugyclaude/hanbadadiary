@@ -1025,8 +1025,6 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .sound-equip-btn { background:var(--surface2); border:1.5px solid var(--border2); color:var(--text2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:all 0.12s; white-space:nowrap; }
 .sound-equip-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
 .sound-equip-btn.sel { background:var(--accent-dim); border-color:rgba(61,186,150,0.6); color:var(--accent); }
-.sound-equip-cat-label { font-size:11px; font-weight:800; color:var(--gold); display:flex; align-items:center; gap:8px; padding:8px 0 5px; }
-.sound-equip-cat-label::after { content:''; flex:1; height:1px; background:var(--border2); }
 .sound-equip-chip { display:inline-flex; align-items:center; gap:5px; background:var(--accent-dim); border:1.5px solid rgba(61,186,150,0.4); color:var(--accent); border-radius:20px; padding:5px 10px 5px 13px; font-size:12px; font-weight:700; }
 .sound-equip-chip-qty { font-size:10px; color:var(--text-muted); font-family:'JetBrains Mono',monospace; }
 .sound-equip-chip-del { background:none; border:none; color:var(--text-muted); font-size:12px; cursor:pointer; padding:0; line-height:1; }
@@ -3400,8 +3398,7 @@ function renderSoundEquipPicker() {
     el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">장비관리 탭에서 음향장비를 먼저 등록하세요.</div>';
     return;
   }
-  el.innerHTML = '<div class="sound-equip-cat-label">🔊 음향장비 목록 (클릭하여 선택)</div>' +
-    '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
     items.map(function(eq) {
       const sel = soundEquipItems.some(function(x) { return x.equipId === eq.id; });
       return '<button class="sound-equip-btn' + (sel ? ' sel' : '') + '" ' +
