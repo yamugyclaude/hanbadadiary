@@ -517,7 +517,7 @@ font-family: 'Noto Sans KR', sans-serif;
 .modal-btn-new { background: var(--accent); color: #0a0c10; }
 
 /* ─── TOAST ─── */
-.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #7c3aed; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; z-index: 99999; opacity: 0; transition: opacity 0.3s ease; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #7c3aed; color: #fff; padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 15px; z-index: 99999; opacity: 0; transition: opacity 0.3s ease; width: max-content; max-width: 88vw; text-align: center; pointer-events: none; box-shadow: 0 6px 20px rgba(0,0,0,0.45); }
 .toast.show { opacity: 1; }
 
 .tl-day-btn {
@@ -7363,7 +7363,8 @@ function initRealtime() {
             localStorage.setItem('soundlogs', JSON.stringify(logs));
             const activePage = document.getElementById('pageList');
             if (activePage && activePage.classList.contains('active')) renderList();
-            showToast('🔄 행사일지 업데이트됨');
+            // 내가 방금 저장한 일지의 에코 이벤트면 토스트 생략 — '✓ 저장 완료' 메시지를 덮어쓰지 않도록
+            if (log.id !== currentId) showToast('🔄 행사일지 업데이트됨');
           } else if (eventType === 'DELETE') {
             if (!old_record?.id) return;
             logs = logs.filter(l => l.id !== old_record.id);
