@@ -3348,7 +3348,8 @@ function clearAccessLogs() {
 function toggleAdmin() { openUserMgmt(); }
 
 // ── 날짜 ──
-function today() { return new Date().toISOString().split('T')[0]; }
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function persistLogs() { try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) { console.warn('로컬 저장 실패(용량 초과 가능):', e); } }
 function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
 document.getElementById('headerDate') && (document.getElementById('headerDate').textContent = fmtDate(today()));
 let logs        = JSON.parse(localStorage.getItem('soundlogs')  || '[]');
@@ -6808,25 +6809,12 @@ function deleteMaintFromHistory(type, idx) {
   showToast('✓ 삭제 완료');
 }
 
-function saveLog() {
-const log = getFormData();
-if (!log) {
-  showToast('⚠️ 저장할 항목이 없습니다. 입력 후 다시 시도하세요');
-  return;
-}
-localStorage.setItem('soundlogs', JSON.stringify(logs));
-updateTitle();
-addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
-showToast('✓ 저장 완료');
-}
 // 클라우드 삭제가 끝나기 전 재조회가 삭제 항목을 되살리지 않도록 진행 중인 삭제 추적
 const _pendingLogDeletes = new Set();
 
 async function sbDeleteLog(id, log) {
 _pendingLogDeletes.add(id);
 try {
-const target = log || logs.find(l => l.id === id);
-if (target) await deletePhotosFromStorage(target);
 const res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
 method: 'DELETE',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Prefer': 'return=representation' }
@@ -6836,6 +6824,9 @@ if (!res.ok) throw new Error('DELETE 실패');
 // 응답 배열에 실제로 삭제된 행이 있는지까지 확인해야 진짜 삭제 여부를 알 수 있음
 const deleted = await res.json();
 if (!Array.isArray(deleted) || deleted.length === 0) throw new Error('삭제된 행 없음(권한/RLS 확인 필요)');
+// 행 삭제 확인 후 사진 파일은 백그라운드로 정리 (오래 걸려도 삭제 완료를 지연시키지 않음)
+const target = log || logs.find(l => l.id === id);
+if (target) deletePhotosFromStorage(target);
 return true;
 } catch(e) { console.error('클라우드 삭제 실패:', e); return false; }
 finally {
@@ -6844,36 +6835,33 @@ finally {
 }
 }
 
-async function deleteLog() {
-if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
-const pw = prompt('삭제 암호를 입력하세요:');
-if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
-const delId = currentId;
-const log = logs.find(l => l.id === delId);
-const logName = log ? (log.eventName || log.date) : delId;
-// 화면 먼저 갱신 (낙관적) — 클라우드 삭제는 백그라운드로
-logs = logs.filter(l => l.id !== delId);
-localStorage.setItem('soundlogs', JSON.stringify(logs));
-addAccessLog('delete', '행사일지', `삭제: ${logName}`);
-showList();
-const ok = await sbDeleteLog(delId, log);
-showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
-}
-
-async function deleteLogById(id) {
+// 클라우드에서 삭제가 확인된 뒤에만 로컬에서 제거 — RLS/네트워크로 서버 삭제가 실패하면
+// 화면에서 지운 항목이 재조회 때 되살아나던 문제를 막고, 실패를 사용자에게 명확히 알림
+async function removeLog(id, refreshUI) {
 if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
 const pw = prompt('삭제 암호를 입력하세요:');
 if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
 const log = logs.find(l => l.id === id);
 const logName = log ? (log.eventName || log.date) : id;
-// 화면 먼저 갱신 (낙관적) — 클라우드 삭제는 백그라운드로
+showToast('삭제 중…', 15000);
+let ok = false;
+try {
+  // 네트워크가 응답 없이 매달려도 15초 안에 반드시 결과를 알림
+  ok = await Promise.race([
+    sbDeleteLog(id, log),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), 15000))
+  ]);
+} catch(e) { ok = false; }
+if (!ok) { showToast('❌ 삭제 실패 — 서버에서 지워지지 않았습니다 (권한/네트워크 확인)', 5000); return; }
 logs = logs.filter(l => l.id !== id);
-localStorage.setItem('soundlogs', JSON.stringify(logs));
+persistLogs();
 addAccessLog('delete', '행사일지', `삭제: ${logName}`);
-renderList();
-const ok = await sbDeleteLog(id, log);
-showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
+refreshUI();
+showToast('✓ 삭제 완료');
 }
+
+async function deleteLog() { await removeLog(currentId, showList); }
+async function deleteLogById(id) { await removeLog(id, renderList); }
 
 // ── MD 생성 ──
 function generateMD(log) {
@@ -6972,9 +6960,8 @@ if (!log) {
   showToast('⚠️ 저장할 항목이 없습니다. 입력 후 다시 시도하세요');
   return;
 }
-try { localStorage.setItem('soundlogs', JSON.stringify(logs)); }
-catch(e) { console.warn('로컬 저장 실패(용량 초과 가능):', e); }
-try { updateTitle(); addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`); } catch(e) {}
+persistLogs();
+try { updateTitle(); addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`); renderList(); } catch(e) {}
 showToast('저장 중…', 15000);
 try {
 const cloudWork = (async () => {
@@ -7040,7 +7027,7 @@ const idx = logs.findIndex(l => l.id === cl.id);
 if (idx >= 0) logs[idx] = cl;
 else logs.push(cl);
 });
-localStorage.setItem('soundlogs', JSON.stringify(logs));
+persistLogs();
 renderList();
 showToast(`☁️ ${rows.length}개 일지 불러오기 완료`);
 } catch(e) { showToast('❌ ' + e.message); }
@@ -7395,7 +7382,7 @@ function initRealtime() {
             if (_pendingLogDeletes.has(log.id)) return; // 방금 삭제한 항목의 지연된 저장 에코 무시 — 되살아남 방지
             const idx = logs.findIndex(l => l.id === log.id);
             if (idx >= 0) logs[idx] = log; else logs.push(log);
-            localStorage.setItem('soundlogs', JSON.stringify(logs));
+            persistLogs();
             const activePage = document.getElementById('pageList');
             if (activePage && activePage.classList.contains('active')) renderList();
             // 내가 방금 저장한 일지의 에코 이벤트면 토스트 생략 — '✓ 저장 완료' 메시지를 덮어쓰지 않도록
@@ -7403,7 +7390,7 @@ function initRealtime() {
           } else if (eventType === 'DELETE') {
             if (!old_record?.id) return;
             logs = logs.filter(l => l.id !== old_record.id);
-            localStorage.setItem('soundlogs', JSON.stringify(logs));
+            persistLogs();
             if (document.getElementById('pageList').classList.contains('active')) renderList();
             showToast('🗑 행사일지 삭제됨');
           }
@@ -7824,8 +7811,8 @@ if (!sessionStorage.getItem('sl_session')) {
 // 앱 시작 시 자동으로 클라우드 데이터 불러오기 (afterLogin에서 호출됨)
 // 행사일지 최신 데이터를 클라우드에서 조회 (탭 진입/재연결/포그라운드 복귀 시 조용히 재사용)
 async function loadLogsFromCloud() {
-  // 편집 화면이 열려 있는 동안엔 목록을 덮어쓰지 않음 — 저장 전 신규 일지가 배열에서 사라져 입력 데이터가 유실되는 것 방지
-  if (document.getElementById('pageForm')?.classList.contains('active') && !isViewMode) return true;
+  // 일지 화면(편집·조회)이 열려 있는 동안엔 목록을 덮어쓰지 않음 — 저장 직후 재조회가 로컬 변경을 덮어쓰거나 입력 데이터가 유실되는 것 방지
+  if (document.getElementById('pageForm')?.classList.contains('active')) return true;
   try {
     const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
@@ -7834,7 +7821,7 @@ async function loadLogsFromCloud() {
     const rows = await logRes.json();
     if (rows.length) {
       logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean).filter(l => !_pendingLogDeletes.has(l.id));
-      try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) {}
+      persistLogs();
       if (document.getElementById('pageList')?.classList.contains('active')) renderList();
     }
     return true;
@@ -10206,7 +10193,7 @@ function triggerAutoSave() {
   autoSaveTimer = setTimeout(() => {
     const log = getFormData();
     if (!log) return;
-    localStorage.setItem('soundlogs', JSON.stringify(logs));
+    persistLogs();
     if (dot) { dot.classList.add('active'); }
   }, 800);
 
