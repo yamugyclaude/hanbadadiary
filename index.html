@@ -2417,13 +2417,21 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <div class="equip-select-block">
           <div class="equip-select-label" style="color:var(--gold);font-size:13px;letter-spacing:1px;">🔊 스피커 브랜드</div>
           <div class="equip-option-grid" id="speakerBrandGrid" style="grid-template-columns:repeat(2,1fr)">
-            <div class="equip-opt" data-val="d&b" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>D&amp;B</div>
-            <div class="equip-opt" data-val="JBL" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL</div>
-            <div class="equip-opt" data-val="MAUI" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>MAUI</div>
-            <div class="equip-opt" data-val="기타" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>기타</div>
+            <div class="equip-opt" data-val="d&b-array" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>D&B array (V8+V-sub)</div>
+            <div class="equip-opt" data-val="d&b-stack" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>D&B stack (V8+V-sub)</div>
+            <div class="equip-opt" data-val="jbl-625" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL 625</div>
+            <div class="equip-opt" data-val="jbl-800" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>JBL 815+818s</div>
+            <div class="equip-opt" data-val="ldsystems-maui" onclick="toggleSpeakerBrand(this)"><div class="equip-opt-dot"></div>LDsystems MAUI44G2</div>
           </div>
           <div id="speakerInputWrap" style="display:none;margin-top:10px">
             <input id="f_speakerModel" type="text" placeholder="모델명 직접 입력 (예: V8, J-SUB)">
+          </div>
+          <div style="border-top:2px solid var(--border2); padding-top:12px; margin-top:12px;">
+            <div class="equip-opt" data-val="etc" onclick="toggleSpeakerBrand(this)" style="margin-bottom:8px;">
+              <div class="equip-opt-dot"></div>기타
+            </div>
+            <input type="text" id="f_speakerEtcReason" placeholder="기타 선택 시 사유를 입력하세요"
+                   style="display:none; width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--surface2); color:var(--text); font-size:13px;">
           </div>
         </div>
         <div class="field" style="margin-top:6px">
@@ -3928,8 +3936,11 @@ function editLog(id) {
   if (Array.isArray(log.speakerBrands)) {
     log.speakerBrands.forEach(b => speakerBrands.add(b));
   } else {
-    const sBrands = ['d&b','JBL','MAUI','기타'];
-    for (const b of sBrands) { if (speakerSelected.startsWith(b)) { speakerBrands.add(b); break; } }
+    // 레거시 데이터 변환
+    const legacyMap = {'d&b':'d&b-array', 'JBL':'jbl-625', 'MAUI':'ldsystems-maui', '기타':'etc'};
+    for (const [old, neu] of Object.entries(legacyMap)) {
+      if (speakerSelected.startsWith(old)) { speakerBrands.add(neu); break; }
+    }
   }
   soundPhotos = [...(log.soundPhotos||[null,null,null,null,null,null,null,null])];
   stagePhotos = [...(log.stagePhotos||[null,null,null,null,null,null,null,null])];
@@ -3983,9 +3994,11 @@ function fillForm(log) {
     : speakerSelected;
   document.getElementById('f_consoleModel').value = cModelVal;
   document.getElementById('f_speakerModel').value  = sModelVal;
+  document.getElementById('f_speakerEtcReason').value = log.speakerEtcReason || '';
   // 콘솔/스피커 입력 wrap 표시 여부
   document.getElementById('consoleInputWrap').style.display = (consoleBrands.size > 0 || cModelVal) ? 'block' : 'none';
   document.getElementById('speakerInputWrap').style.display = (speakerBrands.size > 0 || sModelVal) ? 'block' : 'none';
+  document.getElementById('f_speakerEtcReason').style.display = speakerBrands.has('etc') ? 'block' : 'none';
 
   soundInstallDay = log.soundInstallDay || '당일';
   stageInstallDay = log.stageInstallDay || '당일';
@@ -4131,6 +4144,7 @@ function toggleSpeakerBrand(el) {
     el.querySelector('.equip-opt-dot').textContent = '●';
   }
   document.getElementById('speakerInputWrap').style.display = speakerBrands.size > 0 ? 'block' : 'none';
+  document.getElementById('f_speakerEtcReason').style.display = speakerBrands.has('etc') ? 'block' : 'none';
   if (speakerBrands.size === 1) document.getElementById('f_speakerModel').focus();
 }
 
@@ -4399,6 +4413,8 @@ const sModel = document.getElementById('f_speakerModel')?.value?.trim() || '';
 const sBrandStr = [...speakerBrands].join(' + ');
 log.speakerSelected = sBrandStr ? (sBrandStr + (sModel ? ' | ' + sModel : '')) : sModel;
 log.speakerBrands   = [...speakerBrands];
+const speakerEtcReason = document.getElementById('f_speakerEtcReason')?.value?.trim() || '';
+if (speakerEtcReason) log.speakerEtcReason = speakerEtcReason;
 log.soundInstallDay = soundInstallDay;
 log.stageInstallDay = stageInstallDay;
 // 사진 저장
