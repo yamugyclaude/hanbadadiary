@@ -6819,29 +6819,37 @@ updateTitle();
 addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
 showToast('✓ 저장 완료');
 }
-async function sbDeleteLog(id) {
+// 클라우드 삭제가 끝나기 전 재조회가 삭제 항목을 되살리지 않도록 진행 중인 삭제 추적
+const _pendingLogDeletes = new Set();
+
+async function sbDeleteLog(id, log) {
+_pendingLogDeletes.add(id);
 try {
-const log = logs.find(l => l.id === id);
-if (log) await deletePhotosFromStorage(log);
-await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
+const target = log || logs.find(l => l.id === id);
+if (target) await deletePhotosFromStorage(target);
+const res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${id}`, {
 method: 'DELETE',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
 });
-} catch(e) { console.error('클라우드 삭제 실패:', e); }
+if (!res.ok) throw new Error('DELETE 실패');
+return true;
+} catch(e) { console.error('클라우드 삭제 실패:', e); return false; }
+finally { _pendingLogDeletes.delete(id); }
 }
 
 async function deleteLog() {
 if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
 if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
-const log = logs.find(l => l.id === currentId);
-const logName = log ? (log.eventName || log.date) : currentId;
-showToast('삭제 중…');
-await sbDeleteLog(currentId);
-logs = logs.filter(l => l.id !== currentId);
+const delId = currentId;
+const log = logs.find(l => l.id === delId);
+const logName = log ? (log.eventName || log.date) : delId;
+// 화면 먼저 갱신 (낙관적) — 클라우드 삭제는 백그라운드로
+logs = logs.filter(l => l.id !== delId);
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 addAccessLog('delete', '행사일지', `삭제: ${logName}`);
 showList();
-showToast('✓ 삭제 완료');
+const ok = await sbDeleteLog(delId, log);
+showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 async function deleteLogById(id) {
@@ -6849,13 +6857,13 @@ if (!isAdmin) { showToast('❌ 관리자 권한 필요'); return; }
 if (!confirm('이 일지를 삭제할까요?\n로컬 + 클라우드에서 모두 삭제됩니다.')) return;
 const log = logs.find(l => l.id === id);
 const logName = log ? (log.eventName || log.date) : id;
-showToast('삭제 중…');
-await sbDeleteLog(id);
+// 화면 먼저 갱신 (낙관적) — 클라우드 삭제는 백그라운드로
 logs = logs.filter(l => l.id !== id);
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 addAccessLog('delete', '행사일지', `삭제: ${logName}`);
 renderList();
-showToast('✓ 삭제 완료');
+const ok = await sbDeleteLog(id, log);
+showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 // ── MD 생성 ──
@@ -7798,7 +7806,7 @@ async function loadLogsFromCloud() {
     if (!logRes.ok) return false;
     const rows = await logRes.json();
     if (rows.length) {
-      logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+      logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean).filter(l => !_pendingLogDeletes.has(l.id));
       try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) {}
       if (document.getElementById('pageList')?.classList.contains('active')) renderList();
     }
