@@ -35,8 +35,8 @@
 - duration 파라미터로 메시지별 표시 시간을 유연하게 조정 가능
 
 ### 배포 이력
-- 버전: v0703-55 → v0703-56
-- 브랜치: `claude/korean-greeting-6cbh25`
-- 커밋: 31b9bd5 (코드 수정), e39be64 (문서 기록)
+- 버전: v0703-59 → v0703-60
+- 브랜치: `claude/korean-greeting-6cbh25` → main으로 머지
+- 커밋: 31b9bd5 (코드 수정), e39be64 (문서 기록), b43e643 (CHANGELOG 기록)
 - 배포 일시: 2026-07-03
-- 상태: CHANGELOG.md 업데이트 완료
+- 상태: 배포 준비 완료
