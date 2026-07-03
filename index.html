@@ -5261,9 +5261,10 @@ async function saveAlbaWorkerEdit() {
   w.tel = document.getElementById('af_tel')?.value?.trim() || '';
   w.role = document.getElementById('af_role')?.value?.trim() || '';
   w.memo = document.getElementById('af_memo')?.value?.trim() || '';
-  saveAlbaLocal(); const ok = await _syncAlbaCloud();
+  saveAlbaLocal();
   albaModalMode = 'view';
   renderAlbaModal(); renderAlbaWorkerGrid();
+  const ok = await _syncAlbaCloud();
   showToast(ok ? '✅ 수정 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5277,8 +5278,9 @@ async function saveAlbaWorkerAdd() {
     memo: document.getElementById('af_memo')?.value?.trim() || ''
   };
   albaData.workers.push(w);
-  saveAlbaLocal(); const ok = await _syncAlbaCloud();
+  saveAlbaLocal();
   closeAlbaModal(); renderAlbaWorkerGrid();
+  const ok = await _syncAlbaCloud();
   showToast(ok ? '✅ 알바 등록 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5287,8 +5289,9 @@ async function deleteAlbaWorker() {
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   albaData.workers = albaData.workers.filter(x => x.id !== albaModalWorkerId);
   albaData.schedules = albaData.schedules.filter(x => x.workerId !== albaModalWorkerId);
-  saveAlbaLocal(); const ok = await _syncAlbaCloud();
+  saveAlbaLocal();
   closeAlbaModal(); renderAlbaWorkerGrid();
+  const ok = await _syncAlbaCloud();
   showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5326,12 +5329,13 @@ async function saveAlbaSchedAdd() {
   const data = _readAlbaSchedForm();
   if (!data) return;
   albaData.schedules.push({ id: _makeAlbaId(), ...data });
-  saveAlbaLocal(); const ok = await _syncAlbaCloud();
+  saveAlbaLocal();
   if (albaModalWorkerId) {
     openAlbaWorkerView(albaModalWorkerId);
   } else {
     closeAlbaModal(); renderAlbaSchedule();
   }
+  const ok = await _syncAlbaCloud();
   showToast(ok ? '✅ 스케줄 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5349,13 +5353,14 @@ async function saveAlbaSchedEdit() {
   const idx = albaData.schedules.findIndex(x => x.id === albaSchedEditId);
   if (idx < 0) return;
   albaData.schedules[idx] = { id: albaSchedEditId, ...data };
-  saveAlbaLocal(); const ok = await _syncAlbaCloud();
+  saveAlbaLocal();
   albaSchedEditId = null;
   if (albaModalWorkerId) {
     openAlbaWorkerView(albaModalWorkerId);
   } else {
     closeAlbaModal(); renderAlbaSchedule();
   }
+  const ok = await _syncAlbaCloud();
   showToast(ok ? '✅ 스케줄 수정 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5363,11 +5368,12 @@ async function deleteAlbaSchedule(schedId) {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   albaData.schedules = albaData.schedules.filter(x => x.id !== schedId);
-  saveAlbaLocal(); const ok = await _syncAlbaCloud();
+  saveAlbaLocal();
   if (albaModalWorkerId && document.getElementById('albaModal')?.classList.contains('open')) {
     renderAlbaModal();
   }
   renderAlbaSchedule(); renderAlbaWorkerGrid();
+  const ok = await _syncAlbaCloud();
   showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -6080,9 +6086,9 @@ async function addEquipLog() {
   if (!Array.isArray(found.item.logs)) found.item.logs = [];
   found.item.logs.unshift({ date: date || new Date().toISOString().slice(0,10), desc, place: place || '' });
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  const ok = await _syncEquipmentCloud(found.item);
   renderEquipModal();
   renderEquipGrid();
+  const ok = await _syncEquipmentCloud(found.item);
   showToast(ok ? '✅ 관리내역 추가' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -6093,8 +6099,8 @@ async function deleteEquipLog(logIdx) {
   if (!found) return;
   found.item.logs.splice(logIdx, 1);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  const ok = await _syncEquipmentCloud(found.item);
   renderEquipModal();
+  const ok = await _syncEquipmentCloud(found.item);
   showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -6203,12 +6209,13 @@ async function deleteEquipItem() {
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
+  const delId = eqModalId;
   deleteEquipPhotos(found.item); // Storage 사진 파일도 삭제(백그라운드)
-  const ok = await _deleteEquipCloud(eqModalId);  // DB 행 삭제
-  equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
+  equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== delId);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
   closeEquipModal();
   renderEquipGrid();
+  const ok = await _deleteEquipCloud(delId);  // DB 행 삭제
   showToast(ok ? '✓ 장비 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -7430,6 +7437,12 @@ function initRealtime() {
             mdStore = record.v15;
             localStorage.setItem('mdStore', JSON.stringify(mdStore));
           }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'alba' && record.v15) {
+            if (Array.isArray(record.v15.workers)) albaData.workers = record.v15.workers;
+            if (Array.isArray(record.v15.schedules)) albaData.schedules = record.v15.schedules;
+            saveAlbaLocal();
+            if (document.getElementById('pageAlba')?.classList.contains('active')) { renderAlbaWorkerGrid(); renderAlbaSchedule(); }
+          }
           if (record?.id?.startsWith('eq_') && record.v15) {
             const item = record.v15;
             if (item && item.id && item.cat && equipmentData[item.cat] !== undefined) {
@@ -7442,7 +7455,8 @@ function initRealtime() {
             }
           }
           if (eventType === 'DELETE' && old_record?.id?.startsWith('eq_')) {
-            const delId = old_record.v15?.id;
+            // DELETE 이벤트의 old_record엔 기본적으로 PK만 오므로 row id('eq_' + item.id)에서 복원
+            const delId = old_record.v15?.id || old_record.id.slice(3);
             if (delId) {
               EQUIP_CATS.forEach(cat => { equipmentData[cat] = (equipmentData[cat] || []).filter(x => x.id !== delId); });
               localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
@@ -7774,6 +7788,8 @@ if (!sessionStorage.getItem('sl_session')) {
 // 앱 시작 시 자동으로 클라우드 데이터 불러오기 (afterLogin에서 호출됨)
 // 행사일지 최신 데이터를 클라우드에서 조회 (탭 진입/재연결/포그라운드 복귀 시 조용히 재사용)
 async function loadLogsFromCloud() {
+  // 편집 화면이 열려 있는 동안엔 목록을 덮어쓰지 않음 — 저장 전 신규 일지가 배열에서 사라져 입력 데이터가 유실되는 것 방지
+  if (document.getElementById('pageForm')?.classList.contains('active') && !isViewMode) return true;
   try {
     const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
