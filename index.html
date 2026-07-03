@@ -6834,7 +6834,10 @@ headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
 if (!res.ok) throw new Error('DELETE 실패');
 return true;
 } catch(e) { console.error('클라우드 삭제 실패:', e); return false; }
-finally { _pendingLogDeletes.delete(id); }
+finally {
+  // DELETE 응답 이후에도 저장 이벤트의 실시간 에코가 뒤늦게 도착해 되살아나는 경쟁을 막기 위해 잠시 더 유지
+  setTimeout(() => _pendingLogDeletes.delete(id), 5000);
+}
 }
 
 async function deleteLog() {
@@ -7383,6 +7386,7 @@ function initRealtime() {
           if (eventType === 'INSERT' || eventType === 'UPDATE') {
             if (!record?.data) return;
             const log = JSON.parse(record.data);
+            if (_pendingLogDeletes.has(log.id)) return; // 방금 삭제한 항목의 지연된 저장 에코 무시 — 되살아남 방지
             const idx = logs.findIndex(l => l.id === log.id);
             if (idx >= 0) logs[idx] = log; else logs.push(log);
             localStorage.setItem('soundlogs', JSON.stringify(logs));
