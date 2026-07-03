@@ -3788,25 +3788,61 @@ function previewMdFile(id) {
   else { el.textContent = f.content; el.style.display = 'block'; }
 }
 
-function deleteMdFile(id) {
+async function deleteMdFile(id) {
   if (!confirm('이 MD 파일을 삭제할까요?')) return;
   mdStore = mdStore.filter(m => m.id !== id);
   saveMdStoreData();
   renderMdStore();
-  showToast('삭제 완료');
+  const ok = await _syncMdStoreCloud();
+  showToast(ok ? '삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function clearAllMdStore() {
+async function clearAllMdStore() {
   if (!mdStore.length) return;
   if (!confirm(`저장된 MD ${mdStore.length}개를 모두 삭제할까요?`)) return;
   mdStore = [];
   saveMdStoreData();
   renderMdStore();
-  showToast('전체 삭제 완료');
+  const ok = await _syncMdStoreCloud();
+  showToast(ok ? '전체 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 function saveMdStoreData() {
   localStorage.setItem('mdStore', JSON.stringify(mdStore));
+}
+
+async function _syncMdStoreCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.mdstore`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: mdStore })
+    });
+    if (!res.ok) throw new Error();
+    const r = await res.json();
+    if (Array.isArray(r) && r.length === 0) {
+      const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'mdstore', v15: mdStore })
+      });
+      if (!r2.ok) throw new Error();
+    }
+    return true;
+  } catch(e) { console.error('MD저장소 클라우드 저장 실패:', e); return false; }
+}
+
+async function loadMdStoreCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.mdstore&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows.length || !Array.isArray(rows[0].v15)) return;
+    mdStore = rows[0].v15;
+    localStorage.setItem('mdStore', JSON.stringify(mdStore));
+  } catch(e) { console.error('MD저장소 클라우드 불러오기 실패:', e); }
 }
 
 // ── MD 저장 (저장소에 저장) ──
@@ -3834,7 +3870,7 @@ function closeModal() {
   document.getElementById('overwriteModal').classList.remove('show');
 }
 
-function doMDSave(mode) {
+async function doMDSave(mode) {
   closeModal();
   if (mode === 'overwrite') {
     // 동일 logId 또는 파일명 항목 제거 후 새로 저장
@@ -3857,7 +3893,8 @@ function doMDSave(mode) {
     logId:   _pendingMDLogId
   });
   saveMdStoreData();
-  showToast('💾 MD 저장소에 저장 완료');
+  const ok = await _syncMdStoreCloud();
+  showToast(ok ? '💾 MD 저장소에 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
 // ── 새 일지 ──
@@ -4440,12 +4477,48 @@ function openGCalSettings() {
   document.getElementById('gcalSettingsModal').classList.add('show');
 }
 
-function saveGCalSettings() {
+async function saveGCalSettings() {
   gcalConfig.apiKey = document.getElementById('gcalApiKey').value.trim();
   gcalConfig.calendarId = document.getElementById('gcalCalendarId').value.trim();
   localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
   document.getElementById('gcalSettingsModal').classList.remove('show');
   fetchGCalEvents();
+  const ok = await _syncGCalConfigCloud();
+  showToast(ok ? '✅ 설정 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
+}
+
+async function _syncGCalConfigCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.gcal_config`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: gcalConfig })
+    });
+    if (!res.ok) throw new Error();
+    const r = await res.json();
+    if (Array.isArray(r) && r.length === 0) {
+      const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'gcal_config', v15: gcalConfig })
+      });
+      if (!r2.ok) throw new Error();
+    }
+    return true;
+  } catch(e) { console.error('구글캘린더 설정 클라우드 저장 실패:', e); return false; }
+}
+
+async function loadGCalConfigCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.gcal_config&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows.length || !rows[0].v15) return;
+    gcalConfig = rows[0].v15;
+    localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
+  } catch(e) { console.error('구글캘린더 설정 클라우드 불러오기 실패:', e); }
 }
 
 async function fetchGCalEvents() {
@@ -5179,7 +5252,7 @@ function startAlbaWorkerEdit() {
   renderAlbaModal();
 }
 
-function saveAlbaWorkerEdit() {
+async function saveAlbaWorkerEdit() {
   const name = document.getElementById('af_name')?.value?.trim();
   if (!name) { showToast('이름을 입력하세요'); return; }
   const w = albaData.workers.find(x => x.id === albaModalWorkerId);
@@ -5188,13 +5261,13 @@ function saveAlbaWorkerEdit() {
   w.tel = document.getElementById('af_tel')?.value?.trim() || '';
   w.role = document.getElementById('af_role')?.value?.trim() || '';
   w.memo = document.getElementById('af_memo')?.value?.trim() || '';
-  saveAlbaLocal(); _syncAlbaCloud();
+  saveAlbaLocal(); const ok = await _syncAlbaCloud();
   albaModalMode = 'view';
   renderAlbaModal(); renderAlbaWorkerGrid();
-  showToast('✅ 수정 완료');
+  showToast(ok ? '✅ 수정 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function saveAlbaWorkerAdd() {
+async function saveAlbaWorkerAdd() {
   const name = document.getElementById('af_name')?.value?.trim();
   if (!name) { showToast('이름을 입력하세요'); return; }
   const w = {
@@ -5204,19 +5277,19 @@ function saveAlbaWorkerAdd() {
     memo: document.getElementById('af_memo')?.value?.trim() || ''
   };
   albaData.workers.push(w);
-  saveAlbaLocal(); _syncAlbaCloud();
+  saveAlbaLocal(); const ok = await _syncAlbaCloud();
   closeAlbaModal(); renderAlbaWorkerGrid();
-  showToast('✅ 알바 등록 완료');
+  showToast(ok ? '✅ 알바 등록 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function deleteAlbaWorker() {
+async function deleteAlbaWorker() {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   albaData.workers = albaData.workers.filter(x => x.id !== albaModalWorkerId);
   albaData.schedules = albaData.schedules.filter(x => x.workerId !== albaModalWorkerId);
-  saveAlbaLocal(); _syncAlbaCloud();
+  saveAlbaLocal(); const ok = await _syncAlbaCloud();
   closeAlbaModal(); renderAlbaWorkerGrid();
-  showToast('✓ 삭제 완료');
+  showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 function openAlbaSchedAdd() {
@@ -5249,17 +5322,17 @@ function _readAlbaSchedForm() {
   };
 }
 
-function saveAlbaSchedAdd() {
+async function saveAlbaSchedAdd() {
   const data = _readAlbaSchedForm();
   if (!data) return;
   albaData.schedules.push({ id: _makeAlbaId(), ...data });
-  saveAlbaLocal(); _syncAlbaCloud();
+  saveAlbaLocal(); const ok = await _syncAlbaCloud();
   if (albaModalWorkerId) {
     openAlbaWorkerView(albaModalWorkerId);
   } else {
     closeAlbaModal(); renderAlbaSchedule();
   }
-  showToast('✅ 스케줄 추가 완료');
+  showToast(ok ? '✅ 스케줄 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
 function openAlbaSchedEdit(schedId) {
@@ -5270,32 +5343,32 @@ function openAlbaSchedEdit(schedId) {
   renderAlbaModal();
 }
 
-function saveAlbaSchedEdit() {
+async function saveAlbaSchedEdit() {
   const data = _readAlbaSchedForm();
   if (!data) return;
   const idx = albaData.schedules.findIndex(x => x.id === albaSchedEditId);
   if (idx < 0) return;
   albaData.schedules[idx] = { id: albaSchedEditId, ...data };
-  saveAlbaLocal(); _syncAlbaCloud();
+  saveAlbaLocal(); const ok = await _syncAlbaCloud();
   albaSchedEditId = null;
   if (albaModalWorkerId) {
     openAlbaWorkerView(albaModalWorkerId);
   } else {
     closeAlbaModal(); renderAlbaSchedule();
   }
-  showToast('✅ 스케줄 수정 완료');
+  showToast(ok ? '✅ 스케줄 수정 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function deleteAlbaSchedule(schedId) {
+async function deleteAlbaSchedule(schedId) {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   albaData.schedules = albaData.schedules.filter(x => x.id !== schedId);
-  saveAlbaLocal(); _syncAlbaCloud();
+  saveAlbaLocal(); const ok = await _syncAlbaCloud();
   if (albaModalWorkerId && document.getElementById('albaModal')?.classList.contains('open')) {
     renderAlbaModal();
   }
   renderAlbaSchedule(); renderAlbaWorkerGrid();
-  showToast('✓ 삭제 완료');
+  showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 async function _syncAlbaCloud() {
@@ -5308,13 +5381,15 @@ async function _syncAlbaCloud() {
     if (!res.ok) throw new Error();
     const r = await res.json();
     if (Array.isArray(r) && r.length === 0) {
-      await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+      const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: 'alba', v15: albaData })
       });
+      if (!r2.ok) throw new Error();
     }
-  } catch(e) { console.error('알바 클라우드 저장 실패:', e); }
+    return true;
+  } catch(e) { console.error('알바 클라우드 저장 실패:', e); return false; }
 }
 
 async function loadAlbaFromCloud() {
@@ -5330,6 +5405,40 @@ async function loadAlbaFromCloud() {
     if (Array.isArray(d.schedules)) albaData.schedules = d.schedules;
     saveAlbaLocal();
   } catch(e) { console.error('알바 클라우드 불러오기 실패:', e); }
+}
+
+async function _syncSoundSubcatsCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.soundSubcats`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ v15: soundSubcats })
+    });
+    if (!res.ok) throw new Error();
+    const r = await res.json();
+    if (Array.isArray(r) && r.length === 0) {
+      const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'soundSubcats', v15: soundSubcats })
+      });
+      if (!r2.ok) throw new Error();
+    }
+    return true;
+  } catch(e) { console.error('소분류 클라우드 저장 실패:', e); return false; }
+}
+
+async function loadSoundSubcatsCloud() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.soundSubcats&select=v15`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (!rows.length || !Array.isArray(rows[0].v15)) return;
+    soundSubcats = rows[0].v15;
+    localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  } catch(e) { console.error('소분류 클라우드 불러오기 실패:', e); }
 }
 
 // ── 장비관리대장 ──
@@ -5554,7 +5663,7 @@ function startRenameSubcat(i) {
   document.getElementById('subcatSaveBtn_' + i).style.display = '';
 }
 
-function confirmRenameSubcat(i) {
+async function confirmRenameSubcat(i) {
   const val = document.getElementById('subcatEdit_' + i)?.value?.trim();
   if (!val) { showToast('소분류 이름을 입력하세요'); return; }
   const oldName = soundSubcats[i];
@@ -5564,13 +5673,17 @@ function confirmRenameSubcat(i) {
   (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === oldName) { item.subcat = val; renamedItems.push(item); } });
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  renamedItems.forEach(item => _syncEquipmentCloud(item));
+  const results = await Promise.all([
+    _syncSoundSubcatsCloud(),
+    ...renamedItems.map(item => _syncEquipmentCloud(item))
+  ]);
+  const ok = results.every(Boolean);
   renderSubcatManagerBody();
   renderEqSubcatBar();
-  showToast('✅ 소분류 수정 완료');
+  showToast(ok ? '✅ 소분류 수정 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function addSoundSubcat() {
+async function addSoundSubcat() {
   const input = document.getElementById('subcatNewInput');
   const val = input?.value?.trim();
   if (!val) { showToast('소분류 이름을 입력하세요'); return; }
@@ -5578,12 +5691,13 @@ function addSoundSubcat() {
   soundSubcats.push(val);
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
   if (input) input.value = '';
+  const ok = await _syncSoundSubcatsCloud();
   renderSubcatManagerBody();
   renderEqSubcatBar();
-  showToast('✅ 소분류 추가 완료');
+  showToast(ok ? '✅ 소분류 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function deleteSoundSubcat(i) {
+async function deleteSoundSubcat(i) {
   const name = soundSubcats[i];
   const count = (equipmentData['음향장비'] || []).filter(item => item.subcat === name).length;
   const msg = count > 0 ? `'${name}' 소분류에 장비 ${count}개가 있습니다. 삭제하면 해당 장비들의 소분류가 비워집니다. 계속하시겠습니까?` : `'${name}' 소분류를 삭제하시겠습니까?`;
@@ -5593,11 +5707,15 @@ function deleteSoundSubcat(i) {
   (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === name) { item.subcat = ''; clearedItems.push(item); } });
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  clearedItems.forEach(item => _syncEquipmentCloud(item));
+  const results = await Promise.all([
+    _syncSoundSubcatsCloud(),
+    ...clearedItems.map(item => _syncEquipmentCloud(item))
+  ]);
+  const ok = results.every(Boolean);
   renderSubcatManagerBody();
   renderEqSubcatBar();
   if (eqCurrentSubcat === name) { eqCurrentSubcat = '전체'; renderEquipGrid(); }
-  showToast('✓ 소분류 삭제 완료');
+  showToast(ok ? '✓ 소분류 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 
@@ -5952,7 +6070,7 @@ function _renderLogsSection(item) {
   return html;
 }
 
-function addEquipLog() {
+async function addEquipLog() {
   const date = document.getElementById('elDate')?.value;
   const desc = document.getElementById('elDesc')?.value?.trim();
   const place = document.getElementById('elPlace')?.value?.trim();
@@ -5962,22 +6080,22 @@ function addEquipLog() {
   if (!Array.isArray(found.item.logs)) found.item.logs = [];
   found.item.logs.unshift({ date: date || new Date().toISOString().slice(0,10), desc, place: place || '' });
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud(found.item);
+  const ok = await _syncEquipmentCloud(found.item);
   renderEquipModal();
   renderEquipGrid();
-  showToast('✅ 관리내역 추가');
+  showToast(ok ? '✅ 관리내역 추가' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
-function deleteEquipLog(logIdx) {
+async function deleteEquipLog(logIdx) {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   found.item.logs.splice(logIdx, 1);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
-  _syncEquipmentCloud(found.item);
+  const ok = await _syncEquipmentCloud(found.item);
   renderEquipModal();
-  showToast('✓ 삭제 완료');
+  showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 function startEquipEdit() {
@@ -6080,18 +6198,18 @@ async function saveEquipAdd() {
   } finally { _eqSaving = false; }
 }
 
-function deleteEquipItem() {
+async function deleteEquipItem() {
   const pw = prompt('삭제 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   deleteEquipPhotos(found.item); // Storage 사진 파일도 삭제(백그라운드)
-  _deleteEquipCloud(eqModalId);  // DB 행 삭제(백그라운드)
+  const ok = await _deleteEquipCloud(eqModalId);  // DB 행 삭제
   equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
   localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
   closeEquipModal();
   renderEquipGrid();
-  showToast('✓ 장비 삭제 완료');
+  showToast(ok ? '✓ 장비 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
 async function _syncEquipmentCloud(item) {
@@ -6119,11 +6237,13 @@ async function _syncEquipmentCloud(item) {
 
 async function _deleteEquipCloud(itemId) {
   try {
-    await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.${encodeURIComponent('eq_' + itemId)}`, {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.${encodeURIComponent('eq_' + itemId)}`, {
       method: 'DELETE',
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
-  } catch(e) { console.error('장비 행 삭제 실패:', e); }
+    if (!res.ok) throw new Error('DELETE 실패');
+    return true;
+  } catch(e) { console.error('장비 행 삭제 실패:', e); return false; }
 }
 
 async function manualLoadEquipment() {
@@ -6673,6 +6793,7 @@ function deleteMaintFromHistory(type, idx) {
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   vehicleData[type].maintenance.splice(idx, 1);
   saveVehicleData();
+  _syncVehicleCloud();
   renderMaintenanceList(type);
   const countEl = document.getElementById(type+'_maint_count');
   if (countEl) countEl.textContent = vehicleData[type].maintenance.length ? `(${vehicleData[type].maintenance.length}건)` : '';
@@ -6929,6 +7050,7 @@ if (tab === 'list') {
 document.getElementById('tab-list').classList.add('active');
 const p = document.getElementById('pageList'); p.style.display='flex'; p.classList.add('active');
 renderList();
+loadLogsFromCloud(); // 캐시로 즉시 표시 후 최신 데이터로 조용히 갱신
 } else if (tab === 'calendar') {
 document.getElementById('tab-calendar').classList.add('active');
 const p = document.getElementById('pageCalendar'); p.style.display='flex'; p.classList.add('active');
@@ -7216,6 +7338,7 @@ function initRealtime() {
       ws.send(JSON.stringify({ topic:'realtime:public:tasks',       event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'tasks'}]}},       ref:'2' }));
       ws.send(JSON.stringify({ topic:'realtime:public:vehicle_data',event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'vehicle_data'}]}},ref:'3' }));
       setInterval(() => { try { if (ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'})); } catch(e){} }, 20000);
+      loadLogsFromCloud(); // (재)연결 시 그 사이 놓쳤을 수 있는 행사일지 변경사항 백필
     };
 
     ws.onmessage = (e) => {
@@ -7292,6 +7415,21 @@ function initRealtime() {
             if (d.checked) { checklistChecked = d.checked; localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked)); }
             if (document.getElementById('checklistOverlay')?.classList.contains('open')) renderChecklistBody();
           }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'soundSubcats' && Array.isArray(record.v15)) {
+            soundSubcats = record.v15;
+            localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+            renderEqSubcatBar();
+            if (document.getElementById('subcatManagerModal')?.classList.contains('open')) renderSubcatManagerBody();
+          }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'gcal_config' && record.v15) {
+            gcalConfig = record.v15;
+            localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
+            if (document.getElementById('pageCalendar')?.classList.contains('active')) fetchGCalEvents();
+          }
+          if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'mdstore' && Array.isArray(record.v15)) {
+            mdStore = record.v15;
+            localStorage.setItem('mdStore', JSON.stringify(mdStore));
+          }
           if (record?.id?.startsWith('eq_') && record.v15) {
             const item = record.v15;
             if (item && item.id && item.cat && equipmentData[item.cat] !== undefined) {
@@ -7320,6 +7458,11 @@ function initRealtime() {
   }
   connect();
 }
+
+// 앱이 백그라운드였다가 다시 포그라운드로 돌아오면 놓친 변경사항 백필
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') loadLogsFromCloud();
+});
 
 // ── 테마 ──
 const THEMES = [
@@ -7629,26 +7772,30 @@ if (!sessionStorage.getItem('sl_session')) {
 }
 
 // 앱 시작 시 자동으로 클라우드 데이터 불러오기 (afterLogin에서 호출됨)
+// 행사일지 최신 데이터를 클라우드에서 조회 (탭 진입/재연결/포그라운드 복귀 시 조용히 재사용)
+async function loadLogsFromCloud() {
+  try {
+    const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (!logRes.ok) return false;
+    const rows = await logRes.json();
+    if (rows.length) {
+      logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+      try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) {}
+      if (document.getElementById('pageList')?.classList.contains('active')) renderList();
+    }
+    return true;
+  } catch(e) { console.warn('행사일지 로드 실패:', e); return false; }
+}
+
 async function autoLoadAll() {
   const btn = document.getElementById('cloudReloadBtn');
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   let ok = 0, fail = 0;
 
   // 1. 행사일지
-  try {
-    const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    if (logRes.ok) {
-      const rows = await logRes.json();
-      if (rows.length) {
-        logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
-        try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) {}
-        renderList();
-      }
-      ok++;
-    } else { fail++; }
-  } catch(e) { console.warn('행사일지 로드 실패:', e); fail++; }
+  if (await loadLogsFromCloud()) ok++; else fail++;
 
   // 2. 업무 데이터
   try {
@@ -7708,7 +7855,10 @@ async function autoLoadAll() {
   // 5. 체크리스트
   try { await loadChecklistFromCloud(); ok++; } catch(e) { console.warn('체크리스트 로드 실패:', e); fail++; }
 
-  // 6. 장비관리대장
+  // 6. 장비 소분류 목록
+  try { await loadSoundSubcatsCloud(); ok++; } catch(e) { console.warn('소분류 로드 실패:', e); fail++; }
+
+  // 7. 장비관리대장
   try {
     const eqCloudOk = await loadEquipmentFromCloud();
     initEquipmentDefault(eqCloudOk);
@@ -7717,8 +7867,14 @@ async function autoLoadAll() {
     ok++;
   } catch(e) { console.warn('장비 로드 실패:', e); fail++; }
 
-  // 7. 알바관리
+  // 8. 알바관리
   try { await loadAlbaFromCloud(); ok++; } catch(e) { console.warn('알바 로드 실패:', e); fail++; }
+
+  // 9. 구글캘린더 설정
+  try { await loadGCalConfigCloud(); ok++; } catch(e) { console.warn('구글캘린더 설정 로드 실패:', e); fail++; }
+
+  // 10. MD저장소
+  try { await loadMdStoreCloud(); ok++; } catch(e) { console.warn('MD저장소 로드 실패:', e); fail++; }
 
   if (btn) { btn.textContent = '☁️'; btn.disabled = false; }
   if (fail === 0) showToast('✓ 데이터 불러옴');
