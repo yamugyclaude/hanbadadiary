@@ -10223,6 +10223,51 @@ function buildSystemPrompt() {
     return `${l.date} | ${l.eventName||'(제목없음)'} | ${l.venue||''} | 인력:${staff} | 이슈:${l.issue||'없음'}`;
   }).join('\n');
 
+  // 현재 선택된 행사 상세 정보
+  const currentLog = (logs || []).find(l => l.id === currentId);
+  let currentLogDetail = '';
+  if (currentLog) {
+    const staff = [
+      currentLog.engineer && `음향 엔지니어: ${currentLog.engineer}`,
+      currentLog.stagedirector && `무대 감독: ${currentLog.stagedirector}`,
+      currentLog.staff1 && `스태프1: ${currentLog.staff1}`,
+      currentLog.staff2 && `스태프2: ${currentLog.staff2}`
+    ].filter(Boolean).join('\n');
+    currentLogDetail = `
+## 📋 현재 행사 상세 정보
+날짜: ${currentLog.date}
+행사명: ${currentLog.eventName}
+장소: ${currentLog.venue}
+고객사: ${currentLog.clientManager || '-'}
+
+### 인력 배치
+${staff || '없음'}
+
+### 타임라인
+음향설치: ${currentLog.callTimeSound || '-'}
+무대설치: ${currentLog.callTimeStage || '-'}
+리허설: ${(currentLog.rehearsals||[]).length > 0 ? currentLog.rehearsals.length + '건' : '없음'}
+쇼시작: ${currentLog.showTime || '-'}
+쇼종료: ${currentLog.endTime || '-'}
+
+### 장비 세팅
+콘솔: ${currentLog.consoleSelected || '-'}
+스피커: ${currentLog.speakerSelected || '-'}
+음향사진: ${(currentLog.soundPhotos||[]).filter(Boolean).length}장
+무대사진: ${(currentLog.stagePhotos||[]).filter(Boolean).length}장
+
+### 무대 설치
+크기: ${currentLog.stageW ? currentLog.stageW + 'x' + currentLog.stageD + 'm' : '-'}
+플랭카드: ${currentLog.bannerHas ? currentLog.bannerW + 'x' + currentLog.bannerH + 'm' : '없음'}
+트러스: ${currentLog.trussHas ? currentLog.trussW + 'x' + currentLog.trussH + 'm' : '없음'}
+
+### 이슈 & 피드백
+사전이슈: ${currentLog.preIssues || '없음'}
+진행중: ${currentLog.duringIssues || '없음'}
+해결: ${currentLog.resolution || '없음'}
+고객피드백: ${currentLog.clientFeedback || '없음'}`;
+  }
+
   // 미완료 업무만
   const pendingTasks = [
     ...(warehouseTasks||[]).filter(t=>t.status!=='done').map(t=>`[창고] ${t.title}`),
@@ -10242,6 +10287,7 @@ function buildSystemPrompt() {
 
 ## 행사일지 (최근 ${(logs||[]).length}건, 형식: 날짜|행사명|장소|이슈)
 ${logLines || '데이터 없음'}
+${currentLogDetail}
 
 ## 미완료 업무
 ${pendingTasks || '없음'}
