@@ -6757,9 +6757,13 @@ a.download = `soundlog_all_${today()}.md`; a.click();
 showToast('📄 전체 내보내기 완료');
 }
 
-function showToast(msg) {
-const el = document.getElementById('toast'); el.textContent = msg;
-el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3500);
+let toastTimeout;
+function showToast(msg, duration = 3500) {
+const el = document.getElementById('toast');
+clearTimeout(toastTimeout);
+el.textContent = msg;
+el.classList.add('show');
+toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
 }
 
 // ── Supabase 설정 ──
@@ -6807,7 +6811,7 @@ if (!log) return;
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 updateTitle();
 addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
-showToast('저장 중…');
+showToast('저장 중…', 5000);
 try {
 // base64로 남은 사진 Storage에 업로드 (신규 업로드 실패분 재시도 + 이전 데이터 마이그레이션)
 for (let i = 0; i < soundPhotos.length; i++) {
