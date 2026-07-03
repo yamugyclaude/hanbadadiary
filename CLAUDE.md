@@ -9,6 +9,8 @@
 > `[방이름] 방에 오셨습니다. 사장님 어서오세요`
 > 예: `guitar-theory 방에 오셨습니다. 사장님 어서오세요`
 
+> 🔗 **신규 작업자 문서 읽는 순서**: [README.md](README.md) → [PROJECTS.md](PROJECTS.md) → 이 파일 → [CHANGELOG.md](CHANGELOG.md)
+
 <!-- 본부 작업흐름 규칙 — deploy.yml 이 자동 주입, 직접 편집 금지 -->
 ## 🏢 잭슨컴퍼니 조직
 
