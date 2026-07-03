@@ -7,6 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>한바다 일지</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
@@ -514,7 +517,7 @@ font-family: 'Noto Sans KR', sans-serif;
 .modal-btn-new { background: var(--accent); color: #0a0c10; }
 
 /* ─── TOAST ─── */
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #7c3aed; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; z-index: 99999; opacity: 0; transition: opacity 0.3s ease; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #7c3aed; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; z-index: 99999; opacity: 0; transition: opacity 0.3s ease; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .toast.show { opacity: 1; }
 
 .tl-day-btn {
@@ -4005,9 +4008,10 @@ function fillForm(log) {
 }
 
 function updateTitle() {
-  const name = document.getElementById('f_eventName').value;
-  const date = document.getElementById('f_date').value;
-  document.getElementById('formTopTitle').textContent = name || fmtDate(date) || '새 행사일지';
+  const name = document.getElementById('f_eventName')?.value;
+  const date = document.getElementById('f_date')?.value;
+  const titleEl = document.getElementById('formTopTitle');
+  if (titleEl) titleEl.textContent = name || fmtDate(date) || '새 행사일지';
 }
 function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
 
@@ -6763,12 +6767,11 @@ showToast('📄 전체 내보내기 완료');
 let toastTimeout;
 function showToast(msg, duration = 3500) {
 const el = document.getElementById('toast');
-if (!el) { console.error('toast element not found'); return; }
+if (!el) return;
 clearTimeout(toastTimeout);
 el.textContent = msg;
 el.classList.add('show');
-console.log('🍞 toast:', msg, 'duration:', duration);
-toastTimeout = setTimeout(() => { el.classList.remove('show'); console.log('🍞 toast hidden'); }, duration);
+toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
 }
 
 // ── Supabase 설정 ──
