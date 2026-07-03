@@ -6827,9 +6827,9 @@ for (let i = 0; i < stagePhotos.length; i++) {
   }
 }
 await sbUpsertLog(log);
-showToast('✓ 저장 + ☁️ 클라우드 완료');
+showToast('✓ 저장 + ☁️ 클라우드 완료', 3000);
 } catch(e) {
-showToast('✓ 로컬저장 완료 (클라우드 실패)');
+showToast('✓ 로컬저장 완료 (클라우드 실패)', 3000);
 console.error(e);
 }
 }
