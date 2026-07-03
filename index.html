@@ -6678,7 +6678,10 @@ function deleteMaintFromHistory(type, idx) {
 
 function saveLog() {
 const log = getFormData();
-if (!log) return;
+if (!log) {
+  showToast('⚠️ 저장할 항목이 없습니다. 입력 후 다시 시도하세요');
+  return;
+}
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 updateTitle();
 addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
@@ -6809,7 +6812,10 @@ if (!res.ok) throw new Error(await res.text());
 async function saveAndSync() {
 if (navigator.vibrate) navigator.vibrate(40);
 const log = getFormData();
-if (!log) return;
+if (!log) {
+  showToast('⚠️ 저장할 항목이 없습니다. 입력 후 다시 시도하세요');
+  return;
+}
 localStorage.setItem('soundlogs', JSON.stringify(logs));
 updateTitle();
 addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`);
