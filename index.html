@@ -10213,9 +10213,15 @@ function buildSystemPrompt() {
   const today = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
 
   // 행사일지: 날짜·행사명·장소·인력 위주로 간결하게
-  const logLines = (logs || []).slice(0, 60).map(l =>
-    `${l.date} | ${l.eventName||'(제목없음)'} | ${l.venue||''} | 인력:${l.engineer||'-'}/${l.stagedirector||'-'} | 이슈:${l.issue||'없음'}`
-  ).join('\n');
+  const logLines = (logs || []).slice(0, 60).map(l => {
+    const staff = [
+      l.engineer && `음향:${l.engineer}`,
+      l.stagedirector && `무대:${l.stagedirector}`,
+      l.staff1 && `스태프:${l.staff1}`,
+      l.staff2 && `스태프:${l.staff2}`
+    ].filter(Boolean).join('/') || '없음';
+    return `${l.date} | ${l.eventName||'(제목없음)'} | ${l.venue||''} | 인력:${staff} | 이슈:${l.issue||'없음'}`;
+  }).join('\n');
 
   // 미완료 업무만
   const pendingTasks = [
