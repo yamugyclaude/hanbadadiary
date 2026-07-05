@@ -2,6 +2,31 @@
 생성일: 2026-07-03
 ---
 
+## 2026-07-05 ✅ 성공 — 클라우드 저장 거짓 경보 수정
+### 배경
+사용자가 새 행사일지 저장 시 "저장완료, 클라우드 실패" 토스트를 봄. 라이브 Supabase DB를
+REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라우드에 정상 저장돼 있었음** (진짜
+실패가 아니라 거짓 경보였음).
+
+### 원인
+`saveAndSync()`(index.html)의 `Promise.race([cloudWork, timeout(20000)])` 구조에서
+20초 타임아웃이 이기면 화면엔 "클라우드 실패"라고 뜨지만, `cloudWork`(실제 fetch)는
+취소되지 않고 백그라운드에서 계속 진행됨(AbortController 없음). 이번 케이스처럼 네트워크가
+20초를 살짝 넘겼지만 결국 성공한 "늦은 성공"을 코드가 전혀 추적하지 않고 `_syncFailed = true`로
+영구 고정해버림.
+
+### 수정
+- `cloudWork`를 try 블록 밖에서 `let cloudWork;`로 선언 → catch에서도 접근 가능
+- catch에서 `e.message === 'CLOUD_TIMEOUT'`인 경우에만 `cloudWork.then()`으로 늦은 성공을
+  지켜보다가, 성공하면 `_syncFailed` 해제 + `persistLogs()` + (목록 화면이면) `renderList()` +
+  "☁️ 늦게 도착: 클라우드 저장 완료" 토스트로 정정
+- 20초 타임아웃 자체(사용자에게 20초 안엔 반드시 결과를 보여주는 설계)는 그대로 유지, 그 이후
+  늦게 성공하는 경우만 추가로 추적
+- 파일: index.html (saveAndSync 함수, `cloudWork` 선언 + catch 블록)
+- 커밋: `c30b09a`, main 병합: `121d44e`
+
+---
+
 ## 2026-07-03 ✅ 성공
 ### 작업 내용
 - 행사일지 저장 메시지 안내 버그 수정
