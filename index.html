@@ -3350,6 +3350,7 @@ function toggleAdmin() { openUserMgmt(); }
 // ── 날짜 ──
 function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function persistLogs() { try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) { console.warn('로컬 저장 실패(용량 초과 가능):', e); } }
+function persistEquipment() { try { localStorage.setItem('equipmentData', JSON.stringify(equipmentData)); } catch(e) { console.warn('장비 로컬 저장 실패(용량 초과 가능):', e); } }
 
 // 오래된 base64 사진을 Storage URL로 정리 (백그라운드, 앱 시작 후 1회)
 async function migrateOldLogPhotos() {
@@ -3384,6 +3385,33 @@ async function migrateOldLogPhotos() {
   }
   persistLogs();
   console.log('[사진정리] base64 사진 정리 완료');
+}
+
+// 오래된 base64 장비 사진을 Storage URL로 정리 (백그라운드, 앱 시작 후 1회)
+async function migrateOldEquipPhotos() {
+  const targets = [];
+  EQUIP_CATS.forEach(cat => {
+    (equipmentData[cat] || []).forEach(item => {
+      if ((item.photos || []).some(p => typeof p === 'string' && p.startsWith('data:'))) targets.push(item);
+    });
+  });
+  if (!targets.length) return;
+  console.log(`[장비사진정리] base64 남은 장비 ${targets.length}건 정리 시작`);
+  for (const item of targets) {
+    try {
+      let changed = false;
+      for (let i = 0; i < item.photos.length; i++) {
+        if (typeof item.photos[i] === 'string' && item.photos[i].startsWith('data:')) {
+          const url = await uploadEquipPhoto(item.id, item.photos[i]);
+          if (url) { item.photos[i] = url; changed = true; }
+        }
+      }
+      if (changed) await _syncEquipmentCloud(item);
+    } catch(e) { console.warn('[장비사진정리] 실패, 다음 기회에 재시도:', item.id, e); }
+    await new Promise(r => setTimeout(r, 150));
+  }
+  persistEquipment();
+  console.log('[장비사진정리] base64 사진 정리 완료');
 }
 function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
 document.getElementById('headerDate') && (document.getElementById('headerDate').textContent = fmtDate(today()));
@@ -5624,7 +5652,7 @@ function initEquipmentDefault(cloudOk) {
     if (!item.subcat && nameToSubcat[item.name]) { item.subcat = nameToSubcat[item.name]; changed = true; }
   });
   if (changed) {
-    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    persistEquipment();
     EQUIP_CATS.forEach(cat => (equipmentData[cat] || []).forEach(item => _syncEquipmentCloud(item)));
   }
 }
@@ -5715,7 +5743,7 @@ async function confirmRenameSubcat(i) {
   const renamedItems = [];
   (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === oldName) { item.subcat = val; renamedItems.push(item); } });
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  persistEquipment();
   const results = await Promise.all([
     _syncSoundSubcatsCloud(),
     ...renamedItems.map(item => _syncEquipmentCloud(item))
@@ -5749,7 +5777,7 @@ async function deleteSoundSubcat(i) {
   const clearedItems = [];
   (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === name) { item.subcat = ''; clearedItems.push(item); } });
   localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  persistEquipment();
   const results = await Promise.all([
     _syncSoundSubcatsCloud(),
     ...clearedItems.map(item => _syncEquipmentCloud(item))
@@ -5807,7 +5835,7 @@ function quickAddPhoto(id) {
         const base64 = canvas.toDataURL('image/jpeg', 0.7);
         const url = await uploadEquipPhoto(id, base64);
         found.item.photos = [url || base64]; // 업로드 실패 시 base64 폴백
-        localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+        persistEquipment();
         _syncEquipmentCloud(found.item);
         renderEquipGrid();
         showToast(url ? '✅ 사진 저장 완료' : '⚠ 사진 임시저장(업로드 실패)');
@@ -6122,7 +6150,7 @@ async function addEquipLog() {
   if (!found) return;
   if (!Array.isArray(found.item.logs)) found.item.logs = [];
   found.item.logs.unshift({ date: date || new Date().toISOString().slice(0,10), desc, place: place || '' });
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  persistEquipment();
   renderEquipModal();
   renderEquipGrid();
   const ok = await _syncEquipmentCloud(found.item);
@@ -6135,7 +6163,7 @@ async function deleteEquipLog(logIdx) {
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   found.item.logs.splice(logIdx, 1);
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  persistEquipment();
   renderEquipModal();
   const ok = await _syncEquipmentCloud(found.item);
   showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
@@ -6213,7 +6241,7 @@ async function saveEquipEdit() {
     equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
     if (!equipmentData[newCat]) equipmentData[newCat] = [];
     equipmentData[newCat].push(updatedItem);
-    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    persistEquipment();
     eqCurrentCat = newCat;
     switchEqCat(newCat);
     closeEquipModal();
@@ -6241,7 +6269,7 @@ async function saveEquipAdd() {
     const newItem = { id: eqEditDraft.id, ...form, logs: [] };
     if (!equipmentData[cat]) equipmentData[cat] = [];
     equipmentData[cat].push(newItem);
-    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    persistEquipment();
     eqCurrentCat = cat;
     switchEqCat(cat);
     closeEquipModal();
@@ -6267,7 +6295,7 @@ async function deleteEquipItem() {
   const delId = eqModalId;
   deleteEquipPhotos(found.item); // Storage 사진 파일도 삭제(백그라운드)
   equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== delId);
-  localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+  persistEquipment();
   closeEquipModal();
   renderEquipGrid();
   const ok = await _deleteEquipCloud(delId);  // DB 행 삭제
@@ -6342,7 +6370,7 @@ async function loadEquipmentFromCloud() {
           EQUIP_CATS.forEach(c => { newData[c] = []; });
           items.forEach(({cat, ...rest}) => { if (newData[cat]) newData[cat].push(rest); });
           equipmentData = newData;
-          localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+          persistEquipment();
           return true;
         }
       }
@@ -6358,7 +6386,7 @@ async function loadEquipmentFromCloud() {
       }
     });
     equipmentData = newData;
-    localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+    persistEquipment();
     return true;
   } catch(e) { console.error('장비 클라우드 불러오기 실패:', e); return false; }
 }
@@ -7527,7 +7555,7 @@ function initRealtime() {
                 const idx = equipmentData[item.cat].findIndex(x => x.id === item.id);
                 if (idx >= 0) equipmentData[item.cat][idx] = item; else equipmentData[item.cat].push(item);
               }
-              localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+              persistEquipment();
               if (document.getElementById('pageEquipment')?.classList.contains('active')) renderEquipGrid();
             }
           }
@@ -7536,7 +7564,7 @@ function initRealtime() {
             const delId = old_record.v15?.id || old_record.id.slice(3);
             if (delId) {
               EQUIP_CATS.forEach(cat => { equipmentData[cat] = (equipmentData[cat] || []).filter(x => x.id !== delId); });
-              localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
+              persistEquipment();
               if (document.getElementById('pageEquipment')?.classList.contains('active')) renderEquipGrid();
             }
           }
@@ -7978,6 +8006,7 @@ async function autoLoadAll() {
 
   // 초기 로딩 부하가 끝난 뒤 오래된 base64 사진 백그라운드 정리
   setTimeout(() => migrateOldLogPhotos(), 5000);
+  setTimeout(() => migrateOldEquipPhotos(), 7000);
 }
 
 // ── 클라우드 진단 ──
