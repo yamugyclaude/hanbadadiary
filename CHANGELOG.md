@@ -12,11 +12,12 @@
 - ✅ **배포 방식**: GitHub Pages + GitHub Actions (자동)
 
 **최근 3개 배포**:
-1. **(배포 예정)** 장비 수정저장 무반응 근본 수정(`localStorage.setItem` catch 없는 try 안에 있던 문제) + `persistEquipment()`/`migrateOldEquipPhotos()` 추가
-2. **v0705-03 + `e399b61`** (2026-07-05) — 장비 저장 팝업 반응 지연 근본 수정(사진 업로드도 로컬 반영 뒤로) + 오래된 base64 사진 백그라운드 정리
-3. **v0705-02** (2026-07-05) — 행사일지 목록 지연 표시 수정: 조회 모드에서도 백그라운드 재조회 허용
+1. **(배포 예정) `1139522`** (2026-07-05) — 호버 미리보기가 실제 모달 위에 겹쳐 남는 문제 수정(`dismissHoverPreview()` 추가)
+2. **(배포 예정)** 장비 수정저장 무반응 근본 수정(`localStorage.setItem` catch 없는 try 안에 있던 문제) + `persistEquipment()`/`migrateOldEquipPhotos()` 추가
+3. **v0705-03 + `e399b61`** (2026-07-05) — 장비 저장 팝업 반응 지연 근본 수정(사진 업로드도 로컬 반영 뒤로) + 오래된 base64 사진 백그라운드 정리
 
 **최근 해결된 문제**:
+- ✅ 카드에 뜨는 호버 미리보기가 상세 모달을 열어도 안 닫히고 위에 겹쳐 보이던 문제 — 5개 모달 오픈 함수에 `dismissHoverPreview()` 추가
 - ✅ 장비 수정저장 눌러도 팝업 안 닫히고 반응 없던 문제 — `equipmentData` 저장 코드 13곳이 catch 없는 try 안에 있어 예외 시 조용히 멈추던 것이 진짜 원인. `persistEquipment()`로 통일해 예외 흡수 + `migrateOldEquipPhotos()`로 오래된 base64 장비 사진도 백그라운드 정리
 - ✅ 장비 저장 팝업 반응 지연 — v0705-03에서 놓친 `_migrateEquipPhotos`(사진 업로드)까지 로컬 반영 뒤로 이동
 - ✅ 오래된 행사일지에 남은 base64 사진을 앱 시작 5초 후 백그라운드에서 Storage URL로 자동 정리(migrateOldLogPhotos)
@@ -34,6 +35,16 @@
 - 📖 전체 가이드: [README.md](README.md) 읽기 (5분)
 - 🔧 현재 상태: 아래 최신 배포 로그 참조
 - 🐛 버그/제안: 사장님께 보고
+
+---
+
+## [2026-07-05] (배포 예정) — 호버 미리보기가 실제 모달 위에 겹쳐 남는 문제 수정
+
+- `1139522` 카드에 뜨는 호버 미리보기(`#hoverPreview`)를 닫는 코드가 실제 상세 모달을 여는
+  `openLog`/`openEquipView`/`openAlbaWorkerView`/`openAlbaSchedEdit`/`openTaskModal`에 없어서,
+  넓은 화면에서는 미리보기가 모달 위에 그대로 겹쳐 보이던 문제 수정. `dismissHoverPreview()`(즉시
+  닫기) 헬퍼를 추가해 5개 함수 맨 앞에서 호출하도록 처리. 마우스 이탈 시 쓰는 기존
+  `hideHoverPreview()`(지연 닫기)는 그대로 유지.
 
 ---
 
