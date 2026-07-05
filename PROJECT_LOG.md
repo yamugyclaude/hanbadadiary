@@ -140,3 +140,21 @@
 
 ### 배포 이력
 - 브랜치: `claude/gamsasiljang-ls5xvg` → main 병합 예정
+
+---
+
+## 2026-07-05 (4차) 호버 미리보기가 실제 모달 위에 겹쳐 남는 문제 수정
+### 무엇이 잘못됐었나
+- 카드에 마우스를 올리면 뜨는 요약 툴팁(`#hoverPreview`, z-index 8000)을 닫는 `hideHoverPreview()`는
+  `onmouseleave`에만 걸려 있었음. 카드를 클릭해 실제 상세 모달을 여는 `openLog`/`openEquipView`/
+  `openAlbaWorkerView`/`openAlbaSchedEdit`/`openTaskModal`에는 미리보기를 닫는 코드가 전혀 없어서,
+  일부 환경(넓은 화면)에서는 미리보기가 모달 위에 그대로 겹쳐 보였음.
+
+### 수정
+- `dismissHoverPreview()` 신규 추가(index.html:6407 부근) — 지연 없이 즉시 닫는 헬퍼. 기존
+  `hideHoverPreview()`(80ms+120ms 지연)는 그대로 유지.
+- 5개 모달 오픈 함수(`openLog` 3738행, `openEquipView` 5912행, `openAlbaWorkerView` 5141행,
+  `openAlbaSchedEdit` 5407행, `openTaskModal` 7250행) 맨 첫 줄에 `dismissHoverPreview();` 추가.
+
+### 배포 이력
+- 커밋: `1139522`, main 병합 `d19f983`
