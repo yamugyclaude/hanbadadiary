@@ -160,6 +160,7 @@ box-shadow: 0 2px 16px rgba(0,0,0,0.25);
 .log-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 .log-card-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); }
 .log-card-type { font-size: 11px; background: var(--accent-dim); border: 1px solid rgba(79,195,161,0.25); color: var(--accent); padding: 2px 9px; border-radius: 20px; }
+.log-card-unsynced { font-size: 11px; background: var(--accent2-dim); border: 1px solid rgba(224,123,84,0.4); color: var(--accent2); padding: 2px 9px; border-radius: 20px; font-weight: 700; }
 .log-card-name { font-size: 16px; font-weight: 700; color: var(--text); }
 .log-card-venue { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 14px; text-align: center; color: var(--text-muted); padding: 40px 20px; }
@@ -3791,6 +3792,7 @@ function renderList() {
           <span class="log-card-date">${fmtDate(l.date)}</span>
           <span style="font-size:14px;">${weatherEmoji}</span>
           <span class="log-card-type">${l.eventType||'기타'}</span>
+          ${l._syncFailed ? '<span class="log-card-unsynced" title="클라우드에 아직 저장되지 않음">⚠ 미동기화</span>' : ''}
         </div>
         <div class="log-card-name" onclick="openLog('${l.id}')">${l.eventName||'(행사명 없음)'}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
@@ -7024,7 +7026,9 @@ method: 'PATCH',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
 body: JSON.stringify(payload)
 });
-const patched = await res.json();
+const patchedText = await res.text();
+let patched = null;
+try { patched = JSON.parse(patchedText); } catch(e) {}
 // 없으면 POST로 새로 생성
 if (Array.isArray(patched) && patched.length === 0) {
 res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
@@ -7032,8 +7036,10 @@ method: 'POST',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
 body: JSON.stringify(payload)
 });
-}
 if (!res.ok) throw new Error(await res.text());
+return;
+}
+if (!res.ok) throw new Error(patchedText || `HTTP ${res.status}`);
 }
 
 // 저장 버튼: 해당 일지만 저장/수정
@@ -7078,11 +7084,21 @@ await Promise.race([
   new Promise((_, rej) => setTimeout(() => rej(new Error('CLOUD_TIMEOUT')), 20000))
 ]);
 showToast('✓ 저장 + ☁️ 클라우드 완료', 3000);
+{
+  const target = logs.find(l => l.id === log.id) || log;
+  delete target._syncFailed;
+  persistLogs();
+}
 } catch(e) {
 console.error('클라우드 저장 실패:', e);
 showToast(e && e.message === 'CLOUD_TIMEOUT'
   ? '⚠ 로컬 저장됨 · 클라우드 응답 없음(네트워크 확인)'
   : '✓ 로컬저장 완료 (클라우드 실패)', 4000);
+{
+  const target = logs.find(l => l.id === log.id) || log;
+  target._syncFailed = true;
+  persistLogs();
+}
 }
 }
 
@@ -7915,7 +7931,10 @@ async function loadLogsFromCloud() {
     if (!logRes.ok) return false;
     const rows = await logRes.json();
     if (rows.length) {
-      logs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean).filter(l => !_pendingLogDeletes.has(l.id));
+      const newLogs = rows.map(r => { try { return (typeof r.data === 'object' && r.data !== null) ? r.data : JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean).filter(l => !_pendingLogDeletes.has(l.id));
+      const newIds = new Set(newLogs.map(l => l.id));
+      const unsynced = logs.filter(l => l._syncFailed && !newIds.has(l.id));
+      logs = newLogs.concat(unsynced);
       persistLogs();
       if (document.getElementById('pageList')?.classList.contains('active')) renderList();
     }
