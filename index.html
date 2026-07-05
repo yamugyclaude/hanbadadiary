@@ -3350,6 +3350,41 @@ function toggleAdmin() { openUserMgmt(); }
 // ── 날짜 ──
 function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function persistLogs() { try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) { console.warn('로컬 저장 실패(용량 초과 가능):', e); } }
+
+// 오래된 base64 사진을 Storage URL로 정리 (백그라운드, 앱 시작 후 1회)
+async function migrateOldLogPhotos() {
+  const targets = logs.filter(log =>
+    (log.soundPhotos || []).some(p => typeof p === 'string' && p.startsWith('data:')) ||
+    (log.stagePhotos || []).some(p => typeof p === 'string' && p.startsWith('data:'))
+  );
+  if (!targets.length) return;
+  console.log(`[사진정리] base64 남은 일지 ${targets.length}건 정리 시작`);
+  for (const log of targets) {
+    try {
+      let changed = false;
+      if (Array.isArray(log.soundPhotos)) {
+        for (let i = 0; i < log.soundPhotos.length; i++) {
+          if (typeof log.soundPhotos[i] === 'string' && log.soundPhotos[i].startsWith('data:')) {
+            const url = await uploadPhotoToStorage(log.id, 'sound', i, log.soundPhotos[i]);
+            if (url) { log.soundPhotos[i] = url; changed = true; }
+          }
+        }
+      }
+      if (Array.isArray(log.stagePhotos)) {
+        for (let i = 0; i < log.stagePhotos.length; i++) {
+          if (typeof log.stagePhotos[i] === 'string' && log.stagePhotos[i].startsWith('data:')) {
+            const url = await uploadPhotoToStorage(log.id, 'stage', i, log.stagePhotos[i]);
+            if (url) { log.stagePhotos[i] = url; changed = true; }
+          }
+        }
+      }
+      if (changed) await sbUpsertLog(log);
+    } catch(e) { console.warn('[사진정리] 실패, 다음 기회에 재시도:', log.id, e); }
+    await new Promise(r => setTimeout(r, 150));
+  }
+  persistLogs();
+  console.log('[사진정리] base64 사진 정리 완료');
+}
 function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
 document.getElementById('headerDate') && (document.getElementById('headerDate').textContent = fmtDate(today()));
 let logs        = JSON.parse(localStorage.getItem('soundlogs')  || '[]');
@@ -6174,10 +6209,9 @@ async function saveEquipEdit() {
   try {
     const logs = found.item.logs || [];
     const newCat = form.cat;
-    form.photos = await _migrateEquipPhotos(eqModalId, form.photos);
+    const updatedItem = { id: eqModalId, ...form, logs };
     equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
     if (!equipmentData[newCat]) equipmentData[newCat] = [];
-    const updatedItem = { id: eqModalId, ...form, logs };
     equipmentData[newCat].push(updatedItem);
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     eqCurrentCat = newCat;
@@ -6186,7 +6220,10 @@ async function saveEquipEdit() {
     let ok = false;
     try {
       ok = await Promise.race([
-        _syncEquipmentCloud(updatedItem),
+        (async () => {
+          updatedItem.photos = await _migrateEquipPhotos(eqModalId, updatedItem.photos);
+          return await _syncEquipmentCloud(updatedItem);
+        })(),
         new Promise((_, rej) => setTimeout(() => rej(new Error('CLOUD_TIMEOUT')), 20000))
       ]);
     } catch(e) { ok = false; }
@@ -6201,9 +6238,8 @@ async function saveEquipAdd() {
   _eqSaving = true;
   try {
     const cat = form.cat;
-    form.photos = await _migrateEquipPhotos(eqEditDraft.id, form.photos);
-    if (!equipmentData[cat]) equipmentData[cat] = [];
     const newItem = { id: eqEditDraft.id, ...form, logs: [] };
+    if (!equipmentData[cat]) equipmentData[cat] = [];
     equipmentData[cat].push(newItem);
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     eqCurrentCat = cat;
@@ -6212,7 +6248,10 @@ async function saveEquipAdd() {
     let ok = false;
     try {
       ok = await Promise.race([
-        _syncEquipmentCloud(newItem),
+        (async () => {
+          newItem.photos = await _migrateEquipPhotos(eqEditDraft.id, newItem.photos);
+          return await _syncEquipmentCloud(newItem);
+        })(),
         new Promise((_, rej) => setTimeout(() => rej(new Error('CLOUD_TIMEOUT')), 20000))
       ]);
     } catch(e) { ok = false; }
@@ -7936,6 +7975,9 @@ async function autoLoadAll() {
   if (fail === 0) showToast('✓ 데이터 불러옴');
   else if (ok > 0) showToast(`⚠ 일부 실패(${fail}개) — 🔍진단 버튼으로 원인 확인`);
   else showToast('❌ 데이터 로드 실패 — 🔍진단 버튼으로 원인 확인');
+
+  // 초기 로딩 부하가 끝난 뒤 오래된 base64 사진 백그라운드 정리
+  setTimeout(() => migrateOldLogPhotos(), 5000);
 }
 
 // ── 클라우드 진단 ──
