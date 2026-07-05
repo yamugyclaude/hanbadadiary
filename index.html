@@ -3659,6 +3659,7 @@ function showList() {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-list').classList.add('active');
   renderList();
+  loadLogsFromCloud(); // 캐시로 즉시 표시 후 최신 데이터로 조용히 갱신 (switchTab('list')와 동일 패턴)
 }
 function showForm() {
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
@@ -7811,8 +7812,10 @@ if (!sessionStorage.getItem('sl_session')) {
 // 앱 시작 시 자동으로 클라우드 데이터 불러오기 (afterLogin에서 호출됨)
 // 행사일지 최신 데이터를 클라우드에서 조회 (탭 진입/재연결/포그라운드 복귀 시 조용히 재사용)
 async function loadLogsFromCloud() {
-  // 일지 화면(편집·조회)이 열려 있는 동안엔 목록을 덮어쓰지 않음 — 저장 직후 재조회가 로컬 변경을 덮어쓰거나 입력 데이터가 유실되는 것 방지
-  if (document.getElementById('pageForm')?.classList.contains('active')) return true;
+  // 편집 화면이 열려 있는 동안엔 목록을 덮어쓰지 않음 — 저장 전 신규 일지가 배열에서 사라지거나
+  // getFormData()가 currentId를 못 찾아 저장이 실패하는 것 방지.
+  // 조회(view) 모드는 editLog()가 이미 폼 데이터를 스냅샷으로 복사해둔 상태라 logs 배열 교체와 무관하므로 제외
+  if (document.getElementById('pageForm')?.classList.contains('active') && !isViewMode) return true;
   try {
     const logRes = await fetch(`${SB_URL}/rest/v1/soundlogs?select=id,data&order=date.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
