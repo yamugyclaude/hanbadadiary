@@ -112,3 +112,31 @@
 ### 배포 이력
 - 커밋: `e399b61`
 - 상태: 브랜치 `claude/gamsasiljang-ls5xvg` push 완료, main 병합 시 버전 자동 부여 예정
+
+---
+
+## 2026-07-05 (3차) 장비 수정저장 무반응 근본 수정 — catch 없는 try가 진짜 원인
+### 무엇이 잘못됐었나
+- `saveEquipEdit()`(6202~6232행)의 `localStorage.setItem('equipmentData', ...)`가 **catch 없는 try
+  블록 안**에 있었음. 이 줄에서 예외(용량 초과 `QuotaExceededError` 등)가 나면 그 아래
+  `switchEqCat`/`closeEquipModal`/`showToast`가 전부 실행되지 않고 함수가 조용히 멈춤 — "수정저장
+  눌러도 팝업이 안 닫히고 반응 없다"는 신고와 정확히 일치.
+- `persistLogs()`(soundlogs 저장)는 이미 이 위험을 알고 try/catch로 방어하고 있었는데,
+  `equipmentData`를 저장하는 13곳은 전부 이 방어가 누락돼 있었음. 2차 수정(await 순서 조정)은
+  이 근본 원인과 무관한 다른 문제를 고친 것이었음.
+
+### 수정
+- `persistEquipment()` 헬퍼 추가(`persistLogs()`와 동일 패턴, try/catch로 예외 흡수) — 13곳 전부
+  `localStorage.setItem('equipmentData', ...)` 직접 호출을 `persistEquipment()` 호출로 교체.
+- `migrateOldEquipPhotos()` 신규 추가(`migrateOldLogPhotos()`와 동일 구조): `autoLoadAll()` 완료
+  7초 후 백그라운드 1회 실행, `equipmentData`의 모든 카테고리 중 base64 사진이 남은 장비만 걸러
+  `uploadEquipPhoto`로 업로드 → URL 교체 → `_syncEquipmentCloud`로 클라우드 반영 → 완료 후
+  `persistEquipment()`. 실패한 사진은 base64 그대로 유지(유실 없음), 항목 간 150ms 지연.
+
+### 배운 것
+- "저장 후 화면 반영이 안 된다"는 신고는 순서 문제만이 아니라, **저장 자체가 예외로 조용히 실패**할
+  가능성부터 먼저 확인해야 한다. 같은 함수 계열(persistLogs) 안에 이미 정답 패턴이 있었는데
+  equipmentData 쪽만 누락된 것 — 유사 코드 전체를 grep으로 재점검하는 습관이 필요.
+
+### 배포 이력
+- 브랜치: `claude/gamsasiljang-ls5xvg` → main 병합 예정
