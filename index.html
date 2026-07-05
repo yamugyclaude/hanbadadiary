@@ -6181,9 +6181,16 @@ async function saveEquipEdit() {
     equipmentData[newCat].push(updatedItem);
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     eqCurrentCat = newCat;
-    const ok = await _syncEquipmentCloud(updatedItem);
+    switchEqCat(newCat);
+    closeEquipModal();
+    let ok = false;
+    try {
+      ok = await Promise.race([
+        _syncEquipmentCloud(updatedItem),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('CLOUD_TIMEOUT')), 20000))
+      ]);
+    } catch(e) { ok = false; }
     showToast(ok ? '✅ 수정 저장 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
-    setTimeout(() => { switchEqCat(newCat); closeEquipModal(); }, 300);
   } finally { _eqSaving = false; }
 }
 
@@ -6200,9 +6207,16 @@ async function saveEquipAdd() {
     equipmentData[cat].push(newItem);
     localStorage.setItem('equipmentData', JSON.stringify(equipmentData));
     eqCurrentCat = cat;
-    const ok = await _syncEquipmentCloud(newItem);
+    switchEqCat(cat);
+    closeEquipModal();
+    let ok = false;
+    try {
+      ok = await Promise.race([
+        _syncEquipmentCloud(newItem),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('CLOUD_TIMEOUT')), 20000))
+      ]);
+    } catch(e) { ok = false; }
     showToast(ok ? '✅ 장비 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
-    setTimeout(() => { switchEqCat(cat); closeEquipModal(); }, 300);
   } finally { _eqSaving = false; }
 }
 
