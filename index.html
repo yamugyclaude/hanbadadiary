@@ -3736,6 +3736,7 @@ function showForm() {
 }
 
 function openLog(id) {
+  dismissHoverPreview();
   isViewMode = true;
   editLog(id);
 }
@@ -5139,6 +5140,7 @@ function showAlbaSchedChipPreview(e, schedId) {
 }
 
 function openAlbaWorkerView(id) {
+  dismissHoverPreview();
   albaModalWorkerId = id;
   albaModalMode = 'view';
   renderAlbaModal();
@@ -5405,6 +5407,7 @@ async function saveAlbaSchedAdd() {
 }
 
 function openAlbaSchedEdit(schedId) {
+  dismissHoverPreview();
   const pw = prompt('수정 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
   albaSchedEditId = schedId;
@@ -5910,6 +5913,7 @@ function _findEquipItem(id) {
 }
 
 function openEquipView(id) {
+  dismissHoverPreview();
   eqModalId = id; eqModalMode = 'view';
   renderEquipModal();
   document.getElementById('equipModal').classList.add('open');
@@ -6410,6 +6414,12 @@ function hideHoverPreview() {
     const p = document.getElementById('hoverPreview');
     if (p) { p.classList.remove('hp-visible'); setTimeout(() => { if (!p.classList.contains('hp-visible')) p.style.display = 'none'; }, 120); }
   }, 80);
+}
+
+function dismissHoverPreview() {
+  clearTimeout(_hpTimer);
+  const p = document.getElementById('hoverPreview');
+  if (p) { p.classList.remove('hp-visible'); p.style.display = 'none'; }
 }
 
 function _positionHoverPreview(e) {
@@ -7248,6 +7258,7 @@ renderTasks(type);
 }
 
 function openTaskModal(type, id) {
+dismissHoverPreview();
 currentTaskType = type || currentTaskType;
 editTaskId = id || null;
 if (id) {
