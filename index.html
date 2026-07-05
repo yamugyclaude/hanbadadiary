@@ -4251,7 +4251,7 @@ function refreshSpeakerUI() {
 }
 
 // ── Supabase Storage 사진 업로드/삭제 ──
-async function uploadPhotoToStorage(logId, type, idx, base64) {
+async function uploadPhotoToStorage(logId, type, idx, base64, signal) {
   try {
     const byteStr = atob(base64.split(',')[1]);
     const ab = new ArrayBuffer(byteStr.length);
@@ -4267,7 +4267,8 @@ async function uploadPhotoToStorage(logId, type, idx, base64) {
         'Content-Type': 'image/jpeg',
         'x-upsert': 'true'
       },
-      body: blob
+      body: blob,
+      signal
     });
     if (!res.ok) return null;
     return `${STORAGE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
@@ -7011,7 +7012,7 @@ const STORAGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const PHOTO_BUCKET = 'event-photos'; // Supabase Storage 버킷명 (public, Dashboard에서 생성 필요)
 
 // 일지 하나를 Supabase에 저장 (개별 upsert)
-async function sbUpsertLog(log) {
+async function sbUpsertLog(log, signal) {
 const mdContent = generateMD(log);
 const payload = {
 id:         log.id,
@@ -7024,7 +7025,8 @@ md_content: mdContent
 let res = await fetch(`${SB_URL}/rest/v1/soundlogs?id=eq.${log.id}`, {
 method: 'PATCH',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-body: JSON.stringify(payload)
+body: JSON.stringify(payload),
+signal
 });
 const patchedText = await res.text();
 let patched = null;
@@ -7034,7 +7036,8 @@ if (Array.isArray(patched) && patched.length === 0) {
 res = await fetch(`${SB_URL}/rest/v1/soundlogs`, {
 method: 'POST',
 headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-body: JSON.stringify(payload)
+body: JSON.stringify(payload),
+signal
 });
 if (!res.ok) throw new Error(await res.text());
 return;
@@ -7043,7 +7046,7 @@ if (!res.ok) throw new Error(patchedText || `HTTP ${res.status}`);
 }
 
 // 저장 버튼: 해당 일지만 저장/수정
-// 어떤 단계에서 실패·지연되더라도 반드시 결과 메시지가 뜨도록 단계별 방어 + 클라우드 20초 제한
+// 클라우드 요청은 AbortController로 실제 취소 가능 — 60초 내 응답 시 그 결과를, 넘기면 진짜 취소 후 응답없음을 표시(추측 판정 없음)
 async function saveAndSync() {
 let log;
 try {
@@ -7060,57 +7063,42 @@ if (!log) {
 }
 persistLogs();
 try { updateTitle(); addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`); renderList(); } catch(e) {}
-showToast('저장 중…', 15000);
-let cloudWork;
+showToast('저장 중…', 60000);
+const _saveAbort = new AbortController();
+const _saveAbortTimer = setTimeout(() => _saveAbort.abort(), 60000);
 try {
-cloudWork = (async () => {
   // base64로 남은 사진 Storage에 업로드 (신규 업로드 실패분 재시도 + 이전 데이터 마이그레이션)
   for (let i = 0; i < soundPhotos.length; i++) {
     if (soundPhotos[i] && soundPhotos[i].startsWith('data:')) {
-      const url = await uploadPhotoToStorage(currentId, 'sound', i, soundPhotos[i]);
+      const url = await uploadPhotoToStorage(currentId, 'sound', i, soundPhotos[i], _saveAbort.signal);
       if (url) { soundPhotos[i] = url; log.soundPhotos[i] = url; }
     }
   }
   for (let i = 0; i < stagePhotos.length; i++) {
     if (stagePhotos[i] && stagePhotos[i].startsWith('data:')) {
-      const url = await uploadPhotoToStorage(currentId, 'stage', i, stagePhotos[i]);
+      const url = await uploadPhotoToStorage(currentId, 'stage', i, stagePhotos[i], _saveAbort.signal);
       if (url) { stagePhotos[i] = url; log.stagePhotos[i] = url; }
     }
   }
-  await sbUpsertLog(log);
-})();
-// 네트워크가 응답 없이 매달려도 20초 안에 반드시 결과를 알림
-await Promise.race([
-  cloudWork,
-  new Promise((_, rej) => setTimeout(() => rej(new Error('CLOUD_TIMEOUT')), 20000))
-]);
-showToast('✓ 저장 + ☁️ 클라우드 완료', 3000);
-{
-  const target = logs.find(l => l.id === log.id) || log;
-  delete target._syncFailed;
-  persistLogs();
-}
+  await sbUpsertLog(log, _saveAbort.signal);
+  clearTimeout(_saveAbortTimer);
+  showToast('✓ 저장 + ☁️ 클라우드 완료', 3000);
+  {
+    const target = logs.find(l => l.id === log.id) || log;
+    delete target._syncFailed;
+    persistLogs();
+  }
 } catch(e) {
-console.error('클라우드 저장 실패:', e);
-showToast(e && e.message === 'CLOUD_TIMEOUT'
-  ? '⚠ 로컬 저장됨 · 클라우드 응답 없음(네트워크 확인)'
-  : '✓ 로컬저장 완료 (클라우드 실패)', 4000);
-{
-  const target = logs.find(l => l.id === log.id) || log;
-  target._syncFailed = true;
-  persistLogs();
-}
-if (e && e.message === 'CLOUD_TIMEOUT' && cloudWork) {
-  cloudWork.then(() => {
-    const target = logs.find(l => l.id === log.id);
-    if (target && target._syncFailed) {
-      delete target._syncFailed;
-      persistLogs();
-      if (document.getElementById('pageList')?.classList.contains('active')) renderList();
-      showToast('☁️ 늦게 도착: 클라우드 저장 완료', 3000);
-    }
-  }).catch(() => { /* 진짜로도 실패한 것 — 이미 _syncFailed=true라 추가 조치 불필요 */ });
-}
+  clearTimeout(_saveAbortTimer);
+  console.error('클라우드 저장 실패:', e);
+  showToast(e && e.name === 'AbortError'
+    ? '⚠ 로컬 저장됨 · 클라우드 응답 없음(네트워크 확인)'
+    : '✕ 로컬저장 완료 · 클라우드 실패', 4000);
+  {
+    const target = logs.find(l => l.id === log.id) || log;
+    target._syncFailed = true;
+    persistLogs();
+  }
 }
 }
 

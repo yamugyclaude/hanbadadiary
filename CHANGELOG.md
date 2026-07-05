@@ -12,12 +12,13 @@
 - ✅ **배포 방식**: GitHub Pages + GitHub Actions (자동)
 
 **최근 3개 배포**:
-1. **`c30b09a`** (2026-07-05) — "저장완료, 클라우드 실패" 거짓 경보 수정: 20초 타임아웃 후에도 계속 진행 중인 fetch가 늦게 성공하면 `_syncFailed` 정정
-2. **(배포 예정) `52dec9d`** (2026-07-05) — "저장완료, 클라우드 실패" 후 확인 불가 문제 수정: `sbUpsertLog` 이중 body 읽기 버그 + 미동기화 배지 + 클라우드 로드 시 병합(덮어쓰기 방지)
-3. **`1139522`** (2026-07-05) — 호버 미리보기가 실제 모달 위에 겹쳐 남는 문제 수정(`dismissHoverPreview()` 추가)
+1. **`9d6b2fe`** (2026-07-05) — "저장 실패" 추측 판정 근본 수정: `Promise.race` 타임아웃(방치된 fetch) 방식을 `AbortController` 기반 진짜 취소로 교체 (아래 `c30b09a` 대체)
+2. **`c30b09a`** (2026-07-05, 대체됨) — "저장완료, 클라우드 실패" 거짓 경보 수정: 20초 타임아웃 후에도 계속 진행 중인 fetch가 늦게 성공하면 `_syncFailed` 정정
+3. **`52dec9d`** (2026-07-05) — "저장완료, 클라우드 실패" 후 확인 불가 문제 수정: `sbUpsertLog` 이중 body 읽기 버그 + 미동기화 배지 + 클라우드 로드 시 병합(덮어쓰기 방지)
 
 **최근 해결된 문제**:
-- ✅ "저장완료, 클라우드 실패" 거짓 경보 — 실제로 라이브 Supabase DB를 직접 조회해 확인해보니 해당 로그는 정상 저장돼 있었음. 진짜 원인은 `Promise.race`에서 20초 타임아웃이 이겨도 `cloudWork`(fetch)는 취소되지 않고 백그라운드에서 계속 진행되는데, 이 "늦은 성공"을 전혀 추적하지 않고 `_syncFailed=true`로 영구 고정해버렸던 것. `cloudWork`를 catch에서도 접근 가능하게 하고, CLOUD_TIMEOUT으로 포기한 경우에만 늦은 성공을 지켜보다 성공 시 상태 정정 + 토스트 안내 추가 (`saveAndSync()`, index.html)
+- ✅ "저장 실패" 판정이 추측(타임아웃)에 의존하던 근본 문제 — `Promise.race`는 20초 타임아웃이 이겨도 실제 fetch를 취소하지 않아 "일단 실패 표시 후 늦게 성공하면 정정"하는 방어적 패치(`c30b09a`)가 필요했음. 이번엔 `AbortController`를 `uploadPhotoToStorage`/`sbUpsertLog`에 `signal`로 전달해 60초 초과 시 요청을 진짜로 취소하도록 바꿔, 처음부터 실제 결과에만 기반해 정확히 판정하고 사후 정정 로직 자체를 제거 (`saveAndSync()`, `sbUpsertLog()`, `uploadPhotoToStorage()`, index.html)
+- ✅ (대체됨) "저장완료, 클라우드 실패" 거짓 경보 — 실제로 라이브 Supabase DB를 직접 조회해 확인해보니 해당 로그는 정상 저장돼 있었음. 진짜 원인은 `Promise.race`에서 20초 타임아웃이 이겨도 `cloudWork`(fetch)는 취소되지 않고 백그라운드에서 계속 진행되는데, 이 "늦은 성공"을 전혀 추적하지 않고 `_syncFailed=true`로 영구 고정해버렸던 것. `cloudWork`를 catch에서도 접근 가능하게 하고, CLOUD_TIMEOUT으로 포기한 경우에만 늦은 성공을 지켜보다 성공 시 상태 정정 + 토스트 안내 추가 (`saveAndSync()`, index.html)
 - ✅ "저장완료, 클라우드 실패" 토스트만 뜨고 사라진 뒤 확인 불가 — `sbUpsertLog`가 같은 PATCH 응답 body를 두 번 읽어 진짜 오류가 가려지던 버그 수정 + 미동기화 로그에 카드 배지 표시 + 클라우드 로드 시 미동기화 로컬 로그는 보존하는 병합 로직 추가
 - ✅ 카드에 뜨는 호버 미리보기가 상세 모달을 열어도 안 닫히고 위에 겹쳐 보이던 문제 — 5개 모달 오픈 함수에 `dismissHoverPreview()` 추가
 - ✅ 장비 수정저장 눌러도 팝업 안 닫히고 반응 없던 문제 — `equipmentData` 저장 코드 13곳이 catch 없는 try 안에 있어 예외 시 조용히 멈추던 것이 진짜 원인. `persistEquipment()`로 통일해 예외 흡수 + `migrateOldEquipPhotos()`로 오래된 base64 장비 사진도 백그라운드 정리
