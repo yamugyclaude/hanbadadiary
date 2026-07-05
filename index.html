@@ -7061,8 +7061,9 @@ if (!log) {
 persistLogs();
 try { updateTitle(); addAccessLog('update', '행사일지', `저장: ${log.eventName||log.date}`); renderList(); } catch(e) {}
 showToast('저장 중…', 15000);
+let cloudWork;
 try {
-const cloudWork = (async () => {
+cloudWork = (async () => {
   // base64로 남은 사진 Storage에 업로드 (신규 업로드 실패분 재시도 + 이전 데이터 마이그레이션)
   for (let i = 0; i < soundPhotos.length; i++) {
     if (soundPhotos[i] && soundPhotos[i].startsWith('data:')) {
@@ -7098,6 +7099,17 @@ showToast(e && e.message === 'CLOUD_TIMEOUT'
   const target = logs.find(l => l.id === log.id) || log;
   target._syncFailed = true;
   persistLogs();
+}
+if (e && e.message === 'CLOUD_TIMEOUT' && cloudWork) {
+  cloudWork.then(() => {
+    const target = logs.find(l => l.id === log.id);
+    if (target && target._syncFailed) {
+      delete target._syncFailed;
+      persistLogs();
+      if (document.getElementById('pageList')?.classList.contains('active')) renderList();
+      showToast('☁️ 늦게 도착: 클라우드 저장 완료', 3000);
+    }
+  }).catch(() => { /* 진짜로도 실패한 것 — 이미 _syncFailed=true라 추가 조치 불필요 */ });
 }
 }
 }
