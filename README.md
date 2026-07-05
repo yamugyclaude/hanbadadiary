@@ -9,7 +9,7 @@
 신규 작업자거나 한동안 작업 안 하셨다면 **이 섹션만 읽으세요**.
 
 **현재 상태**:
-- 🟢 **버전**: v0703-55 (2026-07-03 배포)
+- 🟢 **버전**: 최신 버전은 [CHANGELOG.md](CHANGELOG.md) 참고
 - 🌐 **라이브**: https://yamugyclaude.github.io/hanbadadiary/
 - 🔐 **로그인**: id=`hanbada` / pw=`2375`
 - ✅ **배포 상태**: 정상 (GitHub Pages + GitHub Actions)
@@ -77,22 +77,18 @@
 
 | 항목 | 내용 |
 |------|------|
-| **버전** | v0703-55 (2026-07-03) |
+| **버전** | 최신 버전은 [CHANGELOG.md](CHANGELOG.md) 참고 |
 | **라이브 URL** | https://yamugyclaude.github.io/hanbadadiary/ |
 | **GitHub repo** | https://github.com/yamugyclaude/hanbadadiary |
 | **기술 스택** | HTML+CSS+JS 단일파일 SPA |
 | **서버** | Supabase (REST + Realtime) |
 | **배포** | GitHub Pages (자동) |
 | **배포 브랜치** | `main` |
-| **개발 브랜치** | `claude/korean-greeting-6cbh25` (작업 중) |
+| **개발 방식** | 별도 개발 브랜치 없이 main에 직접 커밋 |
 | **로그인** | id: `hanbada` / pw: `2375` |
 | **수정·삭제 암호** | `2375` |
 
-**최근 변경** (v0703-55):
-- ✅ 스피커브랜드 5개 모델 + 기타 옵션 (다중 선택)
-- ✅ 기타 선택 시 이유 입력 필드
-- ✅ 레거시 데이터 자동 호환성 처리
-- ✅ GitHub Actions 배포 워크플로우 추가
+**최근 변경 내역**: [CHANGELOG.md](CHANGELOG.md) 참고
 
 ---
 
@@ -105,7 +101,8 @@
 2. **PROJECTS.md** (프로젝트 정보 + 로그인)
 3. **CLAUDE.md** (조직 규칙 + 작업 흐름)
 4. **CHANGELOG.md** (최근 배포 기록)
-5. **작업 시작**
+5. **PROJECT_LOG.md** (버그 원인·교훈 기록 — 재발 방지용 참고)
+6. **작업 시작**
 
 ⏱️ 시간: 5~10분
 
@@ -286,10 +283,10 @@ hanbadadiary/
 - ✅ "스피커브랜드 5개 모델 추가 및 다중 선택 지원"
 - 기술 세부사항은 커밋 본문에
 
-### Q8: 개발 브랜치(claude/korean-greeting-6cbh25)는 뭐?
-**A**: 작업용 브랜치
-- 사장 지시를 받으면 **여기서 작업**
-- 완료 후 **main으로 병합 + 푸시**
+### Q8: 개발 브랜치는 따로 있나?
+**A**: 현재는 main에 직접 커밋하는 방식으로 운영 중
+- 사장 지시를 받으면 **main에서 바로 작업**
+- 커밋 후 **바로 푸시**
 - 자동 배포됨
 
 ---
@@ -303,6 +300,6 @@ hanbadadiary/
 
 ---
 
-**마지막 업데이트**: 2026-07-03 (v0703-55)  
+**마지막 업데이트**: 2026-07-05  
 **작성**: Claude (비서)
 
