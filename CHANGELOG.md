@@ -12,11 +12,12 @@
 - ✅ **배포 방식**: GitHub Pages + GitHub Actions (자동)
 
 **최근 3개 배포**:
-1. **(배포 예정) `1139522`** (2026-07-05) — 호버 미리보기가 실제 모달 위에 겹쳐 남는 문제 수정(`dismissHoverPreview()` 추가)
-2. **(배포 예정)** 장비 수정저장 무반응 근본 수정(`localStorage.setItem` catch 없는 try 안에 있던 문제) + `persistEquipment()`/`migrateOldEquipPhotos()` 추가
-3. **v0705-03 + `e399b61`** (2026-07-05) — 장비 저장 팝업 반응 지연 근본 수정(사진 업로드도 로컬 반영 뒤로) + 오래된 base64 사진 백그라운드 정리
+1. **(배포 예정) `52dec9d`** (2026-07-05) — "저장완료, 클라우드 실패" 후 확인 불가 문제 수정: `sbUpsertLog` 이중 body 읽기 버그 + 미동기화 배지 + 클라우드 로드 시 병합(덮어쓰기 방지)
+2. **`1139522`** (2026-07-05) — 호버 미리보기가 실제 모달 위에 겹쳐 남는 문제 수정(`dismissHoverPreview()` 추가)
+3. **(배포 예정)** 장비 수정저장 무반응 근본 수정(`localStorage.setItem` catch 없는 try 안에 있던 문제) + `persistEquipment()`/`migrateOldEquipPhotos()` 추가
 
 **최근 해결된 문제**:
+- ✅ "저장완료, 클라우드 실패" 토스트만 뜨고 사라진 뒤 확인 불가 — `sbUpsertLog`가 같은 PATCH 응답 body를 두 번 읽어 진짜 오류가 가려지던 버그 수정 + 미동기화 로그에 카드 배지 표시 + 클라우드 로드 시 미동기화 로컬 로그는 보존하는 병합 로직 추가
 - ✅ 카드에 뜨는 호버 미리보기가 상세 모달을 열어도 안 닫히고 위에 겹쳐 보이던 문제 — 5개 모달 오픈 함수에 `dismissHoverPreview()` 추가
 - ✅ 장비 수정저장 눌러도 팝업 안 닫히고 반응 없던 문제 — `equipmentData` 저장 코드 13곳이 catch 없는 try 안에 있어 예외 시 조용히 멈추던 것이 진짜 원인. `persistEquipment()`로 통일해 예외 흡수 + `migrateOldEquipPhotos()`로 오래된 base64 장비 사진도 백그라운드 정리
 - ✅ 장비 저장 팝업 반응 지연 — v0705-03에서 놓친 `_migrateEquipPhotos`(사진 업로드)까지 로컬 반영 뒤로 이동

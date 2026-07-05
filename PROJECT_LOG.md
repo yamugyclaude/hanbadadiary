@@ -158,3 +158,32 @@
 
 ### 배포 이력
 - 커밋: `1139522`, main 병합 `d19f983`
+
+---
+
+## 2026-07-05 (5차) "저장완료, 클라우드 실패" 후 확인 불가 문제 수정
+### 무엇이 잘못됐었나
+- `sbUpsertLog()`(index.html:7014)가 PATCH 응답을 `res.json()`으로 이미 읽어놓고, PATCH 자체가
+  실패한 경우 `if (!res.ok) throw new Error(await res.text())`에서 **같은 Response의 body를 또
+  읽으려 해서** "body already read" 예외가 진짜 오류를 덮어버림. 그래서 콘솔에서도 원인 파악 불가.
+- 또한 클라우드 저장 실패 시 로그에 아무 표시도 남지 않아, 사용자가 나중에 어떤 일지가
+  동기화 안 됐는지 확인할 방법이 없었음.
+- `loadLogsFromCloud()`가 클라우드 목록으로 `logs`를 통째로 교체해서, 클라우드 저장에 실패한
+  로컬 전용 일지가 다음 클라우드 재조회 때 사라질 위험이 있었음.
+
+### 수정
+- `sbUpsertLog()`: PATCH 응답 body를 `res.text()`로 한 번만 읽고 JSON 파싱 시도. 실패 메시지는
+  읽어둔 텍스트를 그대로 사용(index.html:7014-7027).
+- `saveAndSync()`: 클라우드 저장 성공 시 `log._syncFailed` 삭제, 실패 시 `true`로 세팅 후
+  `persistLogs()` 호출(index.html:7086-7101).
+- `renderList()`: `l._syncFailed`인 카드에 `⚠ 미동기화` 배지 표시 + `.log-card-unsynced` CSS
+  추가(index.html:3795, 163).
+- `loadLogsFromCloud()`: 클라우드 목록으로 덮어쓰지 않고, 클라우드에 없으면서 `_syncFailed`인
+  로컬 로그는 보존하는 병합 방식으로 변경(index.html:7934-7938).
+
+### 배운 것
+- Response body는 한 번만 읽을 수 있다는 fetch API 제약을 놓치면, 에러 핸들링 코드 자체가
+  새로운 예외를 만들어 원인을 가리는 역설이 발생한다.
+
+### 배포 이력
+- 커밋: `52dec9d`, main 병합 `a8197f6`
