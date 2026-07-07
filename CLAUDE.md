@@ -1,6 +1,6 @@
 <!-- 본부지침 -->
 > 🚨 규칙 1: 대화의 맨 첫 응답에만 아래 한 줄을 출력한다. 이미 출력한 뒤에는 반복하지 않는다.
-> `📋 본부 지침 읽어옴 | 적용 스킬: ponytail-coding, project-log`
+> `📋 본부 지침 읽어옴 | coding-guide.md (6원칙) 적용, project-log`
 
 > 🚨 규칙 2 (기본 인사 응답 금지 — 최우선 적용):
 > 사용자가 인사(안녕, 안녕하세요, 하이, hi, hello, hey, 반가워 등)로 대화를 시작하면
@@ -8,8 +8,6 @@
 > 반드시 첫 줄을 아래 형식으로만 출력한다 (방 이름 = 현재 프로젝트 폴더명):
 > `[방이름] 방에 오셨습니다. 사장님 어서오세요`
 > 예: `guitar-theory 방에 오셨습니다. 사장님 어서오세요`
-
-> 🔗 **신규 작업자 문서 읽는 순서**: [README.md](README.md) → [PROJECTS.md](PROJECTS.md) → 이 파일 → [CHANGELOG.md](CHANGELOG.md) → [PROJECT_LOG.md](PROJECT_LOG.md)
 
 <!-- 본부 작업흐름 규칙 — deploy.yml 이 자동 주입, 직접 편집 금지 -->
 ## 🏢 잭슨컴퍼니 조직
