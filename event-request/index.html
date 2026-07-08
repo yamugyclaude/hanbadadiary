@@ -400,27 +400,12 @@
         <div class="choices">
           <label class="choice-row"><input type="radio" name="venue_type" value="실내"> 실내</label>
           <label class="choice-row"><input type="radio" name="venue_type" value="실외"> 실외</label>
-          <label class="choice-row"><input type="radio" name="venue_type" value="혼합"> 혼합</label>
           <label class="choice-row">
             <input type="radio" name="venue_type" value="기타" id="venueTypeEtcRadio"> 기타
             <input type="text" class="etc-input" id="venueTypeEtcInput" placeholder="직접 입력">
           </label>
         </div>
         <div class="err-msg">실내/실외를 선택해 주세요.</div>
-      </div>
-
-      <div class="field" data-field="venue_status">
-        <label class="q">장소 대관 여부<span class="req">*</span></label>
-        <div class="choices">
-          <label class="choice-row"><input type="radio" name="venue_status" value="이미 확정"> 이미 확정</label>
-          <label class="choice-row"><input type="radio" name="venue_status" value="협의 중"> 협의 중</label>
-          <label class="choice-row"><input type="radio" name="venue_status" value="미정"> 미정</label>
-          <label class="choice-row">
-            <input type="radio" name="venue_status" value="기타" id="venueStatusEtcRadio"> 기타
-            <input type="text" class="etc-input" id="venueStatusEtcInput" placeholder="직접 입력">
-          </label>
-        </div>
-        <div class="err-msg">장소 대관 여부를 선택해 주세요.</div>
       </div>
     </div>
 
@@ -436,13 +421,13 @@
       <div class="field" data-field="services">
         <label class="q">필요한 서비스<span class="req">*</span></label>
         <div class="choices">
+          <label class="choice-row"><input type="checkbox" name="services" value="무대"> 무대</label>
           <label class="choice-row"><input type="checkbox" name="services" value="음향"> 음향</label>
           <label class="choice-row"><input type="checkbox" name="services" value="조명"> 조명</label>
-          <label class="choice-row"><input type="checkbox" name="services" value="무대 설치"> 무대 설치</label>
-          <label class="choice-row"><input type="checkbox" name="services" value="영상/LED"> 영상/LED</label>
-          <label class="choice-row"><input type="checkbox" name="services" value="사회자(MC)"> 사회자(MC)</label>
-          <label class="choice-row"><input type="checkbox" name="services" value="촬영/기록"> 촬영/기록</label>
-          <label class="choice-row"><input type="checkbox" name="services" value="천막(캐노피/몽골)"> 천막(캐노피/몽골)</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="트러스"> 트러스</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="LED전광판"> LED전광판</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="ENG카메라"> ENG카메라</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="천막/테이블/의자"> 천막/테이블/의자</label>
           <label class="choice-row">
             <input type="checkbox" name="services" value="기타" id="servicesEtcCheck"> 기타
             <input type="text" class="etc-input" id="servicesEtcInput" placeholder="직접 입력">
@@ -457,10 +442,11 @@
       </div>
 
       <div class="field" data-field="tent_qty">
-        <label class="q">천막 필요 수량(캐노피 및 몽골)<span class="opt">(선택)</span></label>
+        <label class="q">천막(캐노피및몽골)/테이블/의자 수량<span class="opt">(선택)</span></label>
         <div class="qty-row">
-          <label class="qty-item">캐노피 <input type="number" id="tent_canopy_qty" min="0"> 개</label>
-          <label class="qty-item">몽골 <input type="number" id="tent_mongol_qty" min="0"> 개</label>
+          <label class="qty-item">천막(캐노피 <input type="number" id="tent_canopy_qty" min="0"> 개, 몽골 <input type="number" id="tent_mongol_qty" min="0"> 개)</label>
+          <label class="qty-item">테이블 <input type="number" id="tent_table_qty" min="0"> 개</label>
+          <label class="qty-item">의자 <input type="number" id="tent_chair_qty" min="0"> 개</label>
         </div>
       </div>
     </div>
@@ -484,13 +470,6 @@
         <div class="err-msg">예산 범위를 선택해 주세요.</div>
       </div>
 
-      <div class="field" data-field="quote_email">
-        <label class="q">견적서 필요 여부<span class="opt">(선택)</span></label>
-        <label class="choice-row">
-          <input type="checkbox" id="quoteEmailLink"> 위에 입력한 이메일(4번)로 견적서 받기
-        </label>
-        <div id="quoteEmailPreview" style="display:none;font-size:16px;font-weight:700;color:#1c5fc7;margin-top:8px;"></div>
-      </div>
     </div>
 
     <div class="card">
@@ -503,7 +482,7 @@
 
       <div class="field" data-field="attachments">
         <label class="q">첨부파일<span class="opt">(선택)</span></label>
-        <div class="hint">도면, 참고 이미지 등을 첨부해 주세요. (이미지/PDF, 파일당 최대 약 10MB)</div>
+        <div class="hint">행사계획서 또는 참고이미지등을 첨부해 주세요. (이미지/PDF, 파일당 최대 약 10MB)</div>
         <input type="file" id="attachments" multiple accept="image/*,.pdf">
         <div class="file-list" id="attachmentList"></div>
       </div>
@@ -559,7 +538,6 @@
     });
   }
   bindEtcToggleRadio('venue_type', 'venueTypeEtcRadio', 'venueTypeEtcInput');
-  bindEtcToggleRadio('venue_status', 'venueStatusEtcRadio', 'venueStatusEtcInput');
   bindEtcToggleRadio('budget_range', 'budgetRangeEtcRadio', 'budgetRangeEtcInput');
 
   // 전화번호 자동 하이픈 포맷팅
@@ -641,30 +619,15 @@
   function getTentQtyValue(){
     const canopy = document.getElementById('tent_canopy_qty').value.trim();
     const mongol = document.getElementById('tent_mongol_qty').value.trim();
+    const table = document.getElementById('tent_table_qty').value.trim();
+    const chair = document.getElementById('tent_chair_qty').value.trim();
     const parts = [];
     if(canopy) parts.push('캐노피 ' + canopy + '개');
     if(mongol) parts.push('몽골 ' + mongol + '개');
+    if(table) parts.push('테이블 ' + table + '개');
+    if(chair) parts.push('의자 ' + chair + '개');
     return parts.join(', ');
   }
-
-  // 견적서 이메일 연동 (4번 이메일과 실시간 동기화)
-  const quoteEmailLink = document.getElementById('quoteEmailLink');
-  const quoteEmailPreview = document.getElementById('quoteEmailPreview');
-  function updateQuoteEmailPreview(){
-    if(!quoteEmailLink.checked){
-      quoteEmailPreview.style.display = 'none';
-      return;
-    }
-    const emailVal = getEmailValue('email_id', 'email_domain', 'email_domain_custom');
-    quoteEmailPreview.style.display = '';
-    quoteEmailPreview.textContent = emailVal ? ('→ ' + emailVal + ' 으로 받습니다') : '→ 4번 이메일을 먼저 입력해 주세요';
-  }
-  quoteEmailLink.addEventListener('change', updateQuoteEmailPreview);
-  ['email_id', 'email_domain', 'email_domain_custom'].forEach(function(id){
-    const el = document.getElementById(id);
-    el.addEventListener('input', updateQuoteEmailPreview);
-    el.addEventListener('change', updateQuoteEmailPreview);
-  });
 
   // 첨부파일 선택 목록 표시
   const attachmentsInput = document.getElementById('attachments');
@@ -726,14 +689,12 @@
       event_time: getEventTimeValue(),
       venue_name: document.getElementById('venue_name').value.trim(),
       venue_type: getRadioWithEtc('venue_type', 'venueTypeEtcInput'),
-      venue_status: getRadioWithEtc('venue_status', 'venueStatusEtcInput'),
       attendee_count: document.getElementById('attendee_count').value.trim(),
       services: getChecked('services'),
       services_etc: document.getElementById('servicesEtcInput').value.trim(),
       stage_size: document.getElementById('stage_size').value.trim(),
       tent_qty: getTentQtyValue(),
       budget_range: getRadioWithEtc('budget_range', 'budgetRangeEtcInput'),
-      quote_email: quoteEmailLink.checked ? getEmailValue('email_id', 'email_domain', 'email_domain_custom') : '',
       notes: document.getElementById('notes').value.trim(),
       honeypot: document.getElementById('honeypot').value
     };
@@ -749,7 +710,6 @@
       ['event_date', !!values.event_date],
       ['venue_name', !!values.venue_name],
       ['venue_type', !!values.venue_type],
-      ['venue_status', !!values.venue_status],
       ['attendee_count', !!values.attendee_count],
       ['services', values.services.length > 0],
       ['budget_range', !!values.budget_range]
@@ -809,14 +769,12 @@
       event_time: values.event_time || null,
       venue_name: values.venue_name,
       venue_type: values.venue_type,
-      venue_status: values.venue_status,
       attendee_count: values.attendee_count,
       services: values.services,
       services_etc: values.services_etc || null,
       stage_size: values.stage_size || null,
       tent_qty: values.tent_qty || null,
       budget_range: values.budget_range,
-      quote_email: values.quote_email || null,
       notes: values.notes || null,
       attachment_urls: attachmentUrls.length > 0 ? attachmentUrls : null,
       honeypot: ''
