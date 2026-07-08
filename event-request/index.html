@@ -182,6 +182,37 @@
     border-radius:8px;
     padding:6px;
   }
+  .qty-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+  }
+  .qty-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:14px;
+  }
+  .qty-item input[type="number"]{
+    width:70px;
+    padding:8px 10px;
+    font-size:14px;
+    border:1px solid #d8dae3;
+    border-radius:8px;
+    font-family:inherit;
+  }
+  input[type="file"]{
+    width:100%;
+    font-size:13px;
+  }
+  .file-list{
+    margin-top:8px;
+    font-size:12px;
+    color:#4b4e5f;
+  }
+  .file-list div{
+    padding:2px 0;
+  }
   .err-msg{
     display:none;
     color:#e0453f;
@@ -256,7 +287,7 @@
     <h1>📄 행사 진행 의뢰서</h1>
     <div class="sub">EVENT REQUEST FORM (음향/무대/조명 서비스 문의)</div>
     <p>행사 진행을 문의해 주셔서 감사합니다. 정확한 견적과 원활한 준비를 위해 아래 정보를 알려주시면, 빠르게 검토 후 연락드리겠습니다.
-소요 시간: 약 10분 / 문의: 한바다 대표 설전옥 010-9525-2375</p>
+문의: 한바다 대표 설전옥 010-9525-2375</p>
   </div>
 
   <form id="eventForm" novalidate>
@@ -424,7 +455,10 @@
 
       <div class="field" data-field="tent_qty">
         <label class="q">천막 필요 수량(캐노피 및 몽골)<span class="opt">(선택)</span></label>
-        <input type="text" id="tent_qty">
+        <div class="qty-row">
+          <label class="qty-item">캐노피 <input type="number" id="tent_canopy_qty" min="0"> 개</label>
+          <label class="qty-item">몽골 <input type="number" id="tent_mongol_qty" min="0"> 개</label>
+        </div>
       </div>
     </div>
 
@@ -449,23 +483,10 @@
 
       <div class="field" data-field="quote_email">
         <label class="q">견적서 필요 여부<span class="opt">(선택)</span></label>
-        <div class="email-group">
-          <input type="text" id="quote_email_id" class="email-id-input" placeholder="아이디" autocomplete="off">
-          <span class="email-at">@</span>
-          <select id="quote_email_domain">
-            <option value="">선택</option>
-            <option value="gmail.com">gmail.com</option>
-            <option value="naver.com">naver.com</option>
-            <option value="daum.net">daum.net</option>
-            <option value="hanmail.net">hanmail.net</option>
-            <option value="nate.com">nate.com</option>
-            <option value="kakao.com">kakao.com</option>
-            <option value="outlook.com">outlook.com</option>
-            <option value="icloud.com">icloud.com</option>
-            <option value="custom">직접 입력</option>
-          </select>
-          <input type="text" id="quote_email_domain_custom" class="email-domain-custom" placeholder="도메인 입력" style="display:none;">
-        </div>
+        <label class="choice-row">
+          <input type="checkbox" id="quoteEmailLink"> 위에 입력한 이메일(4번)로 견적서 받기
+        </label>
+        <div class="hint" id="quoteEmailPreview" style="display:none;"></div>
       </div>
     </div>
 
@@ -475,6 +496,13 @@
       <div class="field" data-field="notes">
         <label class="q">기타 요청 및 특이사항<span class="opt">(선택)</span></label>
         <textarea id="notes"></textarea>
+      </div>
+
+      <div class="field" data-field="attachments">
+        <label class="q">첨부파일<span class="opt">(선택)</span></label>
+        <div class="hint">도면, 참고 이미지 등을 첨부해 주세요. (이미지/PDF, 파일당 최대 약 10MB)</div>
+        <input type="file" id="attachments" multiple accept="image/*,.pdf">
+        <div class="file-list" id="attachmentList"></div>
       </div>
     </div>
 
@@ -565,7 +593,6 @@
     });
   }
   bindEmailDomain('email_domain', 'email_domain_custom');
-  bindEmailDomain('quote_email_domain', 'quote_email_domain_custom');
 
   function getEmailValue(idFieldId, domainSelectId, customFieldId){
     const id = document.getElementById(idFieldId).value.trim();
@@ -606,6 +633,62 @@
     if(start && end) return start + '~' + end;
     return start || end || '';
   }
+  function getTentQtyValue(){
+    const canopy = document.getElementById('tent_canopy_qty').value.trim();
+    const mongol = document.getElementById('tent_mongol_qty').value.trim();
+    const parts = [];
+    if(canopy) parts.push('캐노피 ' + canopy + '개');
+    if(mongol) parts.push('몽골 ' + mongol + '개');
+    return parts.join(', ');
+  }
+
+  // 견적서 이메일 연동 (4번 이메일과 실시간 동기화)
+  const quoteEmailLink = document.getElementById('quoteEmailLink');
+  const quoteEmailPreview = document.getElementById('quoteEmailPreview');
+  function updateQuoteEmailPreview(){
+    if(!quoteEmailLink.checked){
+      quoteEmailPreview.style.display = 'none';
+      return;
+    }
+    const emailVal = getEmailValue('email_id', 'email_domain', 'email_domain_custom');
+    quoteEmailPreview.style.display = '';
+    quoteEmailPreview.textContent = emailVal ? ('→ ' + emailVal + ' 으로 받습니다') : '→ 4번 이메일을 먼저 입력해 주세요';
+  }
+  quoteEmailLink.addEventListener('change', updateQuoteEmailPreview);
+  ['email_id', 'email_domain', 'email_domain_custom'].forEach(function(id){
+    const el = document.getElementById(id);
+    el.addEventListener('input', updateQuoteEmailPreview);
+    el.addEventListener('change', updateQuoteEmailPreview);
+  });
+
+  // 첨부파일 선택 목록 표시
+  const attachmentsInput = document.getElementById('attachments');
+  const attachmentList = document.getElementById('attachmentList');
+  attachmentsInput.addEventListener('change', function(){
+    attachmentList.innerHTML = '';
+    Array.from(attachmentsInput.files).forEach(function(file){
+      const div = document.createElement('div');
+      div.textContent = file.name;
+      attachmentList.appendChild(div);
+    });
+  });
+
+  // 첨부파일 업로드
+  const BUCKET = 'event-request-files';
+  async function uploadAttachment(file){
+    const safeName = Date.now() + '_' + Math.random().toString(36).slice(2,8) + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const res = await fetch(SB_URL + '/storage/v1/object/' + BUCKET + '/' + safeName, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': file.type || 'application/octet-stream'
+      },
+      body: file
+    });
+    if(!res.ok) throw new Error('업로드 실패: ' + file.name);
+    return SB_URL + '/storage/v1/object/public/' + BUCKET + '/' + safeName;
+  }
 
   // 실시간 에러 해제
   form.addEventListener('input', function(e){
@@ -643,9 +726,9 @@
       services: getChecked('services'),
       services_etc: document.getElementById('servicesEtcInput').value.trim(),
       stage_size: document.getElementById('stage_size').value.trim(),
-      tent_qty: document.getElementById('tent_qty').value.trim(),
+      tent_qty: getTentQtyValue(),
       budget_range: getRadioWithEtc('budget_range', 'budgetRangeEtcInput'),
-      quote_email: getEmailValue('quote_email_id', 'quote_email_domain', 'quote_email_domain_custom'),
+      quote_email: quoteEmailLink.checked ? getEmailValue('email_id', 'email_domain', 'email_domain_custom') : '',
       notes: document.getElementById('notes').value.trim(),
       honeypot: document.getElementById('honeypot').value
     };
@@ -694,6 +777,21 @@
     submitBtn.disabled = true;
     submitBtn.textContent = '제출 중...';
 
+    let attachmentUrls = [];
+    const attachmentFiles = Array.from(attachmentsInput.files);
+    if(attachmentFiles.length > 0){
+      submitBtn.textContent = '업로드 중...';
+      try {
+        attachmentUrls = await Promise.all(attachmentFiles.map(uploadAttachment));
+      } catch(err){
+        showToast(err.message || '파일 업로드 중 오류가 발생했습니다.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '제출하기';
+        return;
+      }
+      submitBtn.textContent = '제출 중...';
+    }
+
     const payload = {
       contact_name: values.contact_name,
       org_name: values.org_name,
@@ -715,6 +813,7 @@
       budget_range: values.budget_range,
       quote_email: values.quote_email || null,
       notes: values.notes || null,
+      attachment_urls: attachmentUrls.length > 0 ? attachmentUrls : null,
       honeypot: ''
     };
 
