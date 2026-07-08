@@ -1596,7 +1596,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <div class="login-logo">한바다<span>일지</span></div>
   <div class="login-sub">SOUND EQUIPMENT MANAGEMENT</div>
   <button class="checklist-open-btn" onclick="openChecklist()">📋 행사전 챙겨야할 물품체크리스트</button>
-  <button class="checklist-open-btn" onclick="window.open('./event-request/', '_blank')">📄 행사진행의뢰서</button>
+  <button class="checklist-open-btn" onclick="openEventRequestForm()">📄 행사진행의뢰서</button>
   <div class="login-card" id="loginCard">
     <div class="login-title">🔐 로그인</div>
     <div class="login-field">
@@ -4828,6 +4828,13 @@ async function loadChecklistFromCloud() {
     localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
   }
   return true;
+}
+
+function openEventRequestForm() {
+  const pw = prompt('비밀번호를 입력하세요');
+  if (pw === null) return;
+  if (pw !== '2375') { alert('비밀번호가 틀렸습니다.'); return; }
+  window.open('./event-request/', '_blank');
 }
 
 async function openChecklist() {
