@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>행사진행의뢰서 관리 - 한바다</title>
+<style>
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:#f4f5f9;
+    color:#222533;
+    line-height:1.5;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:24px 16px 60px;
+  }
+  .header{
+    text-align:center;
+    margin-bottom:24px;
+  }
+  .header h1{
+    margin:0 0 4px;
+    font-size:20px;
+    font-weight:700;
+  }
+  .header .sub{
+    margin:0;
+    font-size:13px;
+    color:#8a8da3;
+    font-weight:600;
+    letter-spacing:0.3px;
+  }
+  .card{
+    background:#ffffff;
+    border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    padding:20px;
+    margin-bottom:14px;
+  }
+  .choice-grid{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .choice-card{
+    background:#ffffff;
+    border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    padding:28px 20px;
+    text-align:center;
+    cursor:pointer;
+    border:1px solid transparent;
+  }
+  .choice-card:active{
+    border-color:#4a63e0;
+  }
+  .choice-icon{
+    font-size:38px;
+    margin-bottom:10px;
+  }
+  .choice-title{
+    font-size:17px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .choice-desc{
+    font-size:13px;
+    color:#8a8da3;
+  }
+  .back-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .back-btn{
+    background:#fff;
+    border:1px solid #d8dae3;
+    border-radius:8px;
+    padding:8px 14px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    color:#222533;
+  }
+  .back-title{
+    font-size:16px;
+    font-weight:700;
+  }
+  .screen{
+    display:none;
+  }
+  .screen.active{
+    display:block;
+  }
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:#9a9dae;
+  }
+  .empty-icon{
+    font-size:32px;
+    margin-bottom:8px;
+  }
+  .req-card{
+    background:#ffffff;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+    padding:14px 16px;
+    margin-bottom:10px;
+    cursor:pointer;
+  }
+  .req-card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+    color:#8a8da3;
+    margin-bottom:6px;
+  }
+  .req-card-name{
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .req-card-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+    color:#8a8da3;
+  }
+  .field-row{
+    display:flex;
+    padding:8px 0;
+    border-bottom:1px solid #f0f1f5;
+    font-size:13px;
+  }
+  .field-row:last-child{
+    border-bottom:none;
+  }
+  .field-label{
+    width:100px;
+    flex-shrink:0;
+    color:#8a8da3;
+    font-weight:600;
+  }
+  .field-value{
+    flex:1;
+    color:#222533;
+    word-break:break-all;
+    white-space:pre-wrap;
+  }
+  .section-title{
+    font-size:14px;
+    font-weight:700;
+    margin:0 0 8px;
+    padding-bottom:6px;
+    border-bottom:2px solid #222533;
+  }
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+    z-index:100;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .modal-overlay.open{
+    display:flex;
+  }
+  .modal-card{
+    background:#fff;
+    width:100%;
+    max-width:640px;
+    max-height:88vh;
+    overflow-y:auto;
+    border-radius:16px 16px 0 0;
+    padding:20px;
+  }
+  .modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:14px;
+  }
+  .modal-title{
+    font-size:17px;
+    font-weight:700;
+  }
+  .modal-sub{
+    font-size:11px;
+    color:#9a9dae;
+    margin-top:2px;
+  }
+  .modal-close{
+    background:none;
+    border:none;
+    font-size:20px;
+    cursor:pointer;
+    color:#8a8da3;
+  }
+  .link-box{
+    background:#f4f5f9;
+    border:1px solid #d8dae3;
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:13px;
+    word-break:break-all;
+    color:#4a63e0;
+    margin-bottom:16px;
+  }
+  .send-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:700;
+    border:none;
+    cursor:pointer;
+    margin-bottom:10px;
+  }
+  .send-btn.mail{
+    background:#222533;
+    color:#fff;
+  }
+  .send-btn.share{
+    background:#4a63e0;
+    color:#fff;
+  }
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:30px;
+    transform:translateX(-50%) translateY(20px);
+    background:#222533;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:13px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s, transform 0.2s;
+    z-index:200;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>한바다</h1>
+    <div class="sub">행사진행의뢰서 관리</div>
+  </div>
+
+  <!-- 선택 화면 -->
+  <div class="screen active" id="screenSelect">
+    <div class="choice-grid">
+      <div class="choice-card" onclick="showScreen('inbox')">
+        <div class="choice-icon">📥</div>
+        <div class="choice-title">접수함</div>
+        <div class="choice-desc">제출된 의뢰서 목록 및 상세 조회</div>
+      </div>
+      <div class="choice-card" onclick="showScreen('send')">
+        <div class="choice-icon">📝</div>
+        <div class="choice-title">양식서 보내기</div>
+        <div class="choice-desc">클라이언트에게 의뢰서 링크 전달</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 접수함 화면 -->
+  <div class="screen" id="screenInbox">
+    <div class="back-bar">
+      <button class="back-btn" onclick="showScreen('select')">‹ 뒤로</button>
+      <span class="back-title">📥 접수함</span>
+    </div>
+    <div id="requestCards"></div>
+  </div>
+
+  <!-- 양식서 보내기 화면 -->
+  <div class="screen" id="screenSend">
+    <div class="back-bar">
+      <button class="back-btn" onclick="showScreen('select')">‹ 뒤로</button>
+      <span class="back-title">📝 양식서 보내기</span>
+    </div>
+    <div class="card">
+      <div class="section-title">의뢰서 링크</div>
+      <div class="link-box" id="formLinkBox"></div>
+      <button class="send-btn mail" onclick="sendByMail()">✉️ 이메일로 보내기</button>
+      <button class="send-btn share" id="shareBtn" onclick="sendByShare()">📤 공유하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 접수함 상세 모달 -->
+<div class="modal-overlay" id="requestModal" onclick="if(event.target===this)closeRequestModal()">
+  <div class="modal-card" id="requestModalCard"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
+const STORAGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk';
+const FORM_LINK = 'https://yamugyclaude.github.io/hanbadadiary/event-request/';
+
+// ── 최소 헬퍼 ──
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fieldRow(label, val) {
+  const v = val ? escHtml(val) : '<span style="color:#c3c5d0">—</span>';
+  return `<div class="field-row"><span class="field-label">${label}</span><span class="field-value">${v}</span></div>`;
+}
+function fmtDate(d) { return d ? String(d).replace(/-/g,'.') : ''; }
+let toastTimeout;
+function showToast(msg, duration = 3000) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  clearTimeout(toastTimeout);
+  el.textContent = msg;
+  el.classList.add('show');
+  toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ── 화면 전환 ──
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if (name === 'select') {
+    document.getElementById('screenSelect').classList.add('active');
+  } else if (name === 'inbox') {
+    document.getElementById('screenInbox').classList.add('active');
+    loadEventRequests();
+  } else if (name === 'send') {
+    document.getElementById('screenSend').classList.add('active');
+  }
+}
+
+// ── 접수함 ──
+let eventRequestsData = [];
+
+async function loadEventRequests() {
+  const el = document.getElementById('requestCards');
+  el.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><div>불러오는 중...</div></div>`;
+  try {
+    const res = await fetch(`${STORAGE_URL}/rest/v1/event_requests?select=*&order=created_at.desc`, {
+      headers: { apikey: STORAGE_KEY, Authorization: 'Bearer ' + STORAGE_KEY }
+    });
+    if (!res.ok) throw new Error('fetch failed');
+    eventRequestsData = await res.json();
+    renderRequestList();
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div>목록을 불러오지 못했습니다</div></div>`;
+    showToast('❌ 접수함 불러오기 실패 — 네트워크를 확인하세요');
+  }
+}
+
+function renderRequestList() {
+  const el = document.getElementById('requestCards');
+  if (!eventRequestsData.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📥</div><div>아직 접수된 의뢰서가 없습니다</div></div>`;
+    return;
+  }
+  el.innerHTML = eventRequestsData.map(r => {
+    const created = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
+    return `<div class="req-card" onclick="openRequestDetail('${r.id}')">
+      <div class="req-card-top">
+        <span>${fmtDate(r.event_date)||'날짜미정'}</span>
+        <span>${escHtml(r.org_name||'')}</span>
+      </div>
+      <div class="req-card-name">${escHtml(r.event_name||'(행사명 없음)')}</div>
+      <div class="req-card-bottom">
+        <span>${escHtml(r.contact_name||'')} · ${escHtml(r.phone||'')}</span>
+        <span>${created}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openRequestDetail(id) {
+  const r = eventRequestsData.find(x => String(x.id) === String(id));
+  if (!r) return;
+  const arr = v => Array.isArray(v) ? v.join(', ') : (v || '');
+  const created = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
+  const files = Array.isArray(r.attachment_urls) ? r.attachment_urls : [];
+  const filesHtml = files.length ? files.map(u =>
+    /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u)
+      ? `<a href="${u}" target="_blank" style="display:block;"><img src="${u}" style="width:100%;border-radius:8px;border:1px solid #d8dae3;margin-bottom:8px;"></a>`
+      : `<a href="${u}" target="_blank" style="display:block;color:#4a63e0;font-size:13px;margin-bottom:8px;">📎 첨부파일 열기</a>`
+  ).join('') : '<span style="color:#c3c5d0">—</span>';
+  document.getElementById('requestModalCard').innerHTML = `
+    <div class="modal-header">
+      <div><div class="modal-title">📥 ${escHtml(r.event_name||'행사진행의뢰서')}</div><div class="modal-sub">제출일시 ${created}</div></div>
+      <button class="modal-close" onclick="closeRequestModal()">✕</button>
+    </div>
+    <div class="section-title">📋 접수자 정보</div>
+    ${fieldRow('담당자명', r.contact_name)}
+    ${fieldRow('소속', r.org_name)}
+    ${fieldRow('연락처', r.phone)}
+    ${fieldRow('이메일', r.email)}
+    <div class="section-title" style="margin-top:16px;">🎪 행사 정보</div>
+    ${fieldRow('행사명', r.event_name)}
+    ${fieldRow('행사종류', arr(r.event_type) + (r.event_type_etc ? ` (${r.event_type_etc})` : ''))}
+    ${fieldRow('행사일시', (fmtDate(r.event_date)||'') + (r.event_time ? ' ' + r.event_time : ''))}
+    ${fieldRow('장소명', r.venue_name)}
+    ${fieldRow('장소유형', r.venue_type)}
+    ${fieldRow('장소확정여부', r.venue_status)}
+    ${fieldRow('참석인원', r.attendee_count)}
+    <div class="section-title" style="margin-top:16px;">🔧 요청 서비스</div>
+    ${fieldRow('필요서비스', arr(r.services) + (r.services_etc ? ` (${r.services_etc})` : ''))}
+    ${fieldRow('무대규모', r.stage_size)}
+    ${fieldRow('천막수량', r.tent_qty)}
+    ${fieldRow('예산범위', r.budget_range)}
+    ${fieldRow('견적수신이메일', r.quote_email)}
+    <div class="section-title" style="margin-top:16px;">📝 기타요청사항</div>
+    <div class="field-value" style="padding:8px 0;">${r.notes ? escHtml(r.notes) : '<span style="color:#c3c5d0">—</span>'}</div>
+    <div class="section-title" style="margin-top:16px;">📎 첨부파일</div>
+    <div style="padding:8px 0;">${filesHtml}</div>
+  `;
+  document.getElementById('requestModal').classList.add('open');
+}
+
+function closeRequestModal() {
+  document.getElementById('requestModal').classList.remove('open');
+}
+
+// ── 양식서 보내기 ──
+document.getElementById('formLinkBox').textContent = FORM_LINK;
+
+function sendByMail() {
+  const subject = encodeURIComponent('한바다 행사진행의뢰서');
+  const body = encodeURIComponent(`아래 링크에서 행사 진행 의뢰서를 작성해 주세요.\n\n${FORM_LINK}`);
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+async function sendByShare() {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: '한바다 행사진행의뢰서', text: '아래 링크에서 작성해 주세요', url: FORM_LINK });
+    } catch (e) { /* 사용자 취소 등은 무시 */ }
+  } else {
+    try {
+      await navigator.clipboard.writeText(FORM_LINK);
+      showToast('✅ 링크가 복사되었습니다');
+    } catch (e) {
+      showToast('❌ 복사에 실패했습니다');
+    }
+  }
+}
+
+// 공유 미지원 브라우저는 버튼 라벨을 "링크 복사"로 대체
+if (!navigator.share) {
+  const btn = document.getElementById('shareBtn');
+  btn.textContent = '🔗 링크 복사';
+}
+</script>
+</body>
+</html>
