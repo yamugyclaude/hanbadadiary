@@ -184,10 +184,18 @@
     background:#fff;
     width:100%;
     max-width:640px;
-    max-height:88vh;
-    overflow-y:auto;
+    max-height:85vh;
+    max-height:85dvh;
+    display:flex;
+    flex-direction:column;
     border-radius:16px 16px 0 0;
+    overflow:hidden;
+  }
+  .modal-scroll{
+    overflow-y:auto;
     padding:20px;
+    flex:1;
+    min-height:0;
   }
   .modal-header{
     display:flex;
@@ -280,7 +288,10 @@
   .modal-actions{
     display:flex;
     gap:10px;
-    margin-top:20px;
+    padding:14px 20px;
+    padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    border-top:1px solid #eee;
+    flex-shrink:0;
   }
   .modal-btn{
     flex:1;
@@ -499,6 +510,7 @@ function renderDetailView(r) {
       <div><div class="modal-title">📥 ${escHtml(r.event_name||'행사진행의뢰서')}</div><div class="modal-sub">제출일시 ${created}</div></div>
       <button class="modal-close" onclick="closeRequestModal()">✕</button>
     </div>
+    <div class="modal-scroll">
     <div class="section-title">📋 접수자 정보</div>
     ${fieldRow('담당자명', r.contact_name)}
     ${fieldRow('소속', r.org_name)}
@@ -522,6 +534,7 @@ function renderDetailView(r) {
     <div class="field-value" style="padding:8px 0;">${r.notes ? escHtml(r.notes) : '<span style="color:#c3c5d0">—</span>'}</div>
     <div class="section-title" style="margin-top:16px;">📎 첨부파일</div>
     <div style="padding:8px 0;">${filesHtml}</div>
+    </div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="startEdit('${r.id}')">✏️ 수정</button>
       <button class="modal-btn danger" onclick="deleteRequest('${r.id}')">🗑️ 삭제</button>
@@ -546,6 +559,7 @@ function renderDetailEdit(r) {
       <div><div class="modal-title">✏️ ${escHtml(r.event_name||'행사진행의뢰서')} 수정</div></div>
       <button class="modal-close" onclick="closeRequestModal()">✕</button>
     </div>
+    <div class="modal-scroll">
     <div class="section-title">📋 접수자 정보</div>
     ${editRow('담당자명','edit_contact_name', r.contact_name)}
     ${editRow('소속','edit_org_name', r.org_name)}
@@ -570,6 +584,7 @@ function renderDetailEdit(r) {
     ${editRow('견적수신이메일','edit_quote_email', r.quote_email)}
     <div class="section-title" style="margin-top:16px;">📝 기타요청사항</div>
     <textarea class="edit-input edit-textarea" id="edit_notes">${escHtml(r.notes||'')}</textarea>
+    </div>
     <div class="modal-actions">
       <button class="modal-btn primary" onclick="saveEdit('${r.id}')">💾 저장</button>
       <button class="modal-btn" onclick="cancelEdit('${r.id}')">✖️ 취소</button>
