@@ -12,36 +12,571 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     background:#f4f5f9;
     color:#222533;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    line-height:1.5;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:24px 16px 60px;
   }
   .card{
-    max-width:480px;
-    width:100%;
-    margin:24px;
-    padding:28px 24px;
     background:#ffffff;
     border-radius:14px;
     box-shadow:0 2px 10px rgba(0,0,0,0.06);
-    text-align:center;
+    padding:28px 24px;
+    margin-bottom:16px;
   }
-  .card h1{
-    margin:0 0 12px;
+  .header h1{
+    margin:0 0 6px;
     font-size:20px;
     font-weight:700;
   }
-  .card p{
+  .header .sub{
+    margin:0 0 16px;
+    font-size:13px;
+    color:#8a8da3;
+    font-weight:600;
+    letter-spacing:0.3px;
+  }
+  .header p{
+    margin:0;
+    font-size:14px;
+    color:#4b4e5f;
+    white-space:pre-line;
+  }
+  .section-title{
+    font-size:16px;
+    font-weight:700;
+    margin:0 0 16px;
+    padding-bottom:10px;
+    border-bottom:2px solid #222533;
+  }
+  .field{
+    margin-bottom:20px;
+  }
+  .field:last-child{
+    margin-bottom:0;
+  }
+  label.q{
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .req{
+    color:#e0453f;
+    margin-left:2px;
+  }
+  .opt{
+    color:#9a9dae;
+    font-weight:400;
+    font-size:12px;
+    margin-left:4px;
+  }
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="date"],
+  textarea{
+    width:100%;
+    padding:10px 12px;
+    font-size:14px;
+    border:1px solid #d8dae3;
+    border-radius:8px;
+    background:#fff;
+    color:#222533;
+    font-family:inherit;
+  }
+  input:focus,textarea:focus{
+    outline:none;
+    border-color:#4a63e0;
+  }
+  textarea{
+    min-height:90px;
+    resize:vertical;
+  }
+  .hint{
+    font-size:12px;
+    color:#9a9dae;
+    margin-top:6px;
+  }
+  .choices{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .choice-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+  }
+  .choice-row input[type="checkbox"],
+  .choice-row input[type="radio"]{
+    width:17px;
+    height:17px;
+    flex-shrink:0;
+  }
+  .choice-row .etc-input{
+    flex:1;
+    padding:6px 10px;
+    font-size:13px;
+    border:1px solid #d8dae3;
+    border-radius:6px;
+    display:none;
+  }
+  .choice-row .etc-input.show{
+    display:block;
+  }
+  .field.error input[type="text"],
+  .field.error input[type="tel"],
+  .field.error input[type="email"],
+  .field.error input[type="date"],
+  .field.error textarea{
+    border-color:#e0453f;
+  }
+  .field.error .choices{
+    outline:1px solid #e0453f;
+    border-radius:8px;
+    padding:6px;
+  }
+  .err-msg{
+    display:none;
+    color:#e0453f;
+    font-size:12px;
+    margin-top:6px;
+  }
+  .field.error .err-msg{
+    display:block;
+  }
+  .submit-row{
+    text-align:center;
+  }
+  button#submitBtn{
+    background:#222533;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:14px 32px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    width:100%;
+  }
+  button#submitBtn:disabled{
+    opacity:0.6;
+    cursor:default;
+  }
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%);
+    background:#e0453f;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:8px;
+    font-size:13px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    display:none;
+    z-index:100;
+  }
+  .toast.show{
+    display:block;
+  }
+  .done-card{
+    text-align:center;
+    padding:60px 24px;
+  }
+  .done-card .icon{
+    font-size:40px;
+    margin-bottom:12px;
+  }
+  .done-card h2{
+    margin:0 0 8px;
+    font-size:18px;
+  }
+  .done-card p{
     margin:0;
     font-size:14px;
     color:#8a8da3;
   }
+  #honeypotField{
+    display:none;
+    position:absolute;
+    left:-9999px;
+  }
 </style>
 </head>
 <body>
-  <div class="card">
-    <h1>📄 행사진행의뢰서</h1>
-    <p>준비 중입니다.</p>
+<div class="wrap">
+  <div class="card header">
+    <h1>📄 행사 진행 의뢰서</h1>
+    <div class="sub">EVENT REQUEST FORM (음향/무대/조명 서비스 문의)</div>
+    <p>행사 진행을 문의해 주셔서 감사합니다. 정확한 견적과 원활한 준비를 위해 아래 정보를 알려주시면, 빠르게 검토 후 연락드리겠습니다.
+소요 시간: 약 10분 / 문의: 한바다 대표 설전옥 010-9525-2375</p>
   </div>
+
+  <form id="eventForm" novalidate>
+    <div id="honeypotField">
+      <label for="honeypot">웹사이트</label>
+      <input type="text" id="honeypot" name="honeypot" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="card">
+      <div class="section-title">1. 의뢰인 정보</div>
+
+      <div class="field" data-field="contact_name">
+        <label class="q">담당자 성함<span class="req">*</span></label>
+        <input type="text" id="contact_name">
+        <div class="err-msg">담당자 성함을 입력해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="org_name">
+        <label class="q">소속/단체명<span class="req">*</span></label>
+        <input type="text" id="org_name">
+        <div class="err-msg">소속/단체명을 입력해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="phone">
+        <label class="q">연락처(전화번호)<span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="010-0000-0000">
+        <div class="err-msg">연락처를 입력해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="email">
+        <label class="q">이메일<span class="req">*</span></label>
+        <input type="email" id="email">
+        <div class="err-msg">이메일을 입력해 주세요.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">2. 행사 개요</div>
+
+      <div class="field" data-field="event_name">
+        <label class="q">행사명<span class="req">*</span></label>
+        <input type="text" id="event_name">
+        <div class="err-msg">행사명을 입력해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="event_type">
+        <label class="q">행사 종류<span class="req">*</span></label>
+        <div class="choices">
+          <label class="choice-row"><input type="checkbox" name="event_type" value="기업행사/컨퍼런스"> 기업행사/컨퍼런스</label>
+          <label class="choice-row"><input type="checkbox" name="event_type" value="공연/콘서트"> 공연/콘서트</label>
+          <label class="choice-row"><input type="checkbox" name="event_type" value="축제"> 축제</label>
+          <label class="choice-row"><input type="checkbox" name="event_type" value="기념식"> 기념식</label>
+          <label class="choice-row"><input type="checkbox" name="event_type" value="결혼식"> 결혼식</label>
+          <label class="choice-row"><input type="checkbox" name="event_type" value="학교행사"> 학교행사</label>
+          <label class="choice-row"><input type="checkbox" name="event_type" value="종교행사"> 종교행사</label>
+          <label class="choice-row">
+            <input type="checkbox" name="event_type" value="기타" id="eventTypeEtcCheck"> 기타
+            <input type="text" class="etc-input" id="eventTypeEtcInput" placeholder="직접 입력">
+          </label>
+        </div>
+        <div class="err-msg">행사 종류를 1개 이상 선택해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="event_date">
+        <label class="q">행사 일시(희망 날짜)<span class="req">*</span></label>
+        <input type="date" id="event_date">
+        <div class="err-msg">행사 일시를 선택해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="event_time">
+        <label class="q">진행 시간(시작~종료)<span class="opt">(선택)</span></label>
+        <input type="text" id="event_time" placeholder="예: 14:00~18:00">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">3. 장소 정보</div>
+
+      <div class="field" data-field="venue_name">
+        <label class="q">행사 장소명<span class="req">*</span></label>
+        <input type="text" id="venue_name">
+        <div class="err-msg">행사 장소명을 입력해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="venue_type">
+        <label class="q">실내/실외<span class="req">*</span></label>
+        <div class="choices">
+          <label class="choice-row"><input type="radio" name="venue_type" value="실내"> 실내</label>
+          <label class="choice-row"><input type="radio" name="venue_type" value="실외"> 실외</label>
+          <label class="choice-row"><input type="radio" name="venue_type" value="혼합"> 혼합</label>
+        </div>
+        <div class="err-msg">실내/실외를 선택해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="venue_status">
+        <label class="q">장소 대관 여부<span class="req">*</span></label>
+        <div class="choices">
+          <label class="choice-row"><input type="radio" name="venue_status" value="이미 확정"> 이미 확정</label>
+          <label class="choice-row"><input type="radio" name="venue_status" value="협의 중"> 협의 중</label>
+          <label class="choice-row"><input type="radio" name="venue_status" value="미정"> 미정</label>
+        </div>
+        <div class="err-msg">장소 대관 여부를 선택해 주세요.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">4. 행사 규모 및 필요 서비스</div>
+
+      <div class="field" data-field="attendee_count">
+        <label class="q">예상 참석 인원<span class="req">*</span></label>
+        <input type="text" id="attendee_count" placeholder="숫자로 입력 (예: 200)">
+        <div class="err-msg">예상 참석 인원을 입력해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="services">
+        <label class="q">필요한 서비스<span class="req">*</span></label>
+        <div class="choices">
+          <label class="choice-row"><input type="checkbox" name="services" value="음향"> 음향</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="조명"> 조명</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="무대 설치"> 무대 설치</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="영상/LED"> 영상/LED</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="사회자(MC)"> 사회자(MC)</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="촬영/기록"> 촬영/기록</label>
+          <label class="choice-row"><input type="checkbox" name="services" value="천막(캐노피/몽골)"> 천막(캐노피/몽골)</label>
+          <label class="choice-row">
+            <input type="checkbox" name="services" value="기타" id="servicesEtcCheck"> 기타
+            <input type="text" class="etc-input" id="servicesEtcInput" placeholder="직접 입력">
+          </label>
+        </div>
+        <div class="err-msg">필요한 서비스를 1개 이상 선택해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="stage_size">
+        <label class="q">무대 크기(가로m x 세로m)<span class="opt">(선택)</span></label>
+        <input type="text" id="stage_size" placeholder="예: 6m x 4m">
+      </div>
+
+      <div class="field" data-field="tent_qty">
+        <label class="q">천막 필요 수량(캐노피 및 몽골)<span class="opt">(선택)</span></label>
+        <input type="text" id="tent_qty">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">5. 예산</div>
+
+      <div class="field" data-field="budget_range">
+        <label class="q">예산 범위<span class="req">*</span></label>
+        <div class="choices">
+          <label class="choice-row"><input type="radio" name="budget_range" value="300만원 이하"> 300만원 이하</label>
+          <label class="choice-row"><input type="radio" name="budget_range" value="300~500만원"> 300~500만원</label>
+          <label class="choice-row"><input type="radio" name="budget_range" value="500~1000만원"> 500~1000만원</label>
+          <label class="choice-row"><input type="radio" name="budget_range" value="1000만원 이상"> 1000만원 이상</label>
+          <label class="choice-row"><input type="radio" name="budget_range" value="협의 후 결정"> 협의 후 결정</label>
+        </div>
+        <div class="err-msg">예산 범위를 선택해 주세요.</div>
+      </div>
+
+      <div class="field" data-field="quote_email">
+        <label class="q">견적서 필요 여부<span class="opt">(선택)</span></label>
+        <input type="email" id="quote_email" placeholder="이메일 주소를 기입해 주세요">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">6. 기타</div>
+
+      <div class="field" data-field="notes">
+        <label class="q">기타 요청 및 특이사항<span class="opt">(선택)</span></label>
+        <textarea id="notes"></textarea>
+      </div>
+    </div>
+
+    <div class="card submit-row">
+      <button type="submit" id="submitBtn">제출하기</button>
+    </div>
+  </form>
+
+  <div class="card done-card" id="doneCard" style="display:none;">
+    <div class="icon">✅</div>
+    <h2>접수되었습니다.</h2>
+    <p>담당자가 확인 후 연락드리겠습니다.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast">제출 중 오류가 발생했습니다. 다시 시도해 주세요.</div>
+
+<script>
+(function(){
+  const SB_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk';
+
+  const form = document.getElementById('eventForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const toast = document.getElementById('toast');
+  const doneCard = document.getElementById('doneCard');
+
+  // 기타 입력창 토글
+  function bindEtcToggle(checkId, inputId){
+    const check = document.getElementById(checkId);
+    const input = document.getElementById(inputId);
+    check.addEventListener('change', function(){
+      input.classList.toggle('show', check.checked);
+      if(!check.checked) input.value = '';
+    });
+  }
+  bindEtcToggle('eventTypeEtcCheck', 'eventTypeEtcInput');
+  bindEtcToggle('servicesEtcCheck', 'servicesEtcInput');
+
+  function clearError(fieldName){
+    const el = document.querySelector('[data-field="' + fieldName + '"]');
+    if(el) el.classList.remove('error');
+  }
+  function setError(fieldName){
+    const el = document.querySelector('[data-field="' + fieldName + '"]');
+    if(el) el.classList.add('error');
+    return el;
+  }
+  function getChecked(name){
+    return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(el => el.value);
+  }
+  function getRadio(name){
+    const el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  // 실시간 에러 해제
+  form.addEventListener('input', function(e){
+    const fieldEl = e.target.closest('[data-field]');
+    if(fieldEl) fieldEl.classList.remove('error');
+  });
+  form.addEventListener('change', function(e){
+    const fieldEl = e.target.closest('[data-field]');
+    if(fieldEl) fieldEl.classList.remove('error');
+  });
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+
+    const values = {
+      contact_name: document.getElementById('contact_name').value.trim(),
+      org_name: document.getElementById('org_name').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      event_name: document.getElementById('event_name').value.trim(),
+      event_type: getChecked('event_type'),
+      event_type_etc: document.getElementById('eventTypeEtcInput').value.trim(),
+      event_date: document.getElementById('event_date').value,
+      event_time: document.getElementById('event_time').value.trim(),
+      venue_name: document.getElementById('venue_name').value.trim(),
+      venue_type: getRadio('venue_type'),
+      venue_status: getRadio('venue_status'),
+      attendee_count: document.getElementById('attendee_count').value.trim(),
+      services: getChecked('services'),
+      services_etc: document.getElementById('servicesEtcInput').value.trim(),
+      stage_size: document.getElementById('stage_size').value.trim(),
+      tent_qty: document.getElementById('tent_qty').value.trim(),
+      budget_range: getRadio('budget_range'),
+      quote_email: document.getElementById('quote_email').value.trim(),
+      notes: document.getElementById('notes').value.trim(),
+      honeypot: document.getElementById('honeypot').value
+    };
+
+    // 필수 검증
+    const checks = [
+      ['contact_name', !!values.contact_name],
+      ['org_name', !!values.org_name],
+      ['phone', !!values.phone],
+      ['email', !!values.email],
+      ['event_name', !!values.event_name],
+      ['event_type', values.event_type.length > 0],
+      ['event_date', !!values.event_date],
+      ['venue_name', !!values.venue_name],
+      ['venue_type', !!values.venue_type],
+      ['venue_status', !!values.venue_status],
+      ['attendee_count', !!values.attendee_count],
+      ['services', values.services.length > 0],
+      ['budget_range', !!values.budget_range]
+    ];
+
+    let firstErrorEl = null;
+    checks.forEach(([name, ok]) => {
+      if(ok){
+        clearError(name);
+      } else {
+        const el = setError(name);
+        if(!firstErrorEl) firstErrorEl = el;
+      }
+    });
+
+    if(firstErrorEl){
+      firstErrorEl.scrollIntoView({behavior:'smooth', block:'center'});
+      const focusable = firstErrorEl.querySelector('input[type="text"], input[type="tel"], input[type="email"], input[type="date"], textarea, input[type="checkbox"], input[type="radio"]');
+      if(focusable) focusable.focus();
+      return;
+    }
+
+    // 봇 차단: honeypot 채워져 있으면 조용히 성공 처리
+    if(values.honeypot){
+      form.style.display = 'none';
+      doneCard.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '제출 중...';
+
+    const payload = {
+      contact_name: values.contact_name,
+      org_name: values.org_name,
+      phone: values.phone,
+      email: values.email,
+      event_name: values.event_name,
+      event_type: values.event_type,
+      event_type_etc: values.event_type_etc || null,
+      event_date: values.event_date,
+      event_time: values.event_time || null,
+      venue_name: values.venue_name,
+      venue_type: values.venue_type,
+      venue_status: values.venue_status,
+      attendee_count: values.attendee_count,
+      services: values.services,
+      services_etc: values.services_etc || null,
+      stage_size: values.stage_size || null,
+      tent_qty: values.tent_qty || null,
+      budget_range: values.budget_range,
+      quote_email: values.quote_email || null,
+      notes: values.notes || null,
+      honeypot: ''
+    };
+
+    try {
+      const res = await fetch(SB_URL + '/rest/v1/event_requests', {
+        method: 'POST',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if(!res.ok){
+        throw new Error('submit failed');
+      }
+
+      form.style.display = 'none';
+      doneCard.style.display = 'block';
+    } catch(err){
+      showToast('제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출하기';
+    }
+  });
+})();
+</script>
 </body>
 </html>
