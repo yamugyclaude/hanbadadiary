@@ -132,8 +132,36 @@
   .field.error input[type="tel"],
   .field.error input[type="email"],
   .field.error input[type="date"],
+  .field.error select,
   .field.error textarea{
     border-color:#e0453f;
+  }
+  .email-group{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .email-group .email-id-input{
+    flex:1 1 100px;
+    width:auto;
+  }
+  .email-group .email-at{
+    font-size:14px;
+    color:#4b4e5f;
+    flex:0 0 auto;
+  }
+  .email-group select,
+  .email-group .email-domain-custom{
+    flex:1 1 120px;
+    width:auto;
+    padding:10px 12px;
+    font-size:14px;
+    border:1px solid #d8dae3;
+    border-radius:8px;
+    background:#fff;
+    color:#222533;
+    font-family:inherit;
   }
   .field.error .choices{
     outline:1px solid #e0453f;
@@ -240,13 +268,29 @@
 
       <div class="field" data-field="phone">
         <label class="q">연락처(전화번호)<span class="req">*</span></label>
-        <input type="tel" id="phone" placeholder="010-0000-0000">
+        <input type="tel" id="phone" placeholder="010-0000-0000" maxlength="13" inputmode="numeric">
         <div class="err-msg">연락처를 입력해 주세요.</div>
       </div>
 
       <div class="field" data-field="email">
         <label class="q">이메일<span class="req">*</span></label>
-        <input type="email" id="email">
+        <div class="email-group">
+          <input type="text" id="email_id" class="email-id-input" placeholder="아이디" autocomplete="off">
+          <span class="email-at">@</span>
+          <select id="email_domain">
+            <option value="">선택</option>
+            <option value="gmail.com">gmail.com</option>
+            <option value="naver.com">naver.com</option>
+            <option value="daum.net">daum.net</option>
+            <option value="hanmail.net">hanmail.net</option>
+            <option value="nate.com">nate.com</option>
+            <option value="kakao.com">kakao.com</option>
+            <option value="outlook.com">outlook.com</option>
+            <option value="icloud.com">icloud.com</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <input type="text" id="email_domain_custom" class="email-domain-custom" placeholder="도메인 입력" style="display:none;">
+        </div>
         <div class="err-msg">이메일을 입력해 주세요.</div>
       </div>
     </div>
@@ -375,7 +419,23 @@
 
       <div class="field" data-field="quote_email">
         <label class="q">견적서 필요 여부<span class="opt">(선택)</span></label>
-        <input type="email" id="quote_email" placeholder="이메일 주소를 기입해 주세요">
+        <div class="email-group">
+          <input type="text" id="quote_email_id" class="email-id-input" placeholder="아이디" autocomplete="off">
+          <span class="email-at">@</span>
+          <select id="quote_email_domain">
+            <option value="">선택</option>
+            <option value="gmail.com">gmail.com</option>
+            <option value="naver.com">naver.com</option>
+            <option value="daum.net">daum.net</option>
+            <option value="hanmail.net">hanmail.net</option>
+            <option value="nate.com">nate.com</option>
+            <option value="kakao.com">kakao.com</option>
+            <option value="outlook.com">outlook.com</option>
+            <option value="icloud.com">icloud.com</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <input type="text" id="quote_email_domain_custom" class="email-domain-custom" placeholder="도메인 입력" style="display:none;">
+        </div>
       </div>
     </div>
 
@@ -424,6 +484,53 @@
   bindEtcToggle('eventTypeEtcCheck', 'eventTypeEtcInput');
   bindEtcToggle('servicesEtcCheck', 'servicesEtcInput');
 
+  // 전화번호 자동 하이픈 포맷팅
+  function formatPhone(raw){
+    let d = raw.replace(/\D/g, '');
+    if(d.startsWith('02')){
+      d = d.slice(0, 10);
+      if(d.length < 3) return d;
+      if(d.length < 6) return d.slice(0,2) + '-' + d.slice(2);
+      if(d.length < 10) return d.slice(0,2) + '-' + d.slice(2,5) + '-' + d.slice(5);
+      return d.slice(0,2) + '-' + d.slice(2,6) + '-' + d.slice(6,10);
+    }
+    d = d.slice(0, 11);
+    if(d.length < 4) return d;
+    if(d.length < 7) return d.slice(0,3) + '-' + d.slice(3);
+    if(d.length < 11) return d.slice(0,3) + '-' + d.slice(3,6) + '-' + d.slice(6);
+    return d.slice(0,3) + '-' + d.slice(3,7) + '-' + d.slice(7,11);
+  }
+  const phoneInput = document.getElementById('phone');
+  phoneInput.addEventListener('input', function(){
+    phoneInput.value = formatPhone(phoneInput.value);
+  });
+
+  // 이메일 도메인 선택 (직접 입력 토글)
+  function bindEmailDomain(selectId, customId){
+    const select = document.getElementById(selectId);
+    const custom = document.getElementById(customId);
+    select.addEventListener('change', function(){
+      if(select.value === 'custom'){
+        custom.style.display = '';
+        custom.focus();
+      } else {
+        custom.style.display = 'none';
+        custom.value = '';
+      }
+    });
+  }
+  bindEmailDomain('email_domain', 'email_domain_custom');
+  bindEmailDomain('quote_email_domain', 'quote_email_domain_custom');
+
+  function getEmailValue(idFieldId, domainSelectId, customFieldId){
+    const id = document.getElementById(idFieldId).value.trim();
+    const domainSelect = document.getElementById(domainSelectId);
+    const domain = domainSelect.value === 'custom'
+      ? document.getElementById(customFieldId).value.trim()
+      : domainSelect.value;
+    return (id && domain) ? (id + '@' + domain) : '';
+  }
+
   function clearError(fieldName){
     const el = document.querySelector('[data-field="' + fieldName + '"]');
     if(el) el.classList.remove('error');
@@ -464,7 +571,7 @@
       contact_name: document.getElementById('contact_name').value.trim(),
       org_name: document.getElementById('org_name').value.trim(),
       phone: document.getElementById('phone').value.trim(),
-      email: document.getElementById('email').value.trim(),
+      email: getEmailValue('email_id', 'email_domain', 'email_domain_custom'),
       event_name: document.getElementById('event_name').value.trim(),
       event_type: getChecked('event_type'),
       event_type_etc: document.getElementById('eventTypeEtcInput').value.trim(),
@@ -479,7 +586,7 @@
       stage_size: document.getElementById('stage_size').value.trim(),
       tent_qty: document.getElementById('tent_qty').value.trim(),
       budget_range: getRadio('budget_range'),
-      quote_email: document.getElementById('quote_email').value.trim(),
+      quote_email: getEmailValue('quote_email_id', 'quote_email_domain', 'quote_email_domain_custom'),
       notes: document.getElementById('notes').value.trim(),
       honeypot: document.getElementById('honeypot').value
     };
