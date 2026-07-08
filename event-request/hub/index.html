@@ -300,7 +300,9 @@
     <div class="card">
       <div class="section-title">의뢰서 링크</div>
       <div class="link-box" id="formLinkBox"></div>
-      <button class="send-btn mail" onclick="sendByMail()">✉️ 이메일로 보내기</button>
+      <button class="send-btn mail" onclick="sendByMail()">✉️ 기본 메일앱으로 보내기</button>
+      <button class="send-btn mail" onclick="sendByGmail()">📧 Gmail로 보내기</button>
+      <button class="send-btn mail" onclick="sendByNaver()">📨 네이버메일로 보내기</button>
       <button class="send-btn share" id="shareBtn" onclick="sendByShare()">📤 공유하기</button>
     </div>
   </div>
@@ -445,6 +447,18 @@ function sendByMail() {
   const subject = encodeURIComponent('한바다 행사진행의뢰서');
   const body = encodeURIComponent(`아래 링크에서 행사 진행 의뢰서를 작성해 주세요.\n\n${FORM_LINK}`);
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function sendByGmail() {
+  const subject = encodeURIComponent('한바다 행사진행의뢰서');
+  const body = encodeURIComponent(`아래 링크에서 행사 진행 의뢰서를 작성해 주세요.\n\n${FORM_LINK}`);
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+}
+
+function sendByNaver() {
+  const subject = encodeURIComponent('한바다 행사진행의뢰서');
+  const body = encodeURIComponent(`아래 링크에서 행사 진행 의뢰서를 작성해 주세요.\n\n${FORM_LINK}`);
+  window.open(`https://mail.naver.com/write/popup/?subject=${subject}&body=${body}`, '_blank');
 }
 
 async function sendByShare() {
