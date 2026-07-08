@@ -2,6 +2,36 @@
 생성일: 2026-07-03
 ---
 
+## 2026-07-08 ✅ 성공 — 폼 제출 시 텔레그램 알림 연동
+### 배경
+클라이언트가 행사진행의뢰서를 제출하면 사장님이 바로 알아야 하므로(접수함 탭은 직접 들어가서
+확인해야 함), 제출 즉시 텔레그램 그룹("한바다 접수알림")으로 알림이 가도록 요청.
+
+### 작업 내용
+- Supabase Edge Function `notify-telegram`(프로젝트 poxafvsqxvcaewduhvxt) 신규 배포 — 텔레그램
+  Bot Token/Chat ID를 함수 코드 내부에만 보관(Supabase 서버에만 존재, git 저장소·클라이언트 JS
+  어디에도 노출 안 됨), `verify_jwt: true`로 익명 무단 호출 차단
+- `event-request/index.html`: 폼 제출(Supabase insert) **성공 이후에만** 이 함수를
+  fire-and-forget으로 호출해 담당자/소속/행사명/일시/연락처/이메일/예산 요약을 텔레그램으로 전송.
+  알림 실패해도 `.catch`로 무시 — 제출 자체는 항상 정상 완료
+- honeypot(봇 차단) 걸리면 이 호출 이전에 이미 `return`되므로 스팸 알림 발송 안 됨
+
+### 검증 (auditor, sonnet)
+- 토큰 비노출: 저장소 전체 + git 히스토리 전체에서 봇 토큰 문자열 검색 → 0건 (CONFIRMED 안전)
+- curl 실증: 정상 호출 → 200 `{"ok":true}` + 실제 텔레그램 메시지 도착 확인, 인증 헤더 없이 호출 →
+  401 `UNAUTHORIZED_NO_AUTH_HEADER`로 차단 확인
+- 코드 흐름: insert 실패 시 텔레그램 호출 도달 안 함, honeypot 시에도 도달 안 함 — 순서 확인
+- ⚠️ 최초 감사 시 CHANGELOG.md/PROJECT_LOG.md 미반영 지적받아 이 기록으로 보완 (반복 발생 —
+  이후로는 기능 커밋과 문서 갱신을 같은 흐름에서 처리하도록 순서 조정)
+
+### 결과
+- **작업 완료** — ⚠️ 조건부통과 → 문서화 보완으로 해결
+- 파일: `event-request/index.html`(텔레그램 호출), Supabase Edge Function `notify-telegram`(신규)
+- 커밋: `0fdaa16`
+- 브랜치: `claude/content-analysis-v9gjwm` (main 배포 대기 중)
+
+---
+
 ## 2026-07-08 ⚠️ 조건부성공 — 접수함 관리자 탭 + 비밀번호 게이트 + 닫기버튼
 ### 배경
 클라이언트가 제출한 행사진행의뢰서를 사장님이 확인할 방법이 없어서(Supabase 대시보드 직접

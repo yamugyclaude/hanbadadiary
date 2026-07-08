@@ -839,6 +839,24 @@
         throw new Error('submit failed');
       }
 
+      fetch(SB_URL + '/functions/v1/notify-telegram', {
+        method: 'POST',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contact_name: payload.contact_name,
+          org_name: payload.org_name,
+          event_name: payload.event_name,
+          event_date: payload.event_date,
+          phone: payload.phone,
+          email: payload.email,
+          budget_range: payload.budget_range
+        })
+      }).catch(function(){});
+
       form.style.display = 'none';
       doneCard.style.display = 'block';
     } catch(err){

@@ -13,10 +13,12 @@
 
 **⚠️ RLS 현황 (event_requests, 프로젝트 poxafvsqxvcaewduhvxt)**: SELECT는 2026-07-08에 anon에게 추가로 열림(사장님 승인, 관리자 접수함 조회용) — 즉 anon key를 아는 사람은 로그인 없이도 전체 응답을 읽을 수 있음. INSERT는 계속 허용, UPDATE/DELETE는 정책 없어 실질 차단(curl 실증 확인). 아래 "insert-only" 표현이 남은 로그는 SELECT 개방 **이전** 시점 기록이니 참고할 것.
 
+**📨 텔레그램 알림**: 클라이언트가 행사진행의뢰서를 제출하면 Supabase Edge Function `notify-telegram`을 거쳐 텔레그램 그룹("한바다 접수알림")으로 자동 알림. 봇 토큰은 Edge Function 코드 내부에만 존재(git·클라이언트 JS 비노출, curl로 실증 확인).
+
 **최근 3개 배포**:
-1. **`11d98c7`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — 메인 앱에 관리자 전용 "📥 접수함" 탭 추가(event_requests 목록+상세조회), 로그인화면 버튼에 비밀번호(2375) 게이트, event-request 폼에 "닫기" 버튼 2곳. 접수함 조회를 위해 event_requests에 anon SELECT RLS 신규 허용(위 경고 참고)
-2. **`b065e27`** (2026-07-08) — "행사진행의뢰서" 18문항 웹폼 완성(원본 PDF 6섹션 그대로 구현) + Supabase `event_requests` 테이블 신설, 당시엔 anon insert-only RLS(select/update/delete 전부 차단)로 시작 → 이후 1번 항목에서 select 개방됨. honeypot 스팸 방지 포함
-3. **`9477197`** (2026-07-08) — 로그인 화면에 "📄 행사진행의뢰서" 버튼 신규 추가(새 탭으로 독립 페이지 `event-request/index.html` 오픈), main 병합·배포 완료
+1. **`0fdaa16`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — 폼 제출 시 텔레그램 알림 연동(Edge Function `notify-telegram`, 위 항목 참고)
+2. **`11d98c7`** (2026-07-08) — 메인 앱에 관리자 전용 "📥 접수함" 탭 추가(event_requests 목록+상세조회), 로그인화면 버튼에 비밀번호(2375) 게이트, event-request 폼에 "닫기" 버튼 2곳. 접수함 조회를 위해 event_requests에 anon SELECT RLS 신규 허용(위 RLS 경고 참고)
+3. **`b065e27`** (2026-07-08) — "행사진행의뢰서" 18문항 웹폼 완성(원본 PDF 6섹션 그대로 구현) + Supabase `event_requests` 테이블 신설, 당시엔 anon insert-only RLS(select/update/delete 전부 차단)로 시작 → 이후 2번 항목에서 select 개방됨. honeypot 스팸 방지 포함
 
 **최근 해결된 문제**:
 - ✅ "저장 실패" 판정이 추측(타임아웃)에 의존하던 근본 문제 — `Promise.race`는 20초 타임아웃이 이겨도 실제 fetch를 취소하지 않아 "일단 실패 표시 후 늦게 성공하면 정정"하는 방어적 패치(`c30b09a`)가 필요했음. 이번엔 `AbortController`를 `uploadPhotoToStorage`/`sbUpsertLog`에 `signal`로 전달해 60초 초과 시 요청을 진짜로 취소하도록 바꿔, 처음부터 실제 결과에만 기반해 정확히 판정하고 사후 정정 로직 자체를 제거 (`saveAndSync()`, `sbUpsertLog()`, `uploadPhotoToStorage()`, index.html)
