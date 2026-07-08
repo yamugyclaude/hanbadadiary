@@ -88,7 +88,12 @@
     cursor:pointer;
     color:#222533;
   }
+  .back-btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
   .back-title{
+    flex:1;
     font-size:16px;
     font-weight:700;
   }
@@ -257,6 +262,47 @@
     opacity:1;
     transform:translateX(-50%) translateY(0);
   }
+  .edit-input{
+    flex:1;
+    border:1px solid #d8dae3;
+    border-radius:6px;
+    padding:6px 8px;
+    font-size:13px;
+    font-family:inherit;
+    color:#222533;
+  }
+  .edit-textarea{
+    width:100%;
+    margin-top:6px;
+    min-height:80px;
+    resize:vertical;
+  }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+  }
+  .modal-btn{
+    flex:1;
+    padding:12px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:700;
+    border:1px solid #d8dae3;
+    background:#fff;
+    color:#222533;
+    cursor:pointer;
+  }
+  .modal-btn.primary{
+    background:#4a63e0;
+    border-color:#4a63e0;
+    color:#fff;
+  }
+  .modal-btn.danger{
+    background:#fff;
+    border-color:#e05a4a;
+    color:#e05a4a;
+  }
 </style>
 </head>
 <body>
@@ -268,6 +314,11 @@
 
   <!-- 선택 화면 -->
   <div class="screen active" id="screenSelect">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()">‹ 뒤로</button>
+      <span class="back-title">🏠 홈</span>
+      <button class="back-btn forward-btn" onclick="goForward()">다음 ›</button>
+    </div>
     <div class="choice-grid">
       <div class="choice-card" onclick="showScreen('inbox')">
         <div class="choice-icon">📥</div>
@@ -285,8 +336,9 @@
   <!-- 접수함 화면 -->
   <div class="screen" id="screenInbox">
     <div class="back-bar">
-      <button class="back-btn" onclick="showScreen('select')">‹ 뒤로</button>
+      <button class="back-btn" onclick="goBack()">‹ 뒤로</button>
       <span class="back-title">📥 접수함</span>
+      <button class="back-btn forward-btn" onclick="goForward()">다음 ›</button>
     </div>
     <div id="requestCards"></div>
   </div>
@@ -294,8 +346,9 @@
   <!-- 양식서 보내기 화면 -->
   <div class="screen" id="screenSend">
     <div class="back-bar">
-      <button class="back-btn" onclick="showScreen('select')">‹ 뒤로</button>
+      <button class="back-btn" onclick="goBack()">‹ 뒤로</button>
       <span class="back-title">📝 양식서 보내기</span>
+      <button class="back-btn forward-btn" onclick="goForward()">다음 ›</button>
     </div>
     <div class="card">
       <div class="section-title">의뢰서 링크</div>
@@ -339,17 +392,48 @@ function showToast(msg, duration = 3000) {
   toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
 }
 
-// ── 화면 전환 ──
-function showScreen(name) {
+// ── 화면 전환 (히스토리 관리) ──
+let screenHistory = ['select'];
+let historyIndex = 0;
+
+function showScreen(name, opts) {
+  opts = opts || {};
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   if (name === 'select') {
     document.getElementById('screenSelect').classList.add('active');
   } else if (name === 'inbox') {
     document.getElementById('screenInbox').classList.add('active');
-    loadEventRequests();
+    if (!opts.fromHistory) loadEventRequests();
   } else if (name === 'send') {
     document.getElementById('screenSend').classList.add('active');
   }
+  if (!opts.fromHistory) {
+    if (historyIndex < screenHistory.length - 1) {
+      screenHistory = screenHistory.slice(0, historyIndex + 1);
+    }
+    screenHistory.push(name);
+    historyIndex = screenHistory.length - 1;
+  }
+  updateNavButtons();
+}
+
+function goBack() {
+  if (historyIndex > 0) {
+    historyIndex--;
+    showScreen(screenHistory[historyIndex], { fromHistory: true });
+  }
+}
+
+function goForward() {
+  if (historyIndex < screenHistory.length - 1) {
+    historyIndex++;
+    showScreen(screenHistory[historyIndex], { fromHistory: true });
+  }
+}
+
+function updateNavButtons() {
+  document.querySelectorAll('.back-btn:not(.forward-btn)').forEach(b => b.disabled = historyIndex <= 0);
+  document.querySelectorAll('.forward-btn').forEach(b => b.disabled = historyIndex >= screenHistory.length - 1);
 }
 
 // ── 접수함 ──
@@ -393,10 +477,16 @@ function renderRequestList() {
   }).join('');
 }
 
+function arrToStr(v) { return Array.isArray(v) ? v.join(', ') : (v || ''); }
+
 function openRequestDetail(id) {
   const r = eventRequestsData.find(x => String(x.id) === String(id));
   if (!r) return;
-  const arr = v => Array.isArray(v) ? v.join(', ') : (v || '');
+  renderDetailView(r);
+  document.getElementById('requestModal').classList.add('open');
+}
+
+function renderDetailView(r) {
   const created = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
   const files = Array.isArray(r.attachment_urls) ? r.attachment_urls : [];
   const filesHtml = files.length ? files.map(u =>
@@ -416,14 +506,14 @@ function openRequestDetail(id) {
     ${fieldRow('이메일', r.email)}
     <div class="section-title" style="margin-top:16px;">🎪 행사 정보</div>
     ${fieldRow('행사명', r.event_name)}
-    ${fieldRow('행사종류', arr(r.event_type) + (r.event_type_etc ? ` (${r.event_type_etc})` : ''))}
+    ${fieldRow('행사종류', arrToStr(r.event_type) + (r.event_type_etc ? ` (${r.event_type_etc})` : ''))}
     ${fieldRow('행사일시', (fmtDate(r.event_date)||'') + (r.event_time ? ' ' + r.event_time : ''))}
     ${fieldRow('장소명', r.venue_name)}
     ${fieldRow('장소유형', r.venue_type)}
     ${fieldRow('장소확정여부', r.venue_status)}
     ${fieldRow('참석인원', r.attendee_count)}
     <div class="section-title" style="margin-top:16px;">🔧 요청 서비스</div>
-    ${fieldRow('필요서비스', arr(r.services) + (r.services_etc ? ` (${r.services_etc})` : ''))}
+    ${fieldRow('필요서비스', arrToStr(r.services) + (r.services_etc ? ` (${r.services_etc})` : ''))}
     ${fieldRow('무대규모', r.stage_size)}
     ${fieldRow('천막수량', r.tent_qty)}
     ${fieldRow('예산범위', r.budget_range)}
@@ -432,8 +522,135 @@ function openRequestDetail(id) {
     <div class="field-value" style="padding:8px 0;">${r.notes ? escHtml(r.notes) : '<span style="color:#c3c5d0">—</span>'}</div>
     <div class="section-title" style="margin-top:16px;">📎 첨부파일</div>
     <div style="padding:8px 0;">${filesHtml}</div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="startEdit('${r.id}')">✏️ 수정</button>
+      <button class="modal-btn danger" onclick="deleteRequest('${r.id}')">🗑️ 삭제</button>
+    </div>
   `;
-  document.getElementById('requestModal').classList.add('open');
+}
+
+function editRow(label, id, value, type) {
+  const v = escHtml(value == null ? '' : value);
+  return `<div class="field-row"><span class="field-label">${label}</span><input class="edit-input" id="${id}" type="${type||'text'}" value="${v}"></div>`;
+}
+
+function startEdit(id) {
+  const r = eventRequestsData.find(x => String(x.id) === String(id));
+  if (!r) return;
+  renderDetailEdit(r);
+}
+
+function renderDetailEdit(r) {
+  document.getElementById('requestModalCard').innerHTML = `
+    <div class="modal-header">
+      <div><div class="modal-title">✏️ ${escHtml(r.event_name||'행사진행의뢰서')} 수정</div></div>
+      <button class="modal-close" onclick="closeRequestModal()">✕</button>
+    </div>
+    <div class="section-title">📋 접수자 정보</div>
+    ${editRow('담당자명','edit_contact_name', r.contact_name)}
+    ${editRow('소속','edit_org_name', r.org_name)}
+    ${editRow('연락처','edit_phone', r.phone)}
+    ${editRow('이메일','edit_email', r.email)}
+    <div class="section-title" style="margin-top:16px;">🎪 행사 정보</div>
+    ${editRow('행사명','edit_event_name', r.event_name)}
+    ${editRow('행사종류(콤마구분)','edit_event_type', arrToStr(r.event_type))}
+    ${editRow('행사종류 기타','edit_event_type_etc', r.event_type_etc)}
+    ${editRow('행사일자','edit_event_date', r.event_date, 'date')}
+    ${editRow('행사시간','edit_event_time', r.event_time, 'time')}
+    ${editRow('장소명','edit_venue_name', r.venue_name)}
+    ${editRow('장소유형','edit_venue_type', r.venue_type)}
+    ${editRow('장소확정여부','edit_venue_status', r.venue_status)}
+    ${editRow('참석인원','edit_attendee_count', r.attendee_count)}
+    <div class="section-title" style="margin-top:16px;">🔧 요청 서비스</div>
+    ${editRow('필요서비스(콤마구분)','edit_services', arrToStr(r.services))}
+    ${editRow('필요서비스 기타','edit_services_etc', r.services_etc)}
+    ${editRow('무대규모','edit_stage_size', r.stage_size)}
+    ${editRow('천막수량','edit_tent_qty', r.tent_qty)}
+    ${editRow('예산범위','edit_budget_range', r.budget_range)}
+    ${editRow('견적수신이메일','edit_quote_email', r.quote_email)}
+    <div class="section-title" style="margin-top:16px;">📝 기타요청사항</div>
+    <textarea class="edit-input edit-textarea" id="edit_notes">${escHtml(r.notes||'')}</textarea>
+    <div class="modal-actions">
+      <button class="modal-btn primary" onclick="saveEdit('${r.id}')">💾 저장</button>
+      <button class="modal-btn" onclick="cancelEdit('${r.id}')">✖️ 취소</button>
+    </div>
+  `;
+}
+
+function cancelEdit(id) {
+  const r = eventRequestsData.find(x => String(x.id) === String(id));
+  if (r) renderDetailView(r);
+}
+
+async function saveEdit(id) {
+  const pw = prompt('비밀번호를 입력하세요');
+  if (pw === null) return;
+  if (pw !== '2375') { alert('비밀번호가 틀렸습니다.'); return; }
+
+  const val = k => document.getElementById(k).value.trim();
+  const toArr = s => s.split(',').map(x => x.trim()).filter(Boolean);
+  const payload = {
+    contact_name: val('edit_contact_name'),
+    org_name: val('edit_org_name'),
+    phone: val('edit_phone'),
+    email: val('edit_email'),
+    event_name: val('edit_event_name'),
+    event_type: toArr(val('edit_event_type')),
+    event_type_etc: val('edit_event_type_etc'),
+    event_date: val('edit_event_date'),
+    event_time: val('edit_event_time'),
+    venue_name: val('edit_venue_name'),
+    venue_type: val('edit_venue_type'),
+    venue_status: val('edit_venue_status'),
+    attendee_count: val('edit_attendee_count'),
+    services: toArr(val('edit_services')),
+    services_etc: val('edit_services_etc'),
+    stage_size: val('edit_stage_size'),
+    tent_qty: val('edit_tent_qty'),
+    budget_range: val('edit_budget_range'),
+    quote_email: val('edit_quote_email'),
+    notes: document.getElementById('edit_notes').value.trim()
+  };
+  if (!payload.event_name) {
+    showToast('❌ 행사명은 비워둘 수 없습니다');
+    return;
+  }
+  try {
+    const res = await fetch(`${STORAGE_URL}/rest/v1/event_requests?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { apikey: STORAGE_KEY, Authorization: 'Bearer ' + STORAGE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('update failed');
+    const idx = eventRequestsData.findIndex(x => String(x.id) === String(id));
+    if (idx > -1) eventRequestsData[idx] = Object.assign({}, eventRequestsData[idx], payload);
+    renderDetailView(eventRequestsData[idx]);
+    renderRequestList();
+    showToast('✅ 수정되었습니다');
+  } catch (e) {
+    showToast('❌ 수정에 실패했습니다');
+  }
+}
+
+async function deleteRequest(id) {
+  if (!confirm('정말 삭제하시겠습니까? 되돌릴 수 없습니다.')) return;
+  const pw = prompt('비밀번호를 입력하세요');
+  if (pw === null) return;
+  if (pw !== '2375') { alert('비밀번호가 틀렸습니다.'); return; }
+
+  try {
+    const res = await fetch(`${STORAGE_URL}/rest/v1/event_requests?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { apikey: STORAGE_KEY, Authorization: 'Bearer ' + STORAGE_KEY }
+    });
+    if (!res.ok) throw new Error('delete failed');
+    eventRequestsData = eventRequestsData.filter(x => String(x.id) !== String(id));
+    closeRequestModal();
+    renderRequestList();
+    showToast('✅ 삭제되었습니다');
+  } catch (e) {
+    showToast('❌ 삭제에 실패했습니다');
+  }
 }
 
 function closeRequestModal() {
@@ -481,6 +698,8 @@ if (!navigator.share) {
   const btn = document.getElementById('shareBtn');
   btn.textContent = '🔗 링크 복사';
 }
+
+updateNavButtons();
 </script>
 </body>
 </html>

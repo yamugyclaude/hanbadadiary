@@ -11,16 +11,16 @@
 - 🌐 **라이브 상태**: 정상
 - ✅ **배포 방식**: GitHub Pages + GitHub Actions (자동)
 
-**⚠️ RLS 현황 (event_requests, 프로젝트 poxafvsqxvcaewduhvxt)**: SELECT는 2026-07-08에 anon에게 추가로 열림(사장님 승인, 관리자 접수함 조회용) — 즉 anon key를 아는 사람은 로그인 없이도 전체 응답을 읽을 수 있음. INSERT는 계속 허용, UPDATE/DELETE는 정책 없어 실질 차단(curl 실증 확인). 아래 "insert-only" 표현이 남은 로그는 SELECT 개방 **이전** 시점 기록이니 참고할 것.
+**⚠️ RLS 현황 (event_requests, 프로젝트 poxafvsqxvcaewduhvxt)**: SELECT/INSERT/UPDATE/DELETE **전부 anon에게 열림**(2026-07-08, 사장님 승인 — 접수함 조회+수정+삭제 기능용). 즉 이 anon key를 아는 사람은 로그인 없이도 전체 응답을 읽고, 고치고, 영구 삭제할 수 있음. 실제 앱에서는 수정/삭제 액션 직전에 비밀번호(2375) `prompt()` 확인을 거치지만, 이는 클라이언트단 UI 방어일 뿐 DB 자체는 anon key만 있으면 누구나 뚫을 수 있는 상태임. 아래 "insert-only"/"select만" 표현이 남은 로그는 그 이전 시점 기록.
 
 **📨 텔레그램 알림**: 클라이언트가 행사진행의뢰서를 제출하면 Supabase Edge Function `notify-telegram`을 거쳐 텔레그램 그룹("한바다 접수알림")으로 자동 알림. 봇 토큰은 Edge Function 코드 내부에만 존재(git·클라이언트 JS 비노출, curl로 실증 확인). **주의**: 최초 배포판은 CORS(OPTIONS preflight) 미처리로 실제 브라우저에서는 알림이 전혀 안 갔었음(curl 테스트는 통과해서 못 잡음) — 2026-07-08 opus 감사로 확증 후 CORS 헤더 추가해서 재배포 완료, 브라우저 preflight까지 실증 확인됨.
 
 **📥 접수함 위치 변경**: 관리자 접수함 조회 기능은 더 이상 메인 앱(로그인 후 nav 탭)에 없음. 로그인화면 "행사진행의뢰서" 버튼(비밀번호 2375) → 중간 페이지 `event-request/hub/`로 이동해서 "📥 접수함" / "📝 양식서 보내기"(이메일·공유하기) 중 선택하는 구조로 변경.
 
 **최근 3개 배포**:
-1. **`d09d4cc`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — 텔레그램 CORS 수정(Edge Function 재배포, 위 항목 참고) + 접수함을 메인 앱에서 분리해 `event-request/hub/`로 이전, "양식서 보내기"(이메일/공유) 기능 신설
-2. **`0fdaa16`** (2026-07-08) — 폼 제출 시 텔레그램 알림 연동(Edge Function `notify-telegram` 최초 배포, 이후 1번 항목에서 CORS 수정됨)
-3. **`11d98c7`** (2026-07-08) — event_requests에 anon SELECT RLS 신규 허용(위 RLS 경고 참고), 로그인화면 버튼에 비밀번호(2375) 게이트 최초 도입, event-request 폼에 "닫기" 버튼 2곳
+1. **`6df0fb2`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — 접수함 상세보기에 수정/삭제 기능 추가(각각 비밀번호 재확인), event_requests에 anon UPDATE/DELETE RLS 신규 허용(위 RLS 경고 참고), 허브 3개 화면에 히스토리 기반 뒤로/앞으로 네비게이션, 로그인화면에 실제 로고 이미지 삽입, 양식서 보내기에 Gmail/네이버메일 버튼 추가
+2. **`d09d4cc`** (2026-07-08) — 텔레그램 CORS 수정(Edge Function 재배포) + 접수함을 메인 앱에서 분리해 `event-request/hub/`로 이전, "양식서 보내기"(이메일/공유) 기능 신설
+3. **`0fdaa16`** (2026-07-08) — 폼 제출 시 텔레그램 알림 연동(Edge Function `notify-telegram` 최초 배포, 이후 1번 항목에서 CORS 수정됨)
 
 **최근 해결된 문제**:
 - ✅ "저장 실패" 판정이 추측(타임아웃)에 의존하던 근본 문제 — `Promise.race`는 20초 타임아웃이 이겨도 실제 fetch를 취소하지 않아 "일단 실패 표시 후 늦게 성공하면 정정"하는 방어적 패치(`c30b09a`)가 필요했음. 이번엔 `AbortController`를 `uploadPhotoToStorage`/`sbUpsertLog`에 `signal`로 전달해 60초 초과 시 요청을 진짜로 취소하도록 바꿔, 처음부터 실제 결과에만 기반해 정확히 판정하고 사후 정정 로직 자체를 제거 (`saveAndSync()`, `sbUpsertLog()`, `uploadPhotoToStorage()`, index.html)
