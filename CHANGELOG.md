@@ -11,10 +11,12 @@
 - 🌐 **라이브 상태**: 정상
 - ✅ **배포 방식**: GitHub Pages + GitHub Actions (자동)
 
+**⚠️ RLS 현황 (event_requests, 프로젝트 poxafvsqxvcaewduhvxt)**: SELECT는 2026-07-08에 anon에게 추가로 열림(사장님 승인, 관리자 접수함 조회용) — 즉 anon key를 아는 사람은 로그인 없이도 전체 응답을 읽을 수 있음. INSERT는 계속 허용, UPDATE/DELETE는 정책 없어 실질 차단(curl 실증 확인). 아래 "insert-only" 표현이 남은 로그는 SELECT 개방 **이전** 시점 기록이니 참고할 것.
+
 **최근 3개 배포**:
-1. **`b065e27`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — "행사진행의뢰서" 18문항 웹폼 완성(원본 PDF 6섹션 그대로 구현) + Supabase `event_requests` 테이블 신설, anon insert-only RLS(select/update/delete 전부 차단)로 외부 클라이언트가 로그인 없이 제출 가능. honeypot 스팸 방지 포함
-2. **`9477197`** (브랜치 `claude/content-analysis-v9gjwm`) (2026-07-08) — 로그인 화면에 "📄 행사진행의뢰서" 버튼 신규 추가(새 탭으로 독립 페이지 `event-request/index.html` 오픈), main 병합·배포 완료
-3. **`9d6b2fe`** (2026-07-05) — "저장 실패" 추측 판정 근본 수정: `Promise.race` 타임아웃(방치된 fetch) 방식을 `AbortController` 기반 진짜 취소로 교체 (아래 `c30b09a` 대체)
+1. **`11d98c7`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — 메인 앱에 관리자 전용 "📥 접수함" 탭 추가(event_requests 목록+상세조회), 로그인화면 버튼에 비밀번호(2375) 게이트, event-request 폼에 "닫기" 버튼 2곳. 접수함 조회를 위해 event_requests에 anon SELECT RLS 신규 허용(위 경고 참고)
+2. **`b065e27`** (2026-07-08) — "행사진행의뢰서" 18문항 웹폼 완성(원본 PDF 6섹션 그대로 구현) + Supabase `event_requests` 테이블 신설, 당시엔 anon insert-only RLS(select/update/delete 전부 차단)로 시작 → 이후 1번 항목에서 select 개방됨. honeypot 스팸 방지 포함
+3. **`9477197`** (2026-07-08) — 로그인 화면에 "📄 행사진행의뢰서" 버튼 신규 추가(새 탭으로 독립 페이지 `event-request/index.html` 오픈), main 병합·배포 완료
 
 **최근 해결된 문제**:
 - ✅ "저장 실패" 판정이 추측(타임아웃)에 의존하던 근본 문제 — `Promise.race`는 20초 타임아웃이 이겨도 실제 fetch를 취소하지 않아 "일단 실패 표시 후 늦게 성공하면 정정"하는 방어적 패치(`c30b09a`)가 필요했음. 이번엔 `AbortController`를 `uploadPhotoToStorage`/`sbUpsertLog`에 `signal`로 전달해 60초 초과 시 요청을 진짜로 취소하도록 바꿔, 처음부터 실제 결과에만 기반해 정확히 판정하고 사후 정정 로직 자체를 제거 (`saveAndSync()`, `sbUpsertLog()`, `uploadPhotoToStorage()`, index.html)

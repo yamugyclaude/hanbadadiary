@@ -1566,6 +1566,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <div class="equip-modal-card" id="equipModalCard"></div>
 </div>
 
+<!-- ═══ 접수함 상세 모달 ═══ -->
+<div class="equip-modal-overlay" id="requestModal" onclick="if(event.target===this)closeRequestModal()">
+  <div class="equip-modal-card" id="requestModalCard"></div>
+</div>
+
 <!-- ═══ 체크리스트 모달 ═══ -->
 <div class="checklist-overlay" id="checklistOverlay" onclick="if(event.target===this)closeChecklist()">
   <div class="checklist-inner">
@@ -1591,7 +1596,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   <div class="login-logo">한바다<span>일지</span></div>
   <div class="login-sub">SOUND EQUIPMENT MANAGEMENT</div>
   <button class="checklist-open-btn" onclick="openChecklist()">📋 행사전 챙겨야할 물품체크리스트</button>
-  <button class="checklist-open-btn" onclick="window.open('./event-request/', '_blank')">📄 행사진행의뢰서</button>
+  <button class="checklist-open-btn" onclick="openEventRequestForm()">📄 행사진행의뢰서</button>
   <div class="login-card" id="loginCard">
     <div class="login-title">🔐 로그인</div>
     <div class="login-field">
@@ -1700,6 +1705,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       <div class="nav-tab" id="tab-vehicle" onclick="switchTab('vehicle')">🚛 차량관리</div>
       <div class="nav-tab" id="tab-equipment" onclick="switchTab('equipment')">🗂️ 장비관리</div>
       <div class="nav-tab" id="tab-stage" onclick="switchTab('stage')">🎭 무대계산기</div>
+      <div class="nav-tab" id="tab-requests" onclick="switchTab('requests')" style="display:none;">📥 접수함</div>
     </div>
     <div class="nav-fade-right" id="navFadeRight">›</div>
     <div class="nav-fade-left" id="navFadeLeft">‹</div>
@@ -2205,6 +2211,15 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
       </div><!-- /sc-page-3d -->
 
     </div>
+  </div>
+
+  <!-- 접수함 PAGE -->
+
+  <div class="page" id="pageRequests">
+    <div class="list-toolbar">
+      <span style="font-size:16px;font-weight:800;color:var(--text);">📥 접수함</span>
+    </div>
+    <div class="log-cards" id="requestCards"></div>
   </div>
 
   <!-- FORM PAGE -->
@@ -3178,6 +3193,8 @@ function afterLogin() {
   // 관리자 버튼 표시
   const adminBtn = document.getElementById('adminBtn');
   if (adminBtn) adminBtn.style.display = isAdmin ? 'block' : 'none';
+  const reqTab = document.getElementById('tab-requests');
+  if (reqTab) reqTab.style.display = isAdmin ? '' : 'none';
   // 삭제 버튼 처리
   const fb = document.getElementById('formDeleteBtn');
   if (fb) fb.style.display = isAdmin ? 'block' : 'none';
@@ -4811,6 +4828,13 @@ async function loadChecklistFromCloud() {
     localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
   }
   return true;
+}
+
+function openEventRequestForm() {
+  const pw = prompt('비밀번호를 입력하세요');
+  if (pw === null) return;
+  if (pw !== '2375') { alert('비밀번호가 틀렸습니다.'); return; }
+  window.open('./event-request/', '_blank');
 }
 
 async function openChecklist() {
@@ -7223,7 +7247,111 @@ renderTasks('directive');
 document.getElementById('tab-stage').classList.add('active');
 const p = document.getElementById('pageStage'); p.style.display='flex'; p.classList.add('active');
 setTimeout(scUpdate, 30);
+} else if (tab === 'requests') {
+document.getElementById('tab-requests').classList.add('active');
+const p = document.getElementById('pageRequests'); p.style.display='flex'; p.classList.add('active');
+loadEventRequests();
 }
+}
+
+// ══════ 접수함 (행사진행의뢰서) ══════
+let eventRequestsData = [];
+
+async function loadEventRequests() {
+  const el = document.getElementById('requestCards');
+  el.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><div>불러오는 중...</div></div>`;
+  try {
+    const res = await fetch(`${STORAGE_URL}/rest/v1/event_requests?select=*&order=created_at.desc`, {
+      headers: { apikey: STORAGE_KEY, Authorization: 'Bearer ' + STORAGE_KEY }
+    });
+    if (!res.ok) throw new Error('fetch failed');
+    eventRequestsData = await res.json();
+    renderRequestList();
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div>목록을 불러오지 못했습니다</div></div>`;
+    showToast('❌ 접수함 불러오기 실패 — 네트워크를 확인하세요');
+  }
+}
+
+function renderRequestList() {
+  const el = document.getElementById('requestCards');
+  if (!eventRequestsData.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📥</div><div>아직 접수된 의뢰서가 없습니다</div></div>`;
+    return;
+  }
+  el.innerHTML = eventRequestsData.map(r => {
+    const created = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
+    return `<div class="log-card" onclick="openRequestDetail('${r.id}')">
+      <div class="log-card-top">
+        <span class="log-card-date">${fmtDate(r.event_date)||'날짜미정'}</span>
+        <span class="log-card-type">${_escEq(r.org_name||'')}</span>
+      </div>
+      <div class="log-card-name">${_escEq(r.event_name||'(행사명 없음)')}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+        <div class="log-card-venue">${_escEq(r.contact_name||'')} · ${_escEq(r.phone||'')}</div>
+        <span style="font-size:11px;color:var(--text-muted);flex-shrink:0;">${created}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openRequestDetail(id) {
+  const r = eventRequestsData.find(x => String(x.id) === String(id));
+  if (!r) return;
+  const arr = v => Array.isArray(v) ? v.join(', ') : (v || '');
+  const created = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
+  const files = Array.isArray(r.attachment_urls) ? r.attachment_urls : [];
+  const filesHtml = files.length ? files.map(u =>
+    /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u)
+      ? `<a href="${u}" target="_blank" style="display:block;"><img src="${u}" style="width:100%;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;"></a>`
+      : `<a href="${u}" target="_blank" style="display:block;color:var(--accent);font-size:13px;margin-bottom:8px;">📎 첨부파일 열기</a>`
+  ).join('') : '<span style="color:var(--text-muted)">—</span>';
+  document.getElementById('requestModalCard').innerHTML = `
+    <div class="equip-modal-header">
+      <div><div class="equip-modal-title">📥 ${_escEq(r.event_name||'행사진행의뢰서')}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">제출일시 ${created}</div></div>
+      <button class="equip-modal-close" onclick="closeRequestModal()">✕</button>
+    </div>
+    <div class="equip-modal-body">
+      <div class="equip-section">
+        <div class="equip-section-head">📋 접수자 정보</div>
+        ${_eqFieldRow('담당자명', r.contact_name)}
+        ${_eqFieldRow('소속', r.org_name)}
+        ${_eqFieldRow('연락처', r.phone)}
+        ${_eqFieldRow('이메일', r.email)}
+      </div>
+      <div class="equip-section">
+        <div class="equip-section-head">🎪 행사 정보</div>
+        ${_eqFieldRow('행사명', r.event_name)}
+        ${_eqFieldRow('행사종류', arr(r.event_type) + (r.event_type_etc ? ` (${r.event_type_etc})` : ''))}
+        ${_eqFieldRow('행사일시', (fmtDate(r.event_date)||'') + (r.event_time ? ' ' + r.event_time : ''))}
+        ${_eqFieldRow('장소명', r.venue_name)}
+        ${_eqFieldRow('장소유형', r.venue_type)}
+        ${_eqFieldRow('장소확정여부', r.venue_status)}
+        ${_eqFieldRow('참석인원', r.attendee_count)}
+      </div>
+      <div class="equip-section">
+        <div class="equip-section-head">🔧 요청 서비스</div>
+        ${_eqFieldRow('필요서비스', arr(r.services) + (r.services_etc ? ` (${r.services_etc})` : ''))}
+        ${_eqFieldRow('무대규모', r.stage_size)}
+        ${_eqFieldRow('천막수량', r.tent_qty)}
+        ${_eqFieldRow('예산범위', r.budget_range)}
+        ${_eqFieldRow('견적수신이메일', r.quote_email)}
+      </div>
+      <div class="equip-section">
+        <div class="equip-section-head">📝 기타요청사항</div>
+        <div style="padding:12px 14px;font-size:13px;color:var(--text);white-space:pre-wrap;word-break:break-all;">${r.notes ? _escEq(r.notes) : '<span style="color:var(--text-muted)">—</span>'}</div>
+      </div>
+      <div class="equip-section">
+        <div class="equip-section-head">📎 첨부파일</div>
+        <div style="padding:12px 14px;">${filesHtml}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('requestModal').classList.add('open');
+}
+
+function closeRequestModal() {
+  document.getElementById('requestModal').classList.remove('open');
 }
 
 function filterTasks(type, f) {
