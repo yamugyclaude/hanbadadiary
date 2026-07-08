@@ -22,7 +22,42 @@
 - 브랜치: `claude/content-analysis-v9gjwm` (main 미병합, 버전 자동증가는 main push 시에만 동작하므로 아직 버전 미반영)
 
 ### 다음 예정
-- 🛠️ 사장님이 제공할 실제 "행사진행의뢰서" 폼 내용으로 `event-request/index.html` 채우기
+- 🛠️ ~~사장님이 제공할 실제 "행사진행의뢰서" 폼 내용으로 `event-request/index.html` 채우기~~ → 완료 (아래 항목 참고)
+
+---
+
+## 2026-07-08 ✅ 성공 — 행사진행의뢰서 18문항 웹폼 완성 + Supabase 연동
+### 배경
+사장님이 업로드한 PDF("행사 진행 의뢰서" — 음향/무대/조명 서비스 문의 양식)를 구글폼처럼 실제
+작동하는 웹폼으로 만들고, 클라이언트에게 링크를 보내 작성받은 데이터를 나중에 활용하기로 함.
+
+### 작업 내용
+- planner(sonnet)가 폼 UX(단일 스크롤 6섹션) + DB 스키마 + RLS 설계 → 사장님 승인
+- 비서가 Supabase MCP로 `event_requests` 테이블 생성 (프로젝트: `poxafvsqxvcaewduhvxt`, 메인 앱 사진 Storage와
+  같은 프로젝트, 기존 `soundlogs`가 있는 DB 프로젝트와는 별개). RLS: anon role에 **INSERT만 허용**
+  (`with check(true)`), SELECT/UPDATE/DELETE 정책 없음 → 클라이언트가 서로의 제출 내용을 못 봄
+- builder(sonnet)가 `event-request/index.html`을 원본 PDF 문구 그대로 18문항 폼으로 재작성.
+  필수/선택 표시, 체크박스 "기타" 선택 시 서술 입력창 노출, honeypot hidden input(값 있으면 조용히
+  제출 무시 — 봇 차단), 제출 성공 시 감사 화면으로 전환. 메인 앱 로그인/CSS/JS와 완전 독립
+
+### 검증 (auditor, sonnet)
+- curl로 anon key 사용해 실제 확인: `GET .../event_requests` → `[]` (SELECT 완전 차단),
+  `POST` 필수 컬럼 채운 테스트 insert → HTTP 201 성공, 직후 재조회도 `[]` (RLS 실증 확인)
+- payload 21개 키 = 테이블 컬럼 21개(id/created_at 제외) 1:1 일치, 필수 검증 로직이 13개 필수
+  문항 모두 커버, 메인 앱 파일 참조 없음(완전 독립) 확인
+- ⚠️ 감사 과정에서 테스트용 더미 행(`contact_name="감사테스트"`)이 `event_requests`에 남음 —
+  SELECT/DELETE가 RLS로 막혀 있어 anon key로는 삭제 불가, Supabase 대시보드에서 직접 삭제 필요
+  (사장님 확인 대기)
+
+### 결과
+- **작업 완료** — ⚠️ 조건부통과(문서화 누락 지적받아 이 기록으로 보완)
+- 파일: `event-request/index.html` (재작성)
+- 커밋: `b065e27`, 브랜치: `claude/content-analysis-v9gjwm` (main 미병합, 배포는 사장님 지시 대기)
+
+### 다음 예정
+- 🛠️ main 병합·배포 여부 사장님 확인
+- 🛠️ 감사 중 남은 테스트 더미 행 삭제 여부 확인
+- 🛠️ 제출된 데이터로 무엇을 할지(관리자 조회 화면 등)는 사장님이 차후 지시 예정
 
 ---
 

@@ -12,9 +12,9 @@
 - ✅ **배포 방식**: GitHub Pages + GitHub Actions (자동)
 
 **최근 3개 배포**:
-1. **(브랜치 `claude/content-analysis-v9gjwm`, main 병합 전)** (2026-07-08) — 로그인 화면에 "📄 행사진행의뢰서" 버튼 신규 추가(새 탭으로 독립 페이지 `event-request/index.html` 오픈). 내용은 빈 뼈대(준비 중 placeholder)만 있고, 실제 폼 내용은 후속 작업 예정
-2. **`9d6b2fe`** (2026-07-05) — "저장 실패" 추측 판정 근본 수정: `Promise.race` 타임아웃(방치된 fetch) 방식을 `AbortController` 기반 진짜 취소로 교체 (아래 `c30b09a` 대체)
-3. **`c30b09a`** (2026-07-05, 대체됨) — "저장완료, 클라우드 실패" 거짓 경보 수정: 20초 타임아웃 후에도 계속 진행 중인 fetch가 늦게 성공하면 `_syncFailed` 정정
+1. **`b065e27`** (브랜치 `claude/content-analysis-v9gjwm`, main 병합 전) (2026-07-08) — "행사진행의뢰서" 18문항 웹폼 완성(원본 PDF 6섹션 그대로 구현) + Supabase `event_requests` 테이블 신설, anon insert-only RLS(select/update/delete 전부 차단)로 외부 클라이언트가 로그인 없이 제출 가능. honeypot 스팸 방지 포함
+2. **`9477197`** (브랜치 `claude/content-analysis-v9gjwm`) (2026-07-08) — 로그인 화면에 "📄 행사진행의뢰서" 버튼 신규 추가(새 탭으로 독립 페이지 `event-request/index.html` 오픈), main 병합·배포 완료
+3. **`9d6b2fe`** (2026-07-05) — "저장 실패" 추측 판정 근본 수정: `Promise.race` 타임아웃(방치된 fetch) 방식을 `AbortController` 기반 진짜 취소로 교체 (아래 `c30b09a` 대체)
 
 **최근 해결된 문제**:
 - ✅ "저장 실패" 판정이 추측(타임아웃)에 의존하던 근본 문제 — `Promise.race`는 20초 타임아웃이 이겨도 실제 fetch를 취소하지 않아 "일단 실패 표시 후 늦게 성공하면 정정"하는 방어적 패치(`c30b09a`)가 필요했음. 이번엔 `AbortController`를 `uploadPhotoToStorage`/`sbUpsertLog`에 `signal`로 전달해 60초 초과 시 요청을 진짜로 취소하도록 바꿔, 처음부터 실제 결과에만 기반해 정확히 판정하고 사후 정정 로직 자체를 제거 (`saveAndSync()`, `sbUpsertLog()`, `uploadPhotoToStorage()`, index.html)
