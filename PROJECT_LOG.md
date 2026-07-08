@@ -2,6 +2,53 @@
 생성일: 2026-07-03
 ---
 
+## 2026-07-08 ✅ 성공 — 텔레그램 CORS 버그 수정 + 접수함 허브페이지 이전
+### 배경
+텔레그램 알림을 연동했는데 사장님이 실제로 제출해보니 알림이 안 옴. curl로는 계속 정상이라
+sonnet 감사로도 원인을 못 잡아서 opus로 격상 재검증 요청받음. 동시에 접수함(제출목록 조회)을
+메인 앱 탭에서 빼서, 로그인화면 비밀번호 통과 후 별도 중간페이지로 옮기고 "양식서 보내기"
+기능을 추가하라는 지시도 받음.
+
+### 원인 (opus 감사, 확증)
+`notify-telegram` Edge Function이 브라우저 CORS preflight(OPTIONS)를 처리하지 않음.
+`apikey`/`Authorization`/`Content-Type` 커스텀 헤더를 쓰는 fetch는 브라우저가 반드시 OPTIONS를
+먼저 보내는데, 이 함수는 OPTIONS에 405 + CORS 헤더 없음으로 응답 → 브라우저가 실제 POST를
+아예 보내지도 못하고 차단. **curl은 preflight를 안 하므로 이 버그를 못 잡았던 것** — "curl 통과
+≠ 브라우저 통과"가 이번 사건의 핵심 교훈. `event_requests` insert(PostgREST)는 Supabase가
+CORS를 자동 처리해줘서 정상 동작했기 때문에, DB엔 row가 쌓이는데 알림만 안 가는 상황이었음.
+
+### 수정
+- `notify-telegram` 함수에 `OPTIONS` 메서드 처리 + 모든 응답에 `Access-Control-Allow-Origin/
+  Headers(apikey 포함)/Methods` 헤더 추가 후 재배포(version 2)
+- 실제 브라우저 preflight를 재현한 curl(`-X OPTIONS` + `Origin` 헤더)로 200 + CORS 헤더 확인
+- 접수함 기능을 `index.html`(nav 탭/페이지/함수 전부)에서 제거하고 새 독립 페이지
+  `event-request/hub/index.html`로 이전. 허브 페이지는 "📥 접수함"(기존 목록+상세 그대로)과
+  "📝 양식서 보내기"(mailto 이메일 + `navigator.share`/클립보드 복사 폴백, 카카오 SDK 앱등록 없이
+  구현) 두 선택지 제공
+- `openEventRequestForm()`의 이동 경로를 `event-request/`(공개폼 직행)에서 `event-request/hub/`로
+  변경. 클라이언트용 공개 폼(`event-request/index.html`)은 무변경
+
+### 검증 (auditor)
+- CORS: opus가 라이브 함수에 OPTIONS/POST 3종 재현 테스트로 원인 확증, sonnet이 재배포 후
+  동일 테스트로 수정 확인
+- 허브 이전: `index.html`에서 접수함 관련 코드 잔여 참조 0건, `event-request/hub/`의 Supabase
+  필드 매핑이 실제 curl 조회 결과와 100% 일치, 공개 폼 링크가 hub가 아닌 올바른 클라이언트
+  경로를 가리킴, `event-request/index.html`은 diff에 없음(무변경) 확인
+
+### 결과
+- **작업 완료** — ✅ 통과
+- 파일: `index.html`(접수함 제거+버튼경로 변경), `event-request/hub/index.html`(신규),
+  Supabase Edge Function `notify-telegram`(version 2)
+- 커밋: `d09d4cc`
+- 브랜치: `claude/content-analysis-v9gjwm` (main 배포 대기 중)
+
+### 교훈
+- 외부 API 연동 기능은 **curl 검증만으로 브라우저 동작을 보장할 수 없음** — CORS preflight는
+  curl이 자동으로 보내지 않으므로, fetch에 커스텀 헤더가 있는 기능은 `-X OPTIONS` 재현 테스트를
+  검증 항목에 기본 포함할 것
+
+---
+
 ## 2026-07-08 ✅ 성공 — 폼 제출 시 텔레그램 알림 연동
 ### 배경
 클라이언트가 행사진행의뢰서를 제출하면 사장님이 바로 알아야 하므로(접수함 탭은 직접 들어가서
