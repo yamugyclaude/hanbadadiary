@@ -2,6 +2,60 @@
 생성일: 2026-07-03
 ---
 
+## 2026-07-09 ⏸️ 보류 — DB 조회전용(read-only) MCP 도입 시도
+### 배경
+Supabase 데이터를 대화로 바로 조회/디버깅할 수 있게, 쓰기 권한이 원천 차단된 별도 MCP 연결을
+만들려고 시도. 사장님이 5단계 프로세스(스택확인→연결정보→안전장치→연결테스트→감사) 요청.
+
+### 이 프로젝트의 DB 구조 (확인 완료, 재조사 불필요)
+- 순수 정적 HTML/JS(GitHub Pages), package.json/.env/마이그레이션 파일 전혀 없음
+- 서로 다른 Supabase 프로젝트 **2개**를 클라이언트 코드에 anon key 하드코딩해서 직접 REST 호출:
+  - **창고 A** `nifmnigvrjfctdimgmda` — `index.html`(`SB_URL`/`SB_KEY`), soundlogs/tasks/
+    vehicle_data/access_logs 등 핵심 운영 데이터 + Realtime
+  - **창고 B** `poxafvsqxvcaewduhvxt` — `index.html`(`STORAGE_URL`/`STORAGE_KEY`, Storage),
+    `event-request/index.html`, `event-request/hub/index.html` 공유. event_requests 테이블 +
+    notify-telegram Edge Function
+- 비서의 Supabase MCP는 창고 B만 접근 가능(창고 A는 다른 계정/조직이라 접근 불가 — 창고 A
+  작업은 항상 사장님이 대시보드에서 직접 SQL 실행 필요)
+
+### 진행한 작업
+1. 두 프로젝트 모두에 `mcp_readonly` role 생성 — `public` 스키마 SELECT만 부여, INSERT/UPDATE/
+   DELETE/DDL 권한 없음, `default_transaction_read_only=on`, 이후 `BYPASSRLS`도 추가(RLS 때문에
+   0건으로 보이는 문제 해결용)
+2. 표준 Postgres MCP 서버(`@modelcontextprotocol/server-postgres`)를 사장님 로컬 Claude
+   Desktop에 연결 시도 — Supabase 무료 요금제 "Shared Pooler"(IPv4, `aws-N-지역.pooler.
+   supabase.com:6543`) 경유로 연결
+
+### ❌ 발견한 치명적 문제 (미해결, 다음 작업 시 여기서 재개할 것)
+**Shared Pooler로 연결하면 `mcp_readonly`로 접속해도 실제로는 `postgres`(관리자) 권한으로
+동작함.** `SELECT current_user, session_user;` 실행 결과 둘 다 `postgres`로 나옴 — 실제로
+INSERT까지 성공해버림(테스트 행은 확인 후 바로 삭제 완료, `id: ecfa0d21-...`).
+- 원인: Supabase 문서/이슈(Custom Database Roles 관련 논의)에 근거해, 무료 요금제의 Shared
+  Pooler(Supavisor)가 커스텀 role을 제대로 구분하지 못하고 관리자 권한으로 라우팅하는 것으로
+  추정됨(공식 문서에 명시적 확인은 못함, 정황 근거).
+- **현재 조치**: 위험하므로 사장님 로컬 Claude Desktop의 MCP 설정에서 두 연결(`hanbada-db-storage`,
+  `hanbada-db-main`) 전부 제거 완료. 이 세션의 임시 등록도 제거 완료. **현재 어디에도 활성화된
+  DB MCP 연결 없음 — 안전한 상태.**
+
+### 다음 시도 후보 (미착수, 사장님이 시간 날 때 재개)
+1. **Direct Connection 시도** (우선 추천) — `db.<project-ref>.supabase.co:5432`로 pooler 없이
+   직접 연결. Supavisor 라우팅을 거치지 않아 role이 정확히 적용될 가능성 높음. 단, 무료
+   요금제에서 Direct Connection은 **IPv6 전용** — 사장님 자택/사무실 네트워크가 IPv6를
+   지원하는지 확인 필요(안 되면 이 방법 불가).
+2. **PostgREST + 커스텀 서명 JWT 방식** — `role: mcp_readonly` claim을 담은 JWT를 프로젝트 JWT
+   시크릿으로 직접 서명해서, 표준 REST API(`/rest/v1/...`)로 조회. 네트워크 제약 없이(HTTPS만
+   쓰므로) 확실히 동작하지만, Supabase 대시보드에서 JWT 시크릿(민감정보)을 추가로 받아와야 하고
+   구현이 더 복잡함.
+3. (참고) 이 비서가 일하는 원격 세션 환경 자체는 HTTPS(443) 외 포트가 전부 막혀있어서, Postgres
+   MCP는 애초에 **사장님 로컬 PC에서만** 시도 가능 — 이 세션에서는 절대 안 됨(직접 확인함).
+
+### 생성된 자원 (다음 작업 시 재사용 가능, 삭제 안 함)
+- 창고 A, 창고 B 모두 `mcp_readonly` role 존재(SELECT-only + BYPASSRLS). 비밀번호는 각각
+  이 대화에서 전달됨(사장님 로컬에만 보관, 저장소엔 없음). 필요시 대시보드에서 비밀번호
+  재설정 가능.
+
+---
+
 ## 2026-07-08 ✅ 성공 — 무대계산기 모바일 왼쪽 쏠림 수정 + 접수함 게시판화 + 폼 필드 정리
 ### 배경
 폰에서 무대계산기 배치 캔버스가 왼쪽으로 쏠려 보인다는 신고. Explore 조사 결과 PC 전용
