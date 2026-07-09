@@ -1471,7 +1471,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .sc-clamp-total-item .stagecalc-clamp-val { color:var(--accent); font-size:20px; }
 .stagecalc-clamp-label { font-size:11px; color:var(--text-muted); font-weight:600; }
 .stagecalc-clamp-val { font-size:18px; font-weight:700; color:var(--text); }
-#stagecalcCanvas { width:100%; display:block; border-radius:var(--radius); background:var(--surface2); border:1px solid var(--border); }
+#stagecalcCanvas { width:100%; display:block; margin:0 auto; border-radius:var(--radius); background:var(--surface2); border:1px solid var(--border); }
 .stagecalc-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
 .stagecalc-leg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); }
 .stagecalc-leg-box { width:14px; height:5px; border-radius:2px; }
@@ -10431,6 +10431,15 @@ function scUpdate() {
 
   scDrawDiagram(scM, scN, spans, rowSpans);
 }
+
+let scResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(scResizeTimer);
+  scResizeTimer = setTimeout(() => {
+    const pageStage = document.getElementById('pageStage');
+    if (pageStage && pageStage.classList.contains('active')) scUpdate();
+  }, 200);
+});
 
 function scDrawDiagram(M, N, spans, rowSpans) {
   const cv  = document.getElementById('stagecalcCanvas');
