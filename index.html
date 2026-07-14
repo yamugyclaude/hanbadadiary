@@ -6157,15 +6157,22 @@ function _renderLogsSection(item) {
   return html;
 }
 
-async function addEquipLog() {
+// 관리내역 입력칸(elDate/elDesc/elPlace)을 읽어 로그 객체로 반환. 수리 내용이 비어있으면 null.
+function _readEquipLogInput() {
   const date = document.getElementById('elDate')?.value;
   const desc = document.getElementById('elDesc')?.value?.trim();
   const place = document.getElementById('elPlace')?.value?.trim();
-  if (!desc) { showToast('수리 내용을 입력하세요'); return; }
+  if (!desc) return null;
+  return { date: date || new Date().toISOString().slice(0,10), desc, place: place || '' };
+}
+
+async function addEquipLog() {
+  const log = _readEquipLogInput();
+  if (!log) { showToast('수리 내용을 입력하세요'); return; }
   const found = _findEquipItem(eqModalId);
   if (!found) return;
   if (!Array.isArray(found.item.logs)) found.item.logs = [];
-  found.item.logs.unshift({ date: date || new Date().toISOString().slice(0,10), desc, place: place || '' });
+  found.item.logs.unshift(log);
   persistEquipment();
   renderEquipModal();
   renderEquipGrid();
@@ -6252,6 +6259,8 @@ async function saveEquipEdit() {
   _eqSaving = true;
   try {
     const logs = found.item.logs || [];
+    const pendingLog = _readEquipLogInput();
+    if (pendingLog) logs.unshift(pendingLog);
     const newCat = form.cat;
     const updatedItem = { id: eqModalId, ...form, logs };
     equipmentData[found.cat] = equipmentData[found.cat].filter(x => x.id !== eqModalId);
