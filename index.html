@@ -5425,6 +5425,7 @@ function openAlbaSchedEdit(schedId) {
   albaSchedEditId = schedId;
   albaModalMode = 'sched_edit';
   renderAlbaModal();
+  document.getElementById('albaModal').classList.add('open');
 }
 
 async function saveAlbaSchedEdit() {
