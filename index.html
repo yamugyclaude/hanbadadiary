@@ -827,23 +827,23 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 .alba-tl2-content:empty::before { opacity:0.3; }
 
 /* ── 알바 스케줄 월간 캘린더 그리드 ── */
-.alba-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+.alba-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
 .alba-cal-headcell { text-align:center; font-size:11px; font-weight:700; padding:2px 0 8px; }
-.alba-cal-cell { min-height:66px; background:var(--surface); border:1.5px solid var(--border2); border-radius:8px; padding:4px 3px; display:flex; flex-direction:column; gap:2px; cursor:pointer; transition:border-color 0.15s; }
+.alba-cal-cell { min-height:90px; background:var(--surface); border:1.5px solid var(--border2); border-radius:8px; padding:6px 4px; display:flex; flex-direction:column; gap:3px; cursor:pointer; transition:border-color 0.15s; }
 .alba-cal-cell:hover { border-color:rgba(61,186,150,0.4); }
 .alba-cal-cell-other { opacity:0.32; }
 .alba-cal-cell-today { border-color:var(--accent2); box-shadow:0 0 0 1.5px rgba(217,114,72,0.28); }
 .alba-cal-daynum { font-size:11px; font-weight:800; }
-.alba-cal-chips { display:flex; flex-direction:column; gap:2px; flex:1; }
-.alba-chip-cal { display:flex; align-items:center; gap:2px; padding:2px 5px; font-size:9.5px; border-radius:5px; white-space:nowrap; overflow:hidden; min-height:18px; }
-.alba-chip-cal .alba-chip-del { font-size:10px; flex-shrink:0; }
-.alba-chip-cal .alba-chip-multiday { font-size:8px; padding:0 3px; }
-.alba-cal-more { font-size:9px; color:var(--text-muted); font-weight:700; cursor:pointer; padding:1px 3px; }
+.alba-cal-chips { display:flex; flex-direction:column; gap:3px; flex:1; }
+.alba-chip-cal { display:flex; align-items:center; gap:2px; padding:4px 6px; font-size:10.5px; border-radius:5px; white-space:nowrap; overflow:hidden; min-height:26px; }
+.alba-chip-cal .alba-chip-del { font-size:11px; flex-shrink:0; }
+.alba-chip-cal .alba-chip-multiday { font-size:9px; padding:0 3px; }
+.alba-cal-more { font-size:10px; color:var(--text-muted); font-weight:700; cursor:pointer; padding:3px 4px; min-height:20px; }
 .alba-cal-more:hover { color:var(--accent); }
 @media (max-width:420px) {
-  .alba-cal-cell { min-height:54px; padding:3px 2px; }
+  .alba-cal-cell { min-height:82px; padding:5px 3px; }
   .alba-cal-daynum { font-size:10px; }
-  .alba-chip-cal { font-size:9px; padding:1px 4px; }
+  .alba-chip-cal { font-size:9.5px; padding:3px 5px; min-height:24px; }
 }
 
 /* ─── 장비관리대장 ─── */
