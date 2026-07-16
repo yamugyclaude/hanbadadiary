@@ -2,6 +2,35 @@
 생성일: 2026-07-03
 ---
 
+## 2026-07-09 ✅ 성공 — 알바관리 스케줄 수정 모달 안 열리던 버그 수정
+### 배경
+"알바관리에 스케쥴 등록하고 수정할려면 안 된다"는 신고. 조사(Playwright로 실제 재현) 결과 등록은
+정상이고, "스케줄" 탭 달력에서 스케줄 칩을 클릭해 수정하려 할 때만 문제 재현됨.
+
+### 원인
+`openAlbaSchedEdit()`(`index.html:5421`)가 `renderAlbaModal()`로 수정 폼 내용은 정상 생성하지만,
+부모 모달 오버레이(`#albaModal`)에 `open` 클래스를 안 붙여서 CSS `display:none`이 그대로 유지 —
+사용자에게는 수정 암호(2375) 입력 후 아무 반응 없는 것처럼 보임. 같은 계열의 다른 모든 "열기"
+함수(`openAlbaWorkerView`, `openAlbaWorkerAdd`, `openAlbaSchedAdd`)는 전부 정상적으로
+`classList.add('open')`을 호출하는데 이 함수만 누락되어 있던 구조적 결함.
+
+### 작업 내용
+- `openAlbaSchedEdit()`의 `renderAlbaModal();` 다음 줄에 `document.getElementById('albaModal').
+  classList.add('open');` 한 줄 추가 (비서가 직접 수정 — 원인이 이미 명확해 builder 안 거침)
+
+### 검증 (auditor, sonnet)
+- 다른 3개 open 함수와 element/클래스명 100% 동일 패턴 확인
+- `closeAlbaModal()`의 `remove('open')`과 정합성 확인, 저장 후 열고 닫는 흐름 정상
+- diff 정확히 1줄 추가만 있음, 문법 검증 통과
+
+### 결과
+- **작업 완료** — ✅ 통과 (최초 감사에서 문서화 누락 지적받아 이 기록으로 보완 — 문서화 누락이
+  반복되고 있어 앞으로는 코드 커밋과 문서 갱신을 같은 배치로 처리하기로 함)
+- 파일: `index.html:5428`
+- 브랜치: `claude/content-analysis-v9gjwm` → main 배포 예정
+
+---
+
 ## 2026-07-09 ✅ 성공 — 장비관리 "관리내역" 저장 유실 버그 수정
 ### 배경
 "장비관리에서 항목 수정 후 저장하면 저장이 안 된다, 메모란인 것 같다"는 신고. 조사 결과 진짜
