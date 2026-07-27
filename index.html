@@ -5008,6 +5008,20 @@ let albaModalWorkerId = null;
 let albaSchedEditId = null;
 let albaSchedAddPreDate = null;
 let albaDayListDate = null;
+let albaSchedFrom = null; // 스케줄 폼에 들어오기 직전 화면 ('day_list' | null) — 저장/취소 후 돌아갈 곳
+
+function _albaModalIsOpen() { return !!document.getElementById('albaModal')?.classList.contains('open'); }
+// 스케줄 저장·취소 후 복귀: 알바 상세 → day_list 목록 → 달력 순으로 원래 있던 화면을 유지
+function _albaBackFromSchedForm() {
+  if (albaModalWorkerId) { openAlbaWorkerView(albaModalWorkerId); return; }
+  if (albaSchedFrom === 'day_list' && albaDayListDate) {
+    albaSchedFrom = null;
+    renderAlbaSchedule();
+    openAlbaDayList(albaDayListDate);
+    return;
+  }
+  closeAlbaModal(); renderAlbaSchedule();
+}
 
 function saveAlbaLocal() { localStorage.setItem('albaData', JSON.stringify(albaData)); }
 function _makeAlbaId() { return 'alb_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
@@ -5188,6 +5202,8 @@ function closeAlbaModal() {
   document.getElementById('albaModal').classList.remove('open');
   albaModalWorkerId = null;
   albaModalMode = 'view';
+  albaSchedFrom = null;
+  albaDayListDate = null;
 }
 
 function renderAlbaModal() {
@@ -5273,7 +5289,7 @@ function renderAlbaModal() {
     const preWorker = albaModalWorkerId ? (albaData.workers.find(x=>x.id===albaModalWorkerId)||null) : null;
     const editSched = isSchedEdit ? albaData.schedules.find(x=>x.id===albaSchedEditId) : null;
     const editPreWorker = isSchedEdit && editSched ? (albaData.workers.find(x=>x.id===editSched.workerId)||preWorker) : preWorker;
-    const backFn = preWorker ? `openAlbaWorkerView('${preWorker.id||editSched?.workerId}')` : 'closeAlbaModal()';
+    const backFn = '_albaBackFromSchedForm()'; // 알바 상세 / day_list 목록 / 달력 중 원래 있던 곳으로
     card.innerHTML = `
       <div class="equip-modal-header">
         <span class="equip-modal-title">${isSchedEdit ? '✏️ 스케줄 수정' : '📅 스케줄 추가'}</span>
@@ -5461,6 +5477,7 @@ async function deleteAlbaWorker() {
 }
 
 function openAlbaSchedAdd(preDate) {
+  albaSchedFrom = (_albaModalIsOpen() && albaModalMode === 'day_list') ? 'day_list' : null;
   albaModalWorkerId = null;
   albaSchedAddPreDate = preDate || null;
   albaModalMode = 'sched_add';
@@ -5497,12 +5514,9 @@ async function saveAlbaSchedAdd() {
   if (!data) return;
   albaData.schedules.push({ id: _makeAlbaId(), ...data });
   saveAlbaLocal();
+  showToast('☁️ 저장 중…', 1200);
   const ok = await _syncAlbaCloud();
-  if (albaModalWorkerId) {
-    openAlbaWorkerView(albaModalWorkerId);
-  } else {
-    closeAlbaModal(); renderAlbaSchedule();
-  }
+  _albaBackFromSchedForm();
   showToast(ok ? '✅ 스케줄 추가 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5518,6 +5532,7 @@ function openAlbaSchedEdit(schedId) {
   dismissHoverPreview();
   const pw = prompt('수정 암호를 입력하세요:');
   if (pw !== '2375') { if (pw !== null) showToast('❌ 암호가 틀렸습니다'); return; }
+  albaSchedFrom = (_albaModalIsOpen() && albaModalMode === 'day_list') ? 'day_list' : null;
   albaSchedEditId = schedId;
   albaModalMode = 'sched_edit';
   renderAlbaModal();
@@ -5532,12 +5547,9 @@ async function saveAlbaSchedEdit() {
   albaData.schedules[idx] = { id: albaSchedEditId, ...data };
   saveAlbaLocal();
   albaSchedEditId = null;
+  showToast('☁️ 저장 중…', 1200);
   const ok = await _syncAlbaCloud();
-  if (albaModalWorkerId) {
-    openAlbaWorkerView(albaModalWorkerId);
-  } else {
-    closeAlbaModal(); renderAlbaSchedule();
-  }
+  _albaBackFromSchedForm();
   showToast(ok ? '✅ 스케줄 수정 완료' : '⚠ 로컬 저장됨 · 클라우드 실패(네트워크 확인)');
 }
 
@@ -5556,12 +5568,19 @@ async function deleteAlbaSchedule(schedId) {
   showToast(ok ? '✓ 삭제 완료' : '⚠ 로컬 삭제됨 · 클라우드 실패(네트워크 확인)');
 }
 
+// 알바 데이터는 소용량 JSON — 20초를 넘기면 AbortController로 실제 취소하고 실패로 판정한다.
+// (타임아웃이 없으면 응답이 안 올 때 저장 버튼이 무한 대기해 "먹통"처럼 보임)
+const ALBA_SYNC_TIMEOUT = 20000;
+
 async function _syncAlbaCloud() {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), ALBA_SYNC_TIMEOUT);
   try {
     const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.alba`, {
       method: 'PATCH',
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ v15: albaData })
+      body: JSON.stringify({ v15: albaData }),
+      signal: ac.signal
     });
     if (!res.ok) throw new Error();
     const r = await res.json();
@@ -5569,12 +5588,14 @@ async function _syncAlbaCloud() {
       const r2 = await fetch(`${SB_URL}/rest/v1/vehicle_data`, {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'alba', v15: albaData })
+        body: JSON.stringify({ id: 'alba', v15: albaData }),
+        signal: ac.signal
       });
       if (!r2.ok) throw new Error();
     }
     return true;
   } catch(e) { console.error('알바 클라우드 저장 실패:', e); return false; }
+  finally { clearTimeout(timer); }
 }
 
 async function loadAlbaFromCloud() {
