@@ -60,9 +60,50 @@
   20초 타임아웃(`ALBA_SYNC_TIMEOUT`) 추가 + 저장 시작 시 "☁️ 저장 중…" 토스트.
 - 재검증: Playwright 실브라우저 **18항목 전수 통과**(기존 13 + day_list 복귀 4 + 타임아웃 1).
 
-### 미조치 (알고 있으나 이번 범위 밖 — 사장님 판단 필요)
-- 수정/삭제 암호 `2375`가 클라이언트 하드코딩이라 DB 차원 방어가 없음(anon key로 우회 가능).
-  CHANGELOG의 RLS 경고와 동일한 성격의 구조적 사안.
+### 배포
+`claude/content-analysis-v9gjwm` → `main` 머지(`528a233`), GitHub Actions **success**,
+자동 버전업 `v0727-01`(`604ebf4`)로 GitHub Pages 배포 완료.
+
+---
+
+## 2026-07-27 🔎 보안 점검 — anon key / RLS 전수 조사 (사장님 지시, 조사만·변경 없음)
+### 범위와 방법
+Supabase 2개 프로젝트 전수(2/2). **데이터를 바꾸는 실험은 하지 않음** — 존재하지 않는 id를
+필터로 준 PATCH/DELETE(매칭 0행)로 권한만 확인, Supabase 보안 어드바이저 병행. 조사 후 알바
+데이터 2명/5건 그대로임을 재확인.
+
+### 결과 요약 — 두 프로젝트 모두 anon에게 사실상 전권이 열려 있음
+
+**A. `nifmnigvrjfctdimgmda` (텍스트DB — 앱 데이터 대부분)** 🔴 가장 심각
+| 테이블 | 담고 있는 것 | anon SELECT | anon UPDATE | anon DELETE |
+|---|---|---|---|---|
+| `vehicle_data` | 알바·장비·체크리스트·차량·구글캘린더설정 등 | 열림 | 열림 | 열림 |
+| `tasks` | 창고업무·사무실업무·**대표지시** | 열림 | 열림 | 열림 |
+| `soundlogs` | 행사일지 전체 | 열림 | 열림 | 열림 |
+| `access_logs` | 접속 기록 | 열림 | 열림 | 열림 |
+
+anon key는 `index.html`에 평문 하드코딩되어 있고, GitHub Pages로 배포되므로 **사이트에 접속한
+누구나 개발자도구로 즉시 얻을 수 있다.** 앱의 암호 `2375`(알바 수정/삭제, 접수함 등)는
+`prompt()` 기반 **화면단 방어일 뿐**, DB에는 어떤 방어도 없다. 즉 키를 가진 사람은 앱을 거치지
+않고 행사일지·대표지시·알바 데이터를 **읽고, 고치고, 영구 삭제**할 수 있다.
+
+**B. `poxafvsqxvcaewduhvxt` (스토리지·접수함)** 🟠
+- RLS는 켜져 있으나 정책이 전부 `USING (true)` / `WITH CHECK (true)` — 사실상 무방비
+  - `event_requests`(행사진행의뢰서 접수함): anon INSERT/UPDATE/DELETE 전부 허용
+  - `panorama_sets`: anon INSERT/UPDATE/DELETE 전부 허용
+  - `sketchup_notes`(18행): anon INSERT/UPDATE/DELETE 전부 허용
+- 공개 버킷 `note-files`, `skp-library`에 광범위 SELECT 정책 → **파일 목록 전체 나열 가능**
+  (공개 URL 접근에는 목록 권한이 필요 없음)
+- Supabase 어드바이저 경고 11건 전원 EXTERNAL/SECURITY
+
+### 판단
+`event_requests`의 개방은 2026-07-08 사장님 승인 사항으로 CHANGELOG에 기록돼 있으나,
+**A(텍스트DB 4개 테이블)는 승인 기록이 없는 기본 개방 상태**로 보인다. 영향 범위가 회사
+운영 데이터 전체라 성격이 다르다.
+
+### 조치 안 함 — 사장님 결정 대기
+RLS를 조이면 **지금 동작하는 기능이 즉시 멈춘다**(앱이 전부 anon key로 직접 DB를 때리는 구조).
+따라서 임의로 손대지 않았다. 선택지는 아래 보고 참조.
 
 ## 2026-07-09 ✅ 성공 — 알바관리 스케줄 캘린더 그리드화 + 로그인화면 잠금비밀번호 배너
 ### 배경
