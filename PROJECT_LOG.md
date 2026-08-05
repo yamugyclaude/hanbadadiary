@@ -11,12 +11,12 @@
 
 | URL | 응답 |
 |---|---|
-| `/README.md` | 200 — `id=hanbada / pw=2375`, 수정·삭제 암호 |
+| `/README.md` | 200 — `id=hanbada / pw=****`, 수정·삭제 암호 |
 | `/PROJECT_LOG.md` | 200 |
 | `/CHANGELOG.md` | 200 |
 | `/.claude/settings.json` | 200 |
 
-`event_requests`의 RLS가 anon에게 전면 개방된 상태(2026-07-08 사장님 승인)와 겹치면, 앱의 `2375` prompt 게이트가 **사실상 무력화**된 상태였다.
+`event_requests`의 RLS가 anon에게 전면 개방된 상태(2026-07-08 사장님 승인)와 겹치면, 앱의 비밀번호 prompt 게이트가 **사실상 무력화**된 상태였다.
 
 **조치**: `_site/`에 웹 자산만 복사해 배포하도록 변경 + `.md`/`.claude` 혼입 시 배포 중단 가드. 문서의 평문 비밀번호 마스킹.
 
@@ -35,13 +35,13 @@
 3. **복구가 동작하는지 아무도 몰랐음** — `applyRestore`가 `Prefer: resolution=merge-duplicates`를 썼는데 이 앱 전체에서 그 커밋이 유일한 사용처였다(`grep -c` → 1). PK/unique 제약이 있어야 동작하는데 anon 키로는 스키마 조회가 막혀 있어(`Only the service_role API key...`) 확인 불가였다. 드러나는 시점은 진짜 복구가 필요한 순간이었을 것. → 앱이 이미 쓰는 `PATCH ?id=eq.{id}` → 빈 배열이면 `POST` 패턴으로 교체(읽기 전용 PATCH로 200/배열1건, 없는 id면 `[]` 실증).
 
 ### ⚠️ 비서실장 자체 실수 — 문서를 파일명으로 찍어 확인해서 1개를 놓쳤다
-마스킹 대상을 `README`·`CHANGELOG`·`PROJECT_LOG` 3개로 지목했는데, **`PROJECTS.md`에도 평문 `2375`가 있었다**(감사실장이 발견). Pages에선 빠지지만 저장소가 public이라 `raw.githubusercontent.com`으로 200 노출되는 걸 실증 확인했다.
+마스킹 대상을 `README`·`CHANGELOG`·`PROJECT_LOG` 3개로 지목했는데, **`PROJECTS.md`에도 평문 비밀번호가 있었다**(감사실장이 발견). Pages에선 빠지지만 저장소가 public이라 `raw.githubusercontent.com`으로 200 노출되는 걸 실증 확인했다.
 → **앞으로 이런 전수 작업은 파일명을 열거하지 말고 저장소 전체 검색(`grep -rn --include="*.md"`)으로 범위를 잡는다.** 재확인도 같은 방식으로 한다.
 
 ### 확인 안 된 것 (남은 위험)
 - `backup.yml`이 **실제 러너에서 끝까지 도는 것은 아직 검증 안 됐다.** cron·`workflow_dispatch` 모두 워크플로가 기본 브랜치에 있어야 발화하는데 아직 main 병합 전이다. **main 병합 직후 수동 실행(workflow_dispatch)으로 1회 실증할 것.**
 - 복구 전체 실행은 운영 데이터가 바뀌므로 하지 않았다. 최초 1회는 사장님 입회 하에 확인 권장.
-- 마스킹은 git 히스토리를 지우지 않는다. 과거 커밋의 `2375`는 여전히 조회 가능 → 진짜 무효화는 비밀번호 교체뿐(사장님 판단 대기).
+- 마스킹은 git 히스토리를 지우지 않는다. 과거 커밋의 평문 비밀번호는 여전히 조회 가능 → 진짜 무효화는 비밀번호 교체뿐(사장님 판단 대기).
 - 옛 비밀번호 `6293`은 CHANGELOG 5곳에 남겼다. `index.html` 전체 grep에서 미발견돼 폐기값임을 확인했고, 이력 기록으로서의 가치가 있어 그대로 뒀다.
 
 ---
