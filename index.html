@@ -1646,6 +1646,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
     <div style="display:flex;gap:8px;">
       <button id="umTab_users" onclick="switchUmTab('users')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);">👥 사용자</button>
       <button id="umTab_logs" onclick="switchUmTab('logs')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">📋 접속·행동 로그</button>
+      <button id="umTab_backup" onclick="switchUmTab('backup')" style="flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);">💾 백업</button>
     </div>
     <!-- 사용자 탭 -->
     <div id="umUsersPanel">
@@ -1669,6 +1670,17 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
         <button onclick="clearAccessLogs()" style="background:var(--accent2-dim);border:1px solid rgba(217,114,72,0.3);border-radius:8px;color:var(--accent2);font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">전체삭제</button>
       </div>
       <div id="accessLogContainer" style="display:flex;flex-direction:column;gap:6px;max-height:50dvh;overflow-y:auto;"></div>
+    </div>
+    <!-- 백업 탭 -->
+    <div id="umBackupPanel" style="display:none;">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">전체 데이터를 JSON 파일로 내려받거나, 백업 파일로 되돌릴 수 있습니다.</div>
+      <button id="backupRunBtn" onclick="runFullBackup()" style="width:100%;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid var(--accent);background:var(--accent-selected);color:var(--accent);margin-bottom:8px;">💾 전체 백업 받기</button>
+      <label style="display:block;width:100%;box-sizing:border-box;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px solid rgba(217,114,72,0.3);background:var(--accent2-dim);color:var(--accent2);text-align:center;margin-bottom:10px;">
+        📥 백업 파일로 복구
+        <input type="file" id="backupRestoreInput" accept="application/json" style="display:none" onchange="handleBackupFileSelect(this)">
+      </label>
+      <div id="backupStatus" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></div>
+      <div id="backupCountsBox" style="display:flex;flex-direction:column;gap:4px;"></div>
     </div>
     <div class="modal-close-bar" style="margin:0 -20px -20px;padding:0 16px calc(16px + env(safe-area-inset-bottom,0px)) 16px;">
       <button class="modal-close-bar-btn" onclick="closeUserMgmt()">✕ 닫기</button>
@@ -3260,7 +3272,7 @@ function closeUserMgmt() { document.getElementById('userMgmtModal').classList.re
 
 function switchUmTab(tab) {
   currentUmTab = tab;
-  ['users','logs'].forEach(t => {
+  ['users','logs','backup'].forEach(t => {
     const btn = document.getElementById('umTab_' + t);
     if (!btn) return;
     if (t === tab) {
@@ -3269,8 +3281,9 @@ function switchUmTab(tab) {
       btn.style.cssText = 'flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text-muted);';
     }
   });
-  document.getElementById('umUsersPanel').style.display = tab === 'users' ? 'block' : 'none';
-  document.getElementById('umLogsPanel').style.display  = tab === 'logs'  ? 'block' : 'none';
+  document.getElementById('umUsersPanel').style.display  = tab === 'users'  ? 'block' : 'none';
+  document.getElementById('umLogsPanel').style.display   = tab === 'logs'   ? 'block' : 'none';
+  document.getElementById('umBackupPanel').style.display = tab === 'backup' ? 'block' : 'none';
 }
 
 function renderUserList() {
@@ -7148,6 +7161,196 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const STORAGE_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
 const STORAGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk';
 const PHOTO_BUCKET = 'event-photos'; // Supabase Storage 버킷명 (public, Dashboard에서 생성 필요)
+
+// ── 전체 백업 / 복구 ──
+const BACKUP_CLOUD_TABLES = [
+  { key: 'vehicle_data',   url: `${SB_URL}/rest/v1/vehicle_data` },
+  { key: 'soundlogs',      url: `${SB_URL}/rest/v1/soundlogs` },
+  { key: 'tasks',          url: `${SB_URL}/rest/v1/tasks` },
+  { key: 'access_logs',    url: `${SB_URL}/rest/v1/access_logs` },
+  { key: 'event_requests', url: `${STORAGE_URL}/rest/v1/event_requests` },
+];
+const BACKUP_LOCAL_KEYS = ['trussInventory', 'lib3dCustomTypes', 'lib3dHiddenTypes'];
+
+function backupAuthHeaders(url) {
+  const key = url.indexOf(STORAGE_URL) === 0 ? STORAGE_KEY : SB_KEY;
+  return { 'apikey': key, 'Authorization': `Bearer ${key}` };
+}
+
+// 클라우드 5개 테이블 전체 조회 (select=*). 하나라도 실패하면 파일을 만들지 않도록 ok:false 반환
+async function fetchAllBackupData() {
+  const cloud = {};
+  for (const t of BACKUP_CLOUD_TABLES) {
+    try {
+      const r = await fetch(`${t.url}?select=*`, { headers: backupAuthHeaders(t.url) });
+      if (!r.ok) return { ok: false, failedAt: t.key, detail: `HTTP ${r.status}` };
+      cloud[t.key] = await r.json();
+    } catch (e) {
+      return { ok: false, failedAt: t.key, detail: e.message || '네트워크 오류' };
+    }
+  }
+  const local = {};
+  BACKUP_LOCAL_KEYS.forEach(k => { local[k] = JSON.parse(localStorage.getItem(k) || 'null'); });
+  return { ok: true, cloud, local };
+}
+
+function buildBackupObject(cloud, local) {
+  return {
+    _meta: { version: 1, createdAt: new Date().toISOString(), appVersion: 'v0803-01' },
+    cloud, local
+  };
+}
+
+function backupRowCounts(backupObj) {
+  const counts = {};
+  BACKUP_CLOUD_TABLES.forEach(t => { counts[t.key] = (backupObj.cloud[t.key] || []).length; });
+  BACKUP_LOCAL_KEYS.forEach(k => {
+    const v = backupObj.local[k];
+    counts[k] = Array.isArray(v) ? v.length : (v && typeof v === 'object' ? Object.keys(v).length : 0);
+  });
+  return counts;
+}
+
+function downloadBackupFile(backupObj) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const filename = `hanbada_backup_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.json`;
+  const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click();
+  return filename;
+}
+
+function renderBackupCounts(counts) {
+  const el = document.getElementById('backupCountsBox');
+  if (!el) return;
+  const keys = [...BACKUP_CLOUD_TABLES.map(t => t.key), ...BACKUP_LOCAL_KEYS];
+  el.innerHTML = keys.map(k => `<div style="font-size:12px;color:var(--text-muted);">${k} ${counts[k]}행</div>`).join('');
+}
+
+// "💾 전체 백업 받기" 버튼 핸들러. 복구 전 안전 백업에도 재사용됨.
+async function runFullBackup() {
+  const statusEl = document.getElementById('backupStatus');
+  const btn = document.getElementById('backupRunBtn');
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = '⏳ 클라우드 데이터 조회 중…';
+  const result = await fetchAllBackupData();
+  if (btn) btn.disabled = false;
+  if (!result.ok) {
+    if (statusEl) statusEl.textContent = `❌ 백업 실패: ${result.failedAt} 조회 실패 (${result.detail}) — 파일을 만들지 않았습니다`;
+    showToast('❌ 백업 실패 — 파일을 만들지 않았습니다');
+    return null;
+  }
+  const backupObj = buildBackupObject(result.cloud, result.local);
+  const filename = downloadBackupFile(backupObj);
+  renderBackupCounts(backupRowCounts(backupObj));
+  if (statusEl) statusEl.textContent = `✅ 백업 완료: ${filename}`;
+  showToast('💾 전체 백업 완료: ' + filename);
+  return backupObj;
+}
+
+// 클라우드 5개 테이블의 현재 행 수만 가볍게 조회 (복구 요약 비교용)
+async function fetchCurrentCloudCounts() {
+  const counts = {};
+  try {
+    for (const t of BACKUP_CLOUD_TABLES) {
+      const r = await fetch(`${t.url}?select=id&limit=1`, {
+        headers: { ...backupAuthHeaders(t.url), 'Prefer': 'count=exact', 'Range': '0-0' }
+      });
+      if (!r.ok) return null;
+      const total = parseInt((r.headers.get('content-range') || '').split('/')[1], 10);
+      counts[t.key] = isNaN(total) ? 0 : total;
+    }
+  } catch (e) { return null; }
+  return counts;
+}
+
+// 백업 객체를 클라우드+로컬에 실제로 반영 (테이블별 upsert만, DELETE 없음)
+async function applyRestore(backupObj) {
+  for (const t of BACKUP_CLOUD_TABLES) {
+    const rows = backupObj.cloud[t.key] || [];
+    if (!rows.length) continue;
+    try {
+      const r = await fetch(t.url, {
+        method: 'POST',
+        headers: { ...backupAuthHeaders(t.url), 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify(rows)
+      });
+      if (!r.ok) return { ok: false, failedAt: t.key, detail: `HTTP ${r.status}` };
+    } catch (e) {
+      return { ok: false, failedAt: t.key, detail: e.message || '네트워크 오류' };
+    }
+  }
+  BACKUP_LOCAL_KEYS.forEach(k => {
+    if (backupObj.local[k] !== undefined) localStorage.setItem(k, JSON.stringify(backupObj.local[k]));
+  });
+  return { ok: true };
+}
+
+// "📥 백업 파일로 복구" 파일 선택 핸들러
+function handleBackupFileSelect(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => startRestoreFlow(reader.result);
+  reader.onerror = () => showToast('❌ 파일을 읽을 수 없습니다');
+  reader.readAsText(file);
+}
+
+async function startRestoreFlow(text) {
+  const statusEl = document.getElementById('backupStatus');
+  let backupObj;
+  try { backupObj = JSON.parse(text); } catch (e) {
+    alert('❌ 파일을 JSON으로 읽을 수 없습니다'); return;
+  }
+  if (!backupObj._meta || backupObj._meta.version !== 1) {
+    alert('❌ 백업 파일 형식이 올바르지 않습니다 (버전 확인 불가)'); return;
+  }
+  const backupCounts = backupRowCounts(backupObj);
+
+  if (statusEl) statusEl.textContent = '⏳ 현재 데이터와 비교 중…';
+  const currentCounts = await fetchCurrentCloudCounts();
+  if (!currentCounts) {
+    alert('❌ 현재 데이터 조회 실패 — 비교할 수 없어 복구를 중단합니다');
+    if (statusEl) statusEl.textContent = '❌ 복구 중단: 현재 데이터 조회 실패';
+    return;
+  }
+
+  const diffLines = BACKUP_CLOUD_TABLES.map(t => {
+    const cur = currentCounts[t.key], nxt = backupCounts[t.key], diff = nxt - cur;
+    return `${t.key}: 현재 ${cur}행 → 복구 후 ${nxt}행 (${diff >= 0 ? '+' : ''}${diff})`;
+  }).join('\n');
+  const createdAt = new Date(backupObj._meta.createdAt).toLocaleString('ko-KR');
+  const localLine = BACKUP_LOCAL_KEYS.map(k => `${k} ${backupCounts[k]}개`).join(', ');
+  const proceed = confirm(`백업 생성 시각: ${createdAt}\n\n${diffLines}\n\n로컬: ${localLine}\n\n이 내용으로 복구를 진행할까요?`);
+  if (!proceed) { if (statusEl) statusEl.textContent = ''; return; }
+
+  if (statusEl) statusEl.textContent = '⏳ 복구 직전 안전 백업 생성 중…';
+  const safetyBackup = await runFullBackup();
+  if (!safetyBackup) {
+    alert('❌ 안전 백업 생성에 실패해 복구를 중단합니다.');
+    if (statusEl) statusEl.textContent = '❌ 복구 중단: 안전 백업 실패';
+    return;
+  }
+
+  const pw = prompt('관리자 비밀번호를 입력하세요:');
+  if (pw === null) { if (statusEl) statusEl.textContent = ''; return; }
+  if (pw !== REGISTER_CODE) { alert('❌ 비밀번호가 틀렸습니다'); return; }
+
+  if (!confirm('⚠️ 정말 복구하시겠습니까? 되돌릴 수 없습니다.')) { if (statusEl) statusEl.textContent = ''; return; }
+
+  if (statusEl) statusEl.textContent = '⏳ 복구 반영 중…';
+  const applyResult = await applyRestore(backupObj);
+  if (!applyResult.ok) {
+    alert(`❌ 복구 중 오류 발생 — ${applyResult.failedAt}까지 반영되고 중단됨.\n오류: ${applyResult.detail}`);
+    if (statusEl) statusEl.textContent = `❌ 복구 실패: ${applyResult.failedAt}까지만 반영됨`;
+    return;
+  }
+  if (statusEl) statusEl.textContent = '✅ 복구 완료 — 새로고침합니다…';
+  showToast('✅ 복구 완료, 새로고침합니다');
+  location.href = location.pathname + '?_r=' + Date.now();
+}
 
 // 일지 하나를 Supabase에 저장 (개별 upsert)
 async function sbUpsertLog(log, signal) {
