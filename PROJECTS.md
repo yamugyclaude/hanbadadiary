@@ -34,8 +34,8 @@
 | **Supabase URL** | https://poxafvsqxvcaewduhvxt.supabase.co |
 | **Supabase 대시보드** | https://supabase.com/dashboard/project/poxafvsqxvcaewduhvxt |
 | **Supabase anon key** | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk |
-| **앱 로그인** | id: hanbada / pw: 2375 |
-| **수정·삭제 암호** | 2375 |
+| **앱 로그인** | id: hanbada / pw: **** (관리자 문의) |
+| **수정·삭제 암호** | **** (관리자 문의) |
 | **기술 스택** | HTML+CSS+JS 단일파일 SPA, Supabase REST + Realtime |
 | **배포 방법** | git push origin main → GitHub Pages 자동배포 |
 | **상세 문서** | 해당 repo의 CLAUDE.md 참조 |
