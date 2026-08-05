@@ -62,6 +62,19 @@ jobs:
           git commit -m "auto: version bump to ${NEW_VERSION}" || true
           git push
 
+      - name: 문서에 평문 비밀번호가 들어갔는지 검사
+        run: |
+          # 2026-08-05 신설. 문서를 마스킹하는 작업 도중, 사고 경위를 서술하면서
+          # 비밀번호를 그대로 인용해 두 번이나 되집어넣는 일이 있었다.
+          # 사람 주의력에 맡기지 않고 여기서 막는다.
+          # 값을 이 파일에 적으면 그 자체가 노출이므로, 패턴으로만 잡는다.
+          if grep -rInE '(pw|PW|암호|비밀번호|password)[^0-9A-Za-z]{0,12}[0-9]{4}([^0-9]|$)' \
+               --include='*.md' . ; then
+            echo "::error::문서에 평문 비밀번호로 보이는 값이 있습니다. 마스킹 후 다시 배포하세요."
+            exit 1
+          fi
+          echo "✅ 문서 평문 비밀번호 검사 통과"
+
       - name: Prepare deploy directory (내부 문서 제외)
         run: |
           mkdir -p _site
