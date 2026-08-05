@@ -38,8 +38,34 @@
 마스킹 대상을 `README`·`CHANGELOG`·`PROJECT_LOG` 3개로 지목했는데, **`PROJECTS.md`에도 평문 비밀번호가 있었다**(감사실장이 발견). Pages에선 빠지지만 저장소가 public이라 `raw.githubusercontent.com`으로 200 노출되는 걸 실증 확인했다.
 → **앞으로 이런 전수 작업은 파일명을 열거하지 말고 저장소 전체 검색(`grep -rn --include="*.md"`)으로 범위를 잡는다.** 재확인도 같은 방식으로 한다.
 
+### 🔴 병합 후 발견 — 배포 경로가 2개였다 (조치 미완, 사장님 설정 필요)
+main 병합 후 라이브를 확인하니 `README.md`가 **404가 됐다가 다시 200으로 돌아왔다.** Actions 실행 이력으로 원인을 특정했다:
+
+| 시각 | 워크플로 | 이벤트 | head | 결과 |
+|---|---|---|---|---|
+| 16:26:12 | Deploy to GitHub Pages (우리 것) | push | d24b315 | success → `_site` 배포, 이때 README 404 |
+| 16:26:39 | **pages build and deployment** (GitHub 내장) | **dynamic** | 92ec02d | success → **저장소 루트 전체 배포, README 200 복귀** |
+
+즉 이 저장소의 **Pages 소스가 "Deploy from a branch"로 설정돼 있어서**, main에 푸시될 때마다 GitHub 내장 빌더가 저장소 루트를 통째로 다시 publish한다. 우리 워크플로가 `_site`만 올려도 **그 직후 버전범프 커밋 푸시가 내장 빌더를 깨워서 덮어쓴다.** 07-30·08-01·08-03 배포 이력에도 `pages build and deployment (dynamic)` 실행이 매번 붙어 있다 — 처음부터 이 구조였다.
+
+**→ 조치 필요 (코드로는 불가, 저장소 설정)**: GitHub → Settings → Pages → **Source를 "GitHub Actions"로 변경**. 그래야 `_site` 배포가 최종 결과가 된다.
+
+**현재 실제 위험도**: 비밀번호는 모든 문서에서 마스킹됐으므로 지금 라이브 문서에 평문 비밀번호는 없다(4개 문서 전부 `2375` 0회 실측). 다만 `PROJECT_LOG.md`·`CHANGELOG.md`·`.claude/` 같은 내부 문서는 **여전히 공개 서빙 중**이고, 앞으로 민감한 내용을 문서에 적으면 다시 샌다.
+
+### ✅ 백업 실증 완료 (2026-08-05 16:30 UTC, run `31025572116`)
+main 병합 후 `workflow_dispatch`로 수동 1회 실행 — **두 job 전부 success.** 러너 로그 원문:
+```
+vehicle_data: 88/88행 ✓
+soundlogs: 23/23행 ✓
+tasks: 99/99행 ✓
+access_logs: 0/0행 ✓
+event_requests: 0/0행 ✓
+```
+- artifact `backup-20260805-...` — 5개 파일, 6.35MB, 90일 보관
+- artifact `skp-models-20260805-...` — 3D 모델 25개, 5.1MB(압축), 30일 보관
+- 요일 게이트(`Check if today is Sunday (or manual run)`)가 수동 실행에서 정상 통과하는 것도 확인
+
 ### 확인 안 된 것 (남은 위험)
-- `backup.yml`이 **실제 러너에서 끝까지 도는 것은 아직 검증 안 됐다.** cron·`workflow_dispatch` 모두 워크플로가 기본 브랜치에 있어야 발화하는데 아직 main 병합 전이다. **main 병합 직후 수동 실행(workflow_dispatch)으로 1회 실증할 것.**
 - 복구 전체 실행은 운영 데이터가 바뀌므로 하지 않았다. 최초 1회는 사장님 입회 하에 확인 권장.
 - 마스킹은 git 히스토리를 지우지 않는다. 과거 커밋의 평문 비밀번호는 여전히 조회 가능 → 진짜 무효화는 비밀번호 교체뿐(사장님 판단 대기).
 - 옛 비밀번호 `6293`은 CHANGELOG 5곳에 남겼다. `index.html` 전체 grep에서 미발견돼 폐기값임을 확인했고, 이력 기록으로서의 가치가 있어 그대로 뒀다.
