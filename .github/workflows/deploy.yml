@@ -78,7 +78,7 @@ jobs:
       - name: Prepare deploy directory (내부 문서 제외)
         run: |
           mkdir -p _site
-          cp index.html .nojekyll "한바다로고2.png" _site/
+          cp index.html .nojekyll robots.txt "한바다로고2.png" _site/
           cp -r images pdfs event-request thought-organizer _site/
 
           # 가드: .md나 .claude가 섞여 들어가면 배포 중단
