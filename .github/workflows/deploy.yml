@@ -62,13 +62,26 @@ jobs:
           git commit -m "auto: version bump to ${NEW_VERSION}" || true
           git push
 
+      - name: Prepare deploy directory (내부 문서 제외)
+        run: |
+          mkdir -p _site
+          cp index.html .nojekyll "한바다로고2.png" _site/
+          cp -r images pdfs event-request thought-organizer _site/
+
+          # 가드: .md나 .claude가 섞여 들어가면 배포 중단
+          if find _site -name '*.md' -o -name '.claude' | grep -q .; then
+            echo "::error::_site에 내부 문서(.md 또는 .claude)가 포함되어 배포를 중단합니다."
+            find _site -name '*.md' -o -name '.claude'
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
