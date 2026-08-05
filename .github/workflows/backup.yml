@@ -1,0 +1,78 @@
+name: Daily Backup
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # UTC 18:00 = KST 03:00
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set backup date
+        id: date
+        run: echo "value=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Supabase credentials from index.html
+        id: creds
+        run: |
+          SB_URL=$(grep -oP "const SB_URL = '\K[^']+" index.html | head -1)
+          SB_KEY=$(grep -oP "const SB_KEY = '\K[^']+" index.html | head -1)
+          STORAGE_URL=$(grep -oP "const STORAGE_URL = '\K[^']+" index.html | head -1)
+          STORAGE_KEY=$(grep -oP "const STORAGE_KEY = '\K[^']+" index.html | head -1)
+
+          if [ -z "$SB_URL" ] || [ -z "$SB_KEY" ] || [ -z "$STORAGE_URL" ] || [ -z "$STORAGE_KEY" ]; then
+            echo "::error::index.html에서 Supabase 접속 정보를 추출하지 못했습니다."
+            exit 1
+          fi
+
+          echo "SB_URL=$SB_URL" >> "$GITHUB_OUTPUT"
+          echo "SB_KEY=$SB_KEY" >> "$GITHUB_OUTPUT"
+          echo "STORAGE_URL=$STORAGE_URL" >> "$GITHUB_OUTPUT"
+          echo "STORAGE_KEY=$STORAGE_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Dump tables
+        env:
+          SB_URL: ${{ steps.creds.outputs.SB_URL }}
+          SB_KEY: ${{ steps.creds.outputs.SB_KEY }}
+          STORAGE_URL: ${{ steps.creds.outputs.STORAGE_URL }}
+          STORAGE_KEY: ${{ steps.creds.outputs.STORAGE_KEY }}
+        run: |
+          mkdir -p backup
+
+          dump() {
+            local url="$1" apikey="$2" name="$3"
+            curl -sS "$url" \
+              -H "apikey: $apikey" \
+              -H "Authorization: Bearer $apikey" \
+              -o "backup/${name}.json"
+
+            if ! jq -e 'type == "array"' "backup/${name}.json" > /dev/null 2>&1; then
+              echo "::error::${name} 응답이 유효한 JSON 배열이 아닙니다."
+              cat "backup/${name}.json"
+              exit 1
+            fi
+
+            local count
+            count=$(jq 'length' "backup/${name}.json")
+            echo "${name}: ${count}행"
+          }
+
+          dump "${SB_URL}/rest/v1/vehicle_data?select=*" "$SB_KEY" "vehicle_data"
+          dump "${SB_URL}/rest/v1/soundlogs?select=*" "$SB_KEY" "soundlogs"
+          dump "${SB_URL}/rest/v1/tasks?select=*" "$SB_KEY" "tasks"
+          dump "${SB_URL}/rest/v1/access_logs?select=*" "$SB_KEY" "access_logs"
+          dump "${STORAGE_URL}/rest/v1/event_requests?select=*" "$STORAGE_KEY" "event_requests"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ steps.date.outputs.value }}-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
