@@ -2,7 +2,8 @@ name: Daily Backup
 
 on:
   schedule:
-    - cron: '0 18 * * *'  # UTC 18:00 = KST 03:00
+    - cron: '0 18 * * *'  # UTC 18:00 = KST 03:00, 매일 (JSON 테이블 백업)
+    - cron: '0 18 * * 0'  # UTC 18:00 = KST 03:00, 일요일만 (3D 모델 파일 백업)
   workflow_dispatch:
 
 permissions:
@@ -10,6 +11,7 @@ permissions:
 
 jobs:
   backup:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * *'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -48,9 +50,13 @@ jobs:
 
           dump() {
             local url="$1" apikey="$2" name="$3"
+            local headers="backup/${name}.headers"
+
             curl -sS "$url" \
               -H "apikey: $apikey" \
               -H "Authorization: Bearer $apikey" \
+              -H "Prefer: count=exact" \
+              -D "$headers" \
               -o "backup/${name}.json"
 
             if ! jq -e 'type == "array"' "backup/${name}.json" > /dev/null 2>&1; then
@@ -59,9 +65,18 @@ jobs:
               exit 1
             fi
 
+            local total
+            total=$(grep -i '^content-range:' "$headers" | tr -d '\r' | sed -E 's#.*/([0-9]+)#\1#')
             local count
             count=$(jq 'length' "backup/${name}.json")
-            echo "${name}: ${count}행"
+
+            if [ -z "$total" ] || [ "$count" != "$total" ]; then
+              echo "::error::${name} 잘림(truncation) 의심 - 받은 ${count}행 / 전체 ${total}행"
+              exit 1
+            fi
+
+            echo "${name}: ${count}/${total}행 ✓"
+            rm -f "$headers"
           }
 
           dump "${SB_URL}/rest/v1/vehicle_data?select=*" "$SB_KEY" "vehicle_data"
@@ -76,3 +91,78 @@ jobs:
           name: backup-${{ steps.date.outputs.value }}-${{ github.run_id }}
           path: backup/
           retention-days: 90
+
+  backup-files:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * 0'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set backup date
+        id: date
+        run: echo "value=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Supabase Storage credentials from index.html
+        id: creds
+        run: |
+          STORAGE_URL=$(grep -oP "const STORAGE_URL = '\K[^']+" index.html | head -1)
+          STORAGE_KEY=$(grep -oP "const STORAGE_KEY = '\K[^']+" index.html | head -1)
+
+          if [ -z "$STORAGE_URL" ] || [ -z "$STORAGE_KEY" ]; then
+            echo "::error::index.html에서 Supabase Storage 접속 정보를 추출하지 못했습니다."
+            exit 1
+          fi
+
+          echo "STORAGE_URL=$STORAGE_URL" >> "$GITHUB_OUTPUT"
+          echo "STORAGE_KEY=$STORAGE_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Download 3D models (skp-library/models)
+        env:
+          STORAGE_URL: ${{ steps.creds.outputs.STORAGE_URL }}
+          STORAGE_KEY: ${{ steps.creds.outputs.STORAGE_KEY }}
+        run: |
+          mkdir -p models
+
+          curl -sS -X POST "${STORAGE_URL}/storage/v1/object/list/skp-library" \
+            -H "apikey: $STORAGE_KEY" \
+            -H "Authorization: Bearer $STORAGE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"prefix":"models","limit":1000}' \
+            -o list.json
+
+          if ! jq -e 'type == "array"' list.json > /dev/null 2>&1; then
+            echo "::error::모델 목록 응답이 유효한 JSON 배열이 아닙니다."
+            cat list.json
+            exit 1
+          fi
+
+          LIST_COUNT=$(jq 'length' list.json)
+          echo "목록: ${LIST_COUNT}개"
+
+          jq -r '.[].name' list.json | while read -r fname; do
+            curl -sS "${STORAGE_URL}/storage/v1/object/public/skp-library/models/${fname}" \
+              -o "models/${fname}"
+          done
+
+          DOWNLOADED_COUNT=$(find models -type f | wc -l)
+          if [ "$DOWNLOADED_COUNT" != "$LIST_COUNT" ]; then
+            echo "::error::다운로드된 파일 수(${DOWNLOADED_COUNT})가 목록 수(${LIST_COUNT})와 다릅니다."
+            exit 1
+          fi
+
+          if find models -type f -empty | grep -q .; then
+            echo "::error::0바이트 파일이 있습니다."
+            find models -type f -empty
+            exit 1
+          fi
+
+          echo "다운로드: ${DOWNLOADED_COUNT}/${LIST_COUNT}개, 합계 $(du -sh models | cut -f1) ✓"
+          rm -f list.json
+
+      - name: Upload models artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: skp-models-${{ steps.date.outputs.value }}-${{ github.run_id }}
+          path: models/
+          retention-days: 30
