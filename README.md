@@ -11,7 +11,7 @@
 **현재 상태**:
 - 🟢 **버전**: 최신 버전은 [CHANGELOG.md](CHANGELOG.md) 참고
 - 🌐 **라이브**: https://yamugyclaude.github.io/hanbadadiary/
-- 🔐 **로그인**: id=`hanbada` / pw=`2375`
+- 🔐 **로그인**: id=`hanbada` / pw=`****`
 - ✅ **배포 상태**: 정상 (GitHub Pages + GitHub Actions)
 
 **지금 뭘 해야 하나?**
@@ -85,8 +85,8 @@
 | **배포** | GitHub Pages (자동) |
 | **배포 브랜치** | `main` |
 | **개발 방식** | 별도 개발 브랜치 없이 main에 직접 커밋 |
-| **로그인** | id: `hanbada` / pw: `2375` |
-| **수정·삭제 암호** | `2375` |
+| **로그인** | id: `hanbada` / pw: `****` |
+| **수정·삭제 암호** | `****` |
 
 **최근 변경 내역**: [CHANGELOG.md](CHANGELOG.md) 참고
 
@@ -248,7 +248,7 @@ https://yamugyclaude.github.io/hanbadadiary/ 에서 라이브 확인
 **A**: 데이터 저장소
 - 행사 정보, 차량, 장비, 알바 정보 저장
 - REST API로 통신
-- 수정·삭제 시 암호(`2375`) 필요
+- 수정·삭제 시 암호(`****`) 필요
 
 ### Q4: 이 프로젝트의 구조는 어떻게 되나?
 **A**: 단일파일 SPA

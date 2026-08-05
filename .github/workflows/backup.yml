@@ -1,0 +1,192 @@
+name: Daily Backup
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # UTC 18:00 = KST 03:00, 매일
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set backup date
+        id: date
+        run: echo "value=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Supabase credentials from index.html
+        id: creds
+        run: |
+          SB_URL=$(grep -oP "const SB_URL = '\K[^']+" index.html | head -1)
+          SB_KEY=$(grep -oP "const SB_KEY = '\K[^']+" index.html | head -1)
+          STORAGE_URL=$(grep -oP "const STORAGE_URL = '\K[^']+" index.html | head -1)
+          STORAGE_KEY=$(grep -oP "const STORAGE_KEY = '\K[^']+" index.html | head -1)
+
+          if [ -z "$SB_URL" ] || [ -z "$SB_KEY" ] || [ -z "$STORAGE_URL" ] || [ -z "$STORAGE_KEY" ]; then
+            echo "::error::index.html에서 Supabase 접속 정보를 추출하지 못했습니다."
+            exit 1
+          fi
+
+          echo "SB_URL=$SB_URL" >> "$GITHUB_OUTPUT"
+          echo "SB_KEY=$SB_KEY" >> "$GITHUB_OUTPUT"
+          echo "STORAGE_URL=$STORAGE_URL" >> "$GITHUB_OUTPUT"
+          echo "STORAGE_KEY=$STORAGE_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Dump tables
+        env:
+          SB_URL: ${{ steps.creds.outputs.SB_URL }}
+          SB_KEY: ${{ steps.creds.outputs.SB_KEY }}
+          STORAGE_URL: ${{ steps.creds.outputs.STORAGE_URL }}
+          STORAGE_KEY: ${{ steps.creds.outputs.STORAGE_KEY }}
+        run: |
+          mkdir -p backup
+
+          dump() {
+            local url="$1" apikey="$2" name="$3"
+            local headers="backup/${name}.headers"
+
+            curl -sS "$url" \
+              -H "apikey: $apikey" \
+              -H "Authorization: Bearer $apikey" \
+              -H "Prefer: count=exact" \
+              -D "$headers" \
+              -o "backup/${name}.json"
+
+            if ! jq -e 'type == "array"' "backup/${name}.json" > /dev/null 2>&1; then
+              echo "::error::${name} 응답이 유효한 JSON 배열이 아닙니다."
+              cat "backup/${name}.json"
+              exit 1
+            fi
+
+            local total
+            total=$(grep -i '^content-range:' "$headers" | tr -d '\r' | sed -E 's#.*/([0-9]+)#\1#')
+            local count
+            count=$(jq 'length' "backup/${name}.json")
+
+            if [ -z "$total" ] || [ "$count" != "$total" ]; then
+              echo "::error::${name} 잘림(truncation) 의심 - 받은 ${count}행 / 전체 ${total}행"
+              exit 1
+            fi
+
+            echo "${name}: ${count}/${total}행 ✓"
+            rm -f "$headers"
+          }
+
+          dump "${SB_URL}/rest/v1/vehicle_data?select=*" "$SB_KEY" "vehicle_data"
+          dump "${SB_URL}/rest/v1/soundlogs?select=*" "$SB_KEY" "soundlogs"
+          dump "${SB_URL}/rest/v1/tasks?select=*" "$SB_KEY" "tasks"
+          dump "${SB_URL}/rest/v1/access_logs?select=*" "$SB_KEY" "access_logs"
+          dump "${STORAGE_URL}/rest/v1/event_requests?select=*" "$STORAGE_KEY" "event_requests"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ steps.date.outputs.value }}-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
+
+  backup-files:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check if today is Sunday (or manual run)
+        id: gate
+        run: |
+          if [ "$(date -u +%u)" = "7" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=no"  >> "$GITHUB_OUTPUT"
+            echo "일요일이 아니므로 3D 모델 백업을 건너뜁니다."
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.run == 'yes'
+        uses: actions/checkout@v4
+
+      - name: Set backup date
+        if: steps.gate.outputs.run == 'yes'
+        id: date
+        run: echo "value=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Supabase Storage credentials from index.html
+        if: steps.gate.outputs.run == 'yes'
+        id: creds
+        run: |
+          STORAGE_URL=$(grep -oP "const STORAGE_URL = '\K[^']+" index.html | head -1)
+          STORAGE_KEY=$(grep -oP "const STORAGE_KEY = '\K[^']+" index.html | head -1)
+
+          if [ -z "$STORAGE_URL" ] || [ -z "$STORAGE_KEY" ]; then
+            echo "::error::index.html에서 Supabase Storage 접속 정보를 추출하지 못했습니다."
+            exit 1
+          fi
+
+          echo "STORAGE_URL=$STORAGE_URL" >> "$GITHUB_OUTPUT"
+          echo "STORAGE_KEY=$STORAGE_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Download 3D models (skp-library/models)
+        if: steps.gate.outputs.run == 'yes'
+        env:
+          STORAGE_URL: ${{ steps.creds.outputs.STORAGE_URL }}
+          STORAGE_KEY: ${{ steps.creds.outputs.STORAGE_KEY }}
+        run: |
+          mkdir -p models
+
+          curl -sS -X POST "${STORAGE_URL}/storage/v1/object/list/skp-library" \
+            -H "apikey: $STORAGE_KEY" \
+            -H "Authorization: Bearer $STORAGE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"prefix":"models","limit":1000}' \
+            -o list.json
+
+          if ! jq -e 'type == "array"' list.json > /dev/null 2>&1; then
+            echo "::error::모델 목록 응답이 유효한 JSON 배열이 아닙니다."
+            cat list.json
+            exit 1
+          fi
+
+          LIST_COUNT=$(jq 'length' list.json)
+          echo "목록: ${LIST_COUNT}개"
+
+          mapfile -t FILES < <(jq -r '.[].name' list.json)
+
+          for fname in "${FILES[@]}"; do
+            if ! curl -sS --fail "${STORAGE_URL}/storage/v1/object/public/skp-library/models/${fname}" -o "models/${fname}"; then
+              echo "::error::${fname} 다운로드 실패(HTTP 오류) — 파일 저장 안 함"
+              exit 1
+            fi
+
+            # .dae는 XML이므로 정상 파일이면 첫 바이트가 '<' 여야 함. 아니면 에러 응답이
+            # 정상 파일로 둔갑한 것으로 간주해 즉시 실패시킴.
+            if [ "$(head -c1 "models/${fname}")" != "<" ]; then
+              echo "::error::${fname} 내용이 올바른 .dae(XML)가 아닙니다 (에러 응답 의심)"
+              head -c 200 "models/${fname}"
+              exit 1
+            fi
+          done
+
+          DOWNLOADED_COUNT=$(find models -type f | wc -l)
+          if [ "$DOWNLOADED_COUNT" != "$LIST_COUNT" ]; then
+            echo "::error::다운로드된 파일 수(${DOWNLOADED_COUNT})가 목록 수(${LIST_COUNT})와 다릅니다."
+            exit 1
+          fi
+
+          if find models -type f -empty | grep -q .; then
+            echo "::error::0바이트 파일이 있습니다."
+            find models -type f -empty
+            exit 1
+          fi
+
+          echo "다운로드: ${DOWNLOADED_COUNT}/${LIST_COUNT}개, 합계 $(du -sh models | cut -f1) ✓"
+          rm -f list.json
+
+      - name: Upload models artifact
+        if: steps.gate.outputs.run == 'yes'
+        uses: actions/upload-artifact@v4
+        with:
+          name: skp-models-${{ steps.date.outputs.value }}-${{ github.run_id }}
+          path: models/
+          retention-days: 30
