@@ -2,8 +2,7 @@ name: Daily Backup
 
 on:
   schedule:
-    - cron: '0 18 * * *'  # UTC 18:00 = KST 03:00, 매일 (JSON 테이블 백업)
-    - cron: '0 18 * * 0'  # UTC 18:00 = KST 03:00, 일요일만 (3D 모델 파일 백업)
+    - cron: '0 18 * * *'  # UTC 18:00 = KST 03:00, 매일
   workflow_dispatch:
 
 permissions:
@@ -11,7 +10,6 @@ permissions:
 
 jobs:
   backup:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * *'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -93,17 +91,29 @@ jobs:
           retention-days: 90
 
   backup-files:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * 0'
     runs-on: ubuntu-22.04
     steps:
+      - name: Check if today is Sunday (or manual run)
+        id: gate
+        run: |
+          if [ "$(date -u +%u)" = "7" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=no"  >> "$GITHUB_OUTPUT"
+            echo "일요일이 아니므로 3D 모델 백업을 건너뜁니다."
+          fi
+
       - name: Checkout
+        if: steps.gate.outputs.run == 'yes'
         uses: actions/checkout@v4
 
       - name: Set backup date
+        if: steps.gate.outputs.run == 'yes'
         id: date
         run: echo "value=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
 
       - name: Extract Supabase Storage credentials from index.html
+        if: steps.gate.outputs.run == 'yes'
         id: creds
         run: |
           STORAGE_URL=$(grep -oP "const STORAGE_URL = '\K[^']+" index.html | head -1)
@@ -118,6 +128,7 @@ jobs:
           echo "STORAGE_KEY=$STORAGE_KEY" >> "$GITHUB_OUTPUT"
 
       - name: Download 3D models (skp-library/models)
+        if: steps.gate.outputs.run == 'yes'
         env:
           STORAGE_URL: ${{ steps.creds.outputs.STORAGE_URL }}
           STORAGE_KEY: ${{ steps.creds.outputs.STORAGE_KEY }}
@@ -140,9 +151,21 @@ jobs:
           LIST_COUNT=$(jq 'length' list.json)
           echo "목록: ${LIST_COUNT}개"
 
-          jq -r '.[].name' list.json | while read -r fname; do
-            curl -sS "${STORAGE_URL}/storage/v1/object/public/skp-library/models/${fname}" \
-              -o "models/${fname}"
+          mapfile -t FILES < <(jq -r '.[].name' list.json)
+
+          for fname in "${FILES[@]}"; do
+            if ! curl -sS --fail "${STORAGE_URL}/storage/v1/object/public/skp-library/models/${fname}" -o "models/${fname}"; then
+              echo "::error::${fname} 다운로드 실패(HTTP 오류) — 파일 저장 안 함"
+              exit 1
+            fi
+
+            # .dae는 XML이므로 정상 파일이면 첫 바이트가 '<' 여야 함. 아니면 에러 응답이
+            # 정상 파일로 둔갑한 것으로 간주해 즉시 실패시킴.
+            if [ "$(head -c1 "models/${fname}")" != "<" ]; then
+              echo "::error::${fname} 내용이 올바른 .dae(XML)가 아닙니다 (에러 응답 의심)"
+              head -c 200 "models/${fname}"
+              exit 1
+            fi
           done
 
           DOWNLOADED_COUNT=$(find models -type f | wc -l)
@@ -161,6 +184,7 @@ jobs:
           rm -f list.json
 
       - name: Upload models artifact
+        if: steps.gate.outputs.run == 'yes'
         uses: actions/upload-artifact@v4
         with:
           name: skp-models-${{ steps.date.outputs.value }}-${{ github.run_id }}
