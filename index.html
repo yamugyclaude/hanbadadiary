@@ -7265,20 +7265,37 @@ async function fetchCurrentCloudCounts() {
   return counts;
 }
 
-// 백업 객체를 클라우드+로컬에 실제로 반영 (테이블별 upsert만, DELETE 없음)
+// 백업 객체를 클라우드+로컬에 실제로 반영. 행마다 PATCH 먼저 시도 → 없으면(빈 배열) POST.
+// (이 앱의 기존 sbUpsertLog 등과 동일한 패턴 — PK/unique 제약 유무와 무관하게 동작. DELETE 없음)
 async function applyRestore(backupObj) {
+  const statusEl = document.getElementById('backupStatus');
   for (const t of BACKUP_CLOUD_TABLES) {
     const rows = backupObj.cloud[t.key] || [];
     if (!rows.length) continue;
-    try {
-      const r = await fetch(t.url, {
-        method: 'POST',
-        headers: { ...backupAuthHeaders(t.url), 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify(rows)
-      });
-      if (!r.ok) return { ok: false, failedAt: t.key, detail: `HTTP ${r.status}` };
-    } catch (e) {
-      return { ok: false, failedAt: t.key, detail: e.message || '네트워크 오류' };
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (statusEl) statusEl.textContent = `⏳ 복구 반영 중… ${t.key} ${i + 1}/${rows.length}`;
+      try {
+        let res = await fetch(`${t.url}?id=eq.${encodeURIComponent(row.id)}`, {
+          method: 'PATCH',
+          headers: { ...backupAuthHeaders(t.url), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+          body: JSON.stringify(row)
+        });
+        if (!res.ok) return { ok: false, failedAt: t.key, succeeded: i, failedId: row.id, detail: `PATCH HTTP ${res.status}` };
+        let patched = null;
+        try { patched = JSON.parse(await res.text()); } catch (e) {}
+        // 없으면 POST로 새로 생성
+        if (Array.isArray(patched) && patched.length === 0) {
+          res = await fetch(t.url, {
+            method: 'POST',
+            headers: { ...backupAuthHeaders(t.url), 'Content-Type': 'application/json' },
+            body: JSON.stringify(row)
+          });
+          if (!res.ok) return { ok: false, failedAt: t.key, succeeded: i, failedId: row.id, detail: `POST HTTP ${res.status}` };
+        }
+      } catch (e) {
+        return { ok: false, failedAt: t.key, succeeded: i, failedId: row.id, detail: e.message || '네트워크 오류' };
+      }
     }
   }
   BACKUP_LOCAL_KEYS.forEach(k => {
@@ -7340,11 +7357,10 @@ async function startRestoreFlow(text) {
 
   if (!confirm('⚠️ 정말 복구하시겠습니까? 되돌릴 수 없습니다.')) { if (statusEl) statusEl.textContent = ''; return; }
 
-  if (statusEl) statusEl.textContent = '⏳ 복구 반영 중…';
   const applyResult = await applyRestore(backupObj);
   if (!applyResult.ok) {
-    alert(`❌ 복구 중 오류 발생 — ${applyResult.failedAt}까지 반영되고 중단됨.\n오류: ${applyResult.detail}`);
-    if (statusEl) statusEl.textContent = `❌ 복구 실패: ${applyResult.failedAt}까지만 반영됨`;
+    alert(`❌ 복구 중 오류 발생 — ${applyResult.failedAt} 테이블 ${applyResult.succeeded}행 성공 후 중단됨 (실패 id: ${applyResult.failedId}).\n오류: ${applyResult.detail}`);
+    if (statusEl) statusEl.textContent = `❌ 복구 실패: ${applyResult.failedAt} ${applyResult.succeeded}행까지 반영됨`;
     return;
   }
   if (statusEl) statusEl.textContent = '✅ 복구 완료 — 새로고침합니다…';
