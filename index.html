@@ -1562,6 +1562,22 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
   </div>
 </div>
 
+<!-- ═══ 행사장소 배전함 비밀번호 모달 ═══ -->
+<div id="panelPwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closePanelPw()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:340px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <span style="font-weight:700;font-size:16px;color:var(--accent)">🔌 행사장소 배전함</span>
+      <button onclick="closePanelPw()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="border:1px solid var(--accent);border-radius:10px;overflow:hidden;color:var(--accent);font-weight:700;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--accent);"><span style="font-size:13px;">🔒 강구안 잠금비밀번호</span><span style="font-size:16px;letter-spacing:1.5px;flex-shrink:0;">6335</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--accent);"><span style="font-size:13px;">⚡ 내죽도공연장 전기</span><span style="font-size:16px;letter-spacing:1.5px;flex-shrink:0;">2174</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;"><span style="font-size:13px;">📍 내죽도길가</span><span style="font-size:16px;letter-spacing:1.5px;flex-shrink:0;">0523</span></div>
+    </div>
+    <button onclick="closePanelPw()" style="margin-top:16px;width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:14px;cursor:pointer;font-family:inherit">닫기</button>
+  </div>
+</div>
+
 <!-- ═══ 장비관리대장 페이지 ═══ -->
 <!-- 장비 상세 팝업 모달 -->
 <div class="equip-modal-overlay" id="equipModal" onclick="if(event.target===this)closeEquipModal()">
@@ -1591,11 +1607,7 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <!-- ═══ 로그인 화면 ═══ -->
 <div id="loginScreen">
   <img src="한바다로고2.png" alt="한바다" style="height:44px;width:auto;margin-bottom:16px;">
-  <div style="width:100%;max-width:300px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;margin-bottom:18px;overflow:hidden;color:var(--accent);font-weight:700;">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid var(--accent);"><span style="font-size:12px;">🔒 강구안 잠금비밀번호</span><span style="font-size:15px;letter-spacing:1.5px;flex-shrink:0;">6335</span></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid var(--accent);"><span style="font-size:12px;">⚡ 내죽도공연장 전기</span><span style="font-size:15px;letter-spacing:1.5px;flex-shrink:0;">2174</span></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 13px;"><span style="font-size:12px;">📍 내죽도길가</span><span style="font-size:15px;letter-spacing:1.5px;flex-shrink:0;">0523</span></div>
-  </div>
+  <button class="checklist-open-btn" onclick="openPanelPw()">🔌 행사장소 배전함</button>
   <button class="checklist-open-btn" onclick="openChecklist()">📋 행사전 챙겨야할 물품체크리스트</button>
   <button class="checklist-open-btn" onclick="openEventRequestForm()">📄 행사진행의뢰서</button>
   <div class="login-card" id="loginCard">
@@ -8540,6 +8552,15 @@ async function syncAllLocalToCloud() {
 
 function closeDiagModal() {
   const m = document.getElementById('diagModal');
+  if (m) m.style.display = 'none';
+}
+
+function openPanelPw() {
+  const m = document.getElementById('panelPwModal');
+  if (m) m.style.display = 'flex';
+}
+function closePanelPw() {
+  const m = document.getElementById('panelPwModal');
   if (m) m.style.display = 'none';
 }
 
