@@ -1591,7 +1591,11 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <!-- ═══ 로그인 화면 ═══ -->
 <div id="loginScreen">
   <img src="한바다로고2.png" alt="한바다" style="height:44px;width:auto;margin-bottom:16px;">
-  <div style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;padding:9px 16px;margin-bottom:18px;font-size:12px;font-weight:700;color:var(--accent);text-align:center;line-height:1.7;">🔒 강구안 잠금비밀번호: 6335<br>⚡ 내죽도공연장 전기: 2174<br>📍 내죽도길가: 0523</div>
+  <div style="width:100%;max-width:300px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:10px;margin-bottom:18px;overflow:hidden;color:var(--accent);font-weight:700;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid var(--accent);"><span style="font-size:12px;">🔒 강구안 잠금비밀번호</span><span style="font-size:15px;letter-spacing:1.5px;flex-shrink:0;">6335</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid var(--accent);"><span style="font-size:12px;">⚡ 내죽도공연장 전기</span><span style="font-size:15px;letter-spacing:1.5px;flex-shrink:0;">2174</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 13px;"><span style="font-size:12px;">📍 내죽도길가</span><span style="font-size:15px;letter-spacing:1.5px;flex-shrink:0;">0523</span></div>
+  </div>
   <button class="checklist-open-btn" onclick="openChecklist()">📋 행사전 챙겨야할 물품체크리스트</button>
   <button class="checklist-open-btn" onclick="openEventRequestForm()">📄 행사진행의뢰서</button>
   <div class="login-card" id="loginCard">
