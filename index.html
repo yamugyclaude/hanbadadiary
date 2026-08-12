@@ -3032,6 +3032,21 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <div class="toast" id="toast"></div>
 
 <script>
+// ── 전역 오류 표시(2026-08-12 추가) ──
+// 지금까지 스크립트 오류가 나면 화면엔 아무 반응도 없이 조용히 실패했다(버튼을 눌러도
+// 무반응으로만 보임 — 원인 파악이 안 됨). 어떤 오류든 화면에 바로 뜨게 잡아둔다.
+(function() {
+  function report(msg) {
+    try {
+      const el = document.getElementById('toast');
+      if (el) { el.textContent = '⚠️ 오류: ' + msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 10000); return; }
+    } catch (e) {}
+    alert('⚠️ 오류 발생: ' + msg);
+  }
+  window.addEventListener('error', e => report((e.message || '알 수 없는 오류') + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')'));
+  window.addEventListener('unhandledrejection', e => report(e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+})();
+
 // ── 상수 ──
 const MONITOR_ITEMS = [
   { key: 'basic',     label: '1. 기본세팅' },
