@@ -3032,6 +3032,24 @@ cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
 <div class="toast" id="toast"></div>
 
 <script>
+// ── 로컬 저장공간 안전 쓰기(2026-08-12 추가) ──
+// localStorage.setItem이 용량 초과(QuotaExceededError)로 던지면, 그 호출 뒤에 이어지던
+// 화면 전환·클라우드 동기화 코드까지 통째로 실행이 멈춰서 "버튼을 눌러도 반응 없음"으로
+// 보이는 게 실제로 확인됐다(사장님 폰 캡처: newLog → addAccessLog → saveAccessLogs 지점).
+// 클라우드 저장(soundlogs/tasks/vehicle_data 등)은 이 함수와 별개 경로라 영향 없다.
+let _quotaToastAt = 0;
+function safeSetItem(key, value) {
+  try { localStorage.setItem(key, value); }
+  catch (e) {
+    console.warn('로컬 저장 실패(용량 초과 가능): ' + key, e);
+    const now = Date.now();
+    if (now - _quotaToastAt > 30000) {
+      _quotaToastAt = now;
+      try { showToast('⚠️ 기기 저장공간 부족 — 클라우드에는 저장되지만 이 기기엔 일부 안 남을 수 있음', 6000); } catch (e2) {}
+    }
+  }
+}
+
 // ── 전역 오류 표시(2026-08-12 추가) ──
 // 지금까지 스크립트 오류가 나면 화면엔 아무 반응도 없이 조용히 실패했다(버튼을 눌러도
 // 무반응으로만 보임 — 원인 파악이 안 됨). 어떤 오류든 화면에 바로 뜨게 잡아둔다.
@@ -3065,7 +3083,7 @@ const REGISTER_CODE = '2375'; // 신규 가입 시 필요한 관리자 승인 �
 // 사용자 저장소: localStorage 'sl_users'
 // [{id, name, pw, role:'admin'|'user', createdAt, lastLogin}]
 function getUsers() { return JSON.parse(localStorage.getItem('sl_users') || '[]'); }
-function saveUsers(u) { localStorage.setItem('sl_users', JSON.stringify(u)); }
+function saveUsers(u) { safeSetItem('sl_users', JSON.stringify(u)); }
 
 // 사용자 목록을 vehicle_data 테이블 sl_users 행에 저장 (신규 테이블 불필요)
 async function syncUsersToCloud() {
@@ -3111,7 +3129,7 @@ async function loadUsersFromCloud() {
 // 접속/행동 로그: localStorage 'sl_access_logs'
 // [{id, userId, userName, type:'login'|'logout'|'create'|'update'|'delete', target, detail, ts}]
 function getAccessLogs() { return JSON.parse(localStorage.getItem('sl_access_logs') || '[]'); }
-function saveAccessLogs(l) { localStorage.setItem('sl_access_logs', JSON.stringify(l)); }
+function saveAccessLogs(l) { safeSetItem('sl_access_logs', JSON.stringify(l)); }
 
 function addAccessLog(type, target, detail) {
   if (!currentUser) return;
@@ -3401,8 +3419,8 @@ function toggleAdmin() { openUserMgmt(); }
 
 // ── 날짜 ──
 function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function persistLogs() { try { localStorage.setItem('soundlogs', JSON.stringify(logs)); } catch(e) { console.warn('로컬 저장 실패(용량 초과 가능):', e); } }
-function persistEquipment() { try { localStorage.setItem('equipmentData', JSON.stringify(equipmentData)); } catch(e) { console.warn('장비 로컬 저장 실패(용량 초과 가능):', e); } }
+function persistLogs() { try { safeSetItem('soundlogs', JSON.stringify(logs)); } catch(e) { console.warn('로컬 저장 실패(용량 초과 가능):', e); } }
+function persistEquipment() { try { safeSetItem('equipmentData', JSON.stringify(equipmentData)); } catch(e) { console.warn('장비 로컬 저장 실패(용량 초과 가능):', e); } }
 
 // 오래된 base64 사진을 Storage URL로 정리 (백그라운드, 앱 시작 후 1회)
 async function migrateOldLogPhotos() {
@@ -3927,7 +3945,7 @@ async function clearAllMdStore() {
 }
 
 function saveMdStoreData() {
-  localStorage.setItem('mdStore', JSON.stringify(mdStore));
+  safeSetItem('mdStore', JSON.stringify(mdStore));
 }
 
 async function _syncMdStoreCloud() {
@@ -3960,7 +3978,7 @@ async function loadMdStoreCloud() {
     const rows = await res.json();
     if (!rows.length || !Array.isArray(rows[0].v15)) return;
     mdStore = rows[0].v15;
-    localStorage.setItem('mdStore', JSON.stringify(mdStore));
+    safeSetItem('mdStore', JSON.stringify(mdStore));
   } catch(e) { console.error('MD저장소 클라우드 불러오기 실패:', e); }
 }
 
@@ -4600,7 +4618,7 @@ function openGCalSettings() {
 async function saveGCalSettings() {
   gcalConfig.apiKey = document.getElementById('gcalApiKey').value.trim();
   gcalConfig.calendarId = document.getElementById('gcalCalendarId').value.trim();
-  localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
+  safeSetItem('gcal_config', JSON.stringify(gcalConfig));
   document.getElementById('gcalSettingsModal').classList.remove('show');
   fetchGCalEvents();
   const ok = await _syncGCalConfigCloud();
@@ -4637,7 +4655,7 @@ async function loadGCalConfigCloud() {
     const rows = await res.json();
     if (!rows.length || !rows[0].v15) return;
     gcalConfig = rows[0].v15;
-    localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
+    safeSetItem('gcal_config', JSON.stringify(gcalConfig));
   } catch(e) { console.error('구글캘린더 설정 클라우드 불러오기 실패:', e); }
 }
 
@@ -4815,11 +4833,11 @@ function initJangbiDefault() {
 let checklistChecked = JSON.parse(localStorage.getItem('checklistChecked') || '{}');
 
 function saveChecklist() {
-  localStorage.setItem('checklistData', JSON.stringify(checklistData));
+  safeSetItem('checklistData', JSON.stringify(checklistData));
   _syncChecklistCloud();
 }
 function saveChecklistChecked() {
-  localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
+  safeSetItem('checklistChecked', JSON.stringify(checklistChecked));
   _syncChecklistCloud();
 }
 
@@ -4853,11 +4871,11 @@ async function loadChecklistFromCloud() {
   if (d.items) {
     checklistData = d.items;
     CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; });
-    localStorage.setItem('checklistData', JSON.stringify(checklistData));
+    safeSetItem('checklistData', JSON.stringify(checklistData));
   }
   if (d.checked) {
     checklistChecked = d.checked;
-    localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked));
+    safeSetItem('checklistChecked', JSON.stringify(checklistChecked));
   }
   return true;
 }
@@ -5070,7 +5088,7 @@ function _albaBackFromSchedForm() {
   closeAlbaModal(); renderAlbaSchedule();
 }
 
-function saveAlbaLocal() { localStorage.setItem('albaData', JSON.stringify(albaData)); }
+function saveAlbaLocal() { safeSetItem('albaData', JSON.stringify(albaData)); }
 function _makeAlbaId() { return 'alb_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
 
 function switchAlbaTab(tab) {
@@ -5690,7 +5708,7 @@ async function loadSoundSubcatsCloud() {
     const rows = await res.json();
     if (!rows.length || !Array.isArray(rows[0].v15)) return;
     soundSubcats = rows[0].v15;
-    localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+    safeSetItem('soundSubcats', JSON.stringify(soundSubcats));
   } catch(e) { console.error('소분류 클라우드 불러오기 실패:', e); }
 }
 
@@ -5924,7 +5942,7 @@ async function confirmRenameSubcat(i) {
   // 기존 장비들의 subcat도 함께 변경
   const renamedItems = [];
   (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === oldName) { item.subcat = val; renamedItems.push(item); } });
-  localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  safeSetItem('soundSubcats', JSON.stringify(soundSubcats));
   persistEquipment();
   const results = await Promise.all([
     _syncSoundSubcatsCloud(),
@@ -5942,7 +5960,7 @@ async function addSoundSubcat() {
   if (!val) { showToast('소분류 이름을 입력하세요'); return; }
   if (soundSubcats.includes(val)) { showToast('이미 존재하는 소분류입니다'); return; }
   soundSubcats.push(val);
-  localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  safeSetItem('soundSubcats', JSON.stringify(soundSubcats));
   if (input) input.value = '';
   const ok = await _syncSoundSubcatsCloud();
   renderSubcatManagerBody();
@@ -5958,7 +5976,7 @@ async function deleteSoundSubcat(i) {
   soundSubcats.splice(i, 1);
   const clearedItems = [];
   (equipmentData['음향장비'] || []).forEach(item => { if (item.subcat === name) { item.subcat = ''; clearedItems.push(item); } });
-  localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+  safeSetItem('soundSubcats', JSON.stringify(soundSubcats));
   persistEquipment();
   const results = await Promise.all([
     _syncSoundSubcatsCloud(),
@@ -6909,7 +6927,7 @@ function deleteMaintenance(type, idx) {
 }
 
 function saveVehicleData() {
-  localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+  safeSetItem('vehicleData', JSON.stringify(vehicleData));
 }
 
 // v15 컬럼 하나에 v15+v35 합쳐서 저장 (v35 컬럼 없어도 동작)
@@ -6973,7 +6991,7 @@ async function loadVehicleFromCloud() {
     const rows = await res.json();
     if (!rows.length || !rows[0].v15) { showToast('⚠️ 클라우드 데이터 없음'); return; }
     _applyVehicleCloudData(rows[0].v15);
-    localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+    safeSetItem('vehicleData', JSON.stringify(vehicleData));
     renderVehiclePage();
     showToast('☁️ 차량 정보 불러오기 완료');
   } catch(e) {
@@ -7333,7 +7351,7 @@ async function applyRestore(backupObj) {
     }
   }
   BACKUP_LOCAL_KEYS.forEach(k => {
-    if (backupObj.local[k] !== undefined) localStorage.setItem(k, JSON.stringify(backupObj.local[k]));
+    if (backupObj.local[k] !== undefined) safeSetItem(k, JSON.stringify(backupObj.local[k]));
   });
   return { ok: true };
 }
@@ -7741,9 +7759,9 @@ const taskTitle = task ? task.title : id;
 if (type === 'warehouse') warehouseTasks = warehouseTasks.filter(t => t.id !== id);
 else if (type === 'office') officeTasks = officeTasks.filter(t => t.id !== id);
 else directiveTasks = directiveTasks.filter(t => t.id !== id);
-localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+safeSetItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+safeSetItem('officeTasks',     JSON.stringify(officeTasks));
+safeSetItem('directiveTasks',  JSON.stringify(directiveTasks));
 addAccessLog('delete', type, `업무삭제: ${taskTitle}`);
 try {
 await fetch(`${SB_URL}/rest/v1/tasks?id=eq.${id}`, {
@@ -7756,9 +7774,9 @@ showToast('✓ 삭제 완료');
 }
 
 function saveTasksLocal() {
-localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+safeSetItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+safeSetItem('officeTasks',     JSON.stringify(officeTasks));
+safeSetItem('directiveTasks',  JSON.stringify(directiveTasks));
 }
 
 async function syncTasksToCloud() {
@@ -7850,9 +7868,9 @@ rows.forEach(r => {
     else if (r.type === 'directive') directiveTasks.push(t);
   } catch(e) {}
 });
-localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks));
-localStorage.setItem('officeTasks',     JSON.stringify(officeTasks));
-localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks));
+safeSetItem('warehouseTasks',  JSON.stringify(warehouseTasks));
+safeSetItem('officeTasks',     JSON.stringify(officeTasks));
+safeSetItem('directiveTasks',  JSON.stringify(directiveTasks));
 renderTasks('warehouse'); renderTasks('office'); renderTasks('directive');
 showToast(`☁️ 업무 ${rows.length}개 불러오기 완료`);
 } catch(e) { console.error('업무 불러오기 실패:', e); showToast('❌ 업무 불러오기 실패'); }
@@ -7908,9 +7926,9 @@ function initRealtime() {
             const arr = type==='warehouse' ? warehouseTasks : type==='office' ? officeTasks : directiveTasks;
             const idx = arr.findIndex(x => x.id === t.id);
             if (idx >= 0) arr[idx] = t; else arr.push(t);
-            localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
-            localStorage.setItem('officeTasks',    JSON.stringify(officeTasks));
-            localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
+            safeSetItem('warehouseTasks', JSON.stringify(warehouseTasks));
+            safeSetItem('officeTasks',    JSON.stringify(officeTasks));
+            safeSetItem('directiveTasks', JSON.stringify(directiveTasks));
             const pageId = type==='warehouse'?'pageWarehouse':type==='office'?'pageOffice':'pageDirective';
             if (document.getElementById(pageId)?.classList.contains('active')) renderTasks(type);
             showToast('🔄 업무 업데이트됨');
@@ -7920,9 +7938,9 @@ function initRealtime() {
             if (type==='warehouse') warehouseTasks = warehouseTasks.filter(x=>x.id!==old_record.id);
             else if (type==='office') officeTasks = officeTasks.filter(x=>x.id!==old_record.id);
             else directiveTasks = directiveTasks.filter(x=>x.id!==old_record.id);
-            localStorage.setItem('warehouseTasks', JSON.stringify(warehouseTasks));
-            localStorage.setItem('officeTasks',    JSON.stringify(officeTasks));
-            localStorage.setItem('directiveTasks', JSON.stringify(directiveTasks));
+            safeSetItem('warehouseTasks', JSON.stringify(warehouseTasks));
+            safeSetItem('officeTasks',    JSON.stringify(officeTasks));
+            safeSetItem('directiveTasks', JSON.stringify(directiveTasks));
             const pageId = type==='warehouse'?'pageWarehouse':type==='office'?'pageOffice':'pageDirective';
             if (document.getElementById(pageId)?.classList.contains('active')) renderTasks(type);
             showToast('🗑 업무 삭제됨');
@@ -7931,7 +7949,7 @@ function initRealtime() {
         if (table === 'vehicle_data') {
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'singleton') {
             if (record.v15) _applyVehicleCloudData(record.v15);
-            localStorage.setItem('vehicleData', JSON.stringify(vehicleData));
+            safeSetItem('vehicleData', JSON.stringify(vehicleData));
             if (document.getElementById('pageVehicle')?.classList.contains('active')) renderVehiclePage();
             showToast('🔄 차량 데이터 업데이트됨');
           }
@@ -7945,24 +7963,24 @@ function initRealtime() {
           }
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'checklist' && record.v15) {
             const d = record.v15;
-            if (d.items) { checklistData = d.items; CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; }); localStorage.setItem('checklistData', JSON.stringify(checklistData)); }
-            if (d.checked) { checklistChecked = d.checked; localStorage.setItem('checklistChecked', JSON.stringify(checklistChecked)); }
+            if (d.items) { checklistData = d.items; CHECKLIST_CATS.forEach(c => { if (!Array.isArray(checklistData[c])) checklistData[c] = []; }); safeSetItem('checklistData', JSON.stringify(checklistData)); }
+            if (d.checked) { checklistChecked = d.checked; safeSetItem('checklistChecked', JSON.stringify(checklistChecked)); }
             if (document.getElementById('checklistOverlay')?.classList.contains('open')) renderChecklistBody();
           }
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'soundSubcats' && Array.isArray(record.v15)) {
             soundSubcats = record.v15;
-            localStorage.setItem('soundSubcats', JSON.stringify(soundSubcats));
+            safeSetItem('soundSubcats', JSON.stringify(soundSubcats));
             renderEqSubcatBar();
             if (document.getElementById('subcatManagerModal')?.classList.contains('open')) renderSubcatManagerBody();
           }
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'gcal_config' && record.v15) {
             gcalConfig = record.v15;
-            localStorage.setItem('gcal_config', JSON.stringify(gcalConfig));
+            safeSetItem('gcal_config', JSON.stringify(gcalConfig));
             if (document.getElementById('pageCalendar')?.classList.contains('active')) fetchGCalEvents();
           }
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'mdstore' && Array.isArray(record.v15)) {
             mdStore = record.v15;
-            localStorage.setItem('mdStore', JSON.stringify(mdStore));
+            safeSetItem('mdStore', JSON.stringify(mdStore));
           }
           if ((eventType === 'INSERT' || eventType === 'UPDATE') && record?.id === 'alba' && record.v15) {
             if (Array.isArray(record.v15.workers)) albaData.workers = record.v15.workers;
@@ -8271,7 +8289,7 @@ root.style.setProperty('--text-muted', t.textMuted);
 root.style.setProperty('--unselected-bg', t.surface2);
 root.style.setProperty('--unselected-border', t.border);
 currentTheme = id;
-localStorage.setItem('soundTheme', id);
+safeSetItem('soundTheme', id);
 }
 
 function openThemeModal() {
@@ -8363,9 +8381,9 @@ async function autoLoadAll() {
             else if (r.type === 'directive') directiveTasks.push(t);
           } catch(e) {}
         });
-        try { localStorage.setItem('warehouseTasks',  JSON.stringify(warehouseTasks)); } catch(e) {}
-        try { localStorage.setItem('officeTasks',     JSON.stringify(officeTasks)); } catch(e) {}
-        try { localStorage.setItem('directiveTasks',  JSON.stringify(directiveTasks)); } catch(e) {}
+        try { safeSetItem('warehouseTasks',  JSON.stringify(warehouseTasks)); } catch(e) {}
+        try { safeSetItem('officeTasks',     JSON.stringify(officeTasks)); } catch(e) {}
+        try { safeSetItem('directiveTasks',  JSON.stringify(directiveTasks)); } catch(e) {}
         // 현재 활성 탭 즉시 렌더
         const active = document.querySelector('.page.active');
         if (active) {
@@ -8391,7 +8409,7 @@ async function autoLoadAll() {
       const vehRows = await vehRes.json();
       if (vehRows.length && vehRows[0].v15) {
         _applyVehicleCloudData(vehRows[0].v15);
-        try { localStorage.setItem('vehicleData', JSON.stringify(vehicleData)); } catch(e) {}
+        try { safeSetItem('vehicleData', JSON.stringify(vehicleData)); } catch(e) {}
       }
       ok++;
     } else { fail++; }
@@ -9042,7 +9060,7 @@ function daeRemovePlacement(id) {
 let daeSetups = JSON.parse(localStorage.getItem('daeSetups') || '[]');
 
 function _daeSaveSetupsLocal() {
-  localStorage.setItem('daeSetups', JSON.stringify(daeSetups));
+  safeSetItem('daeSetups', JSON.stringify(daeSetups));
 }
 
 async function _daeSyncSetupsCloud() {
@@ -9158,7 +9176,7 @@ let trussInventory = JSON.parse(localStorage.getItem('trussInventory') || 'null'
 // 미설정이거나 전부 0이면 실제 보유 수량으로 시드 (사용자가 입력한 값은 보존)
 if (!trussInventory || Object.values(trussInventory).every(v => !v)) {
   trussInventory = {...TRUSS_INV_DEFAULT};
-  localStorage.setItem('trussInventory', JSON.stringify(trussInventory));
+  safeSetItem('trussInventory', JSON.stringify(trussInventory));
 }
 
 function _daeInitInventoryUI() {
@@ -9171,7 +9189,7 @@ function _daeInitInventoryUI() {
 
 function _adjInv(type, delta) {
   trussInventory[type] = Math.max(0, (trussInventory[type] || 0) + delta);
-  localStorage.setItem('trussInventory', JSON.stringify(trussInventory));
+  safeSetItem('trussInventory', JSON.stringify(trussInventory));
   const el = document.getElementById(`tinv-${type}`);
   if (el) el.textContent = trussInventory[type];
   _updateInvRemainders();
@@ -9722,7 +9740,7 @@ const LIB3D_TYPES = new Proxy({}, {
 });
 
 function lib3dSaveCustomTypes() {
-  localStorage.setItem('lib3dCustomTypes', JSON.stringify(lib3dCustomTypes));
+  safeSetItem('lib3dCustomTypes', JSON.stringify(lib3dCustomTypes));
 }
 
 function lib3dAddCustomType(label, cat) {
@@ -9760,14 +9778,14 @@ function lib3dHideTypeWithPw(typeId) {
   const m = lib3dModels.find(x => x.type === typeId);
   if (m) { lib3dDelete(m.id); }
   if (!lib3dHiddenTypes.includes(typeId)) lib3dHiddenTypes.push(typeId);
-  localStorage.setItem('lib3dHiddenTypes', JSON.stringify(lib3dHiddenTypes));
+  safeSetItem('lib3dHiddenTypes', JSON.stringify(lib3dHiddenTypes));
   lib3dRender();
   lib3dRebuildDropdown();
 }
 
 function lib3dRestoreHiddenTypes() {
   lib3dHiddenTypes = [];
-  localStorage.setItem('lib3dHiddenTypes', '[]');
+  safeSetItem('lib3dHiddenTypes', '[]');
   lib3dRender();
   lib3dRebuildDropdown();
 }
@@ -9820,14 +9838,14 @@ async function lib3dLoadCloud() {
     const rows = await res.json();
     if (rows.length && rows[0].v15) {
       lib3dModels = rows[0].v15;
-      localStorage.setItem('lib3dModels', JSON.stringify(lib3dModels));
+      safeSetItem('lib3dModels', JSON.stringify(lib3dModels));
       lib3dRender();
     }
   } catch(e) {}
 }
 
 async function lib3dSaveCloud() {
-  localStorage.setItem('lib3dModels', JSON.stringify(lib3dModels));
+  safeSetItem('lib3dModels', JSON.stringify(lib3dModels));
   const payload = { id: '3dmodels', v15: lib3dModels, v35: [] };
   try {
     let res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.3dmodels`, {
