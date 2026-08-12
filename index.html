@@ -3423,6 +3423,13 @@ function persistLogs() { try { safeSetItem('soundlogs', JSON.stringify(logs)); }
 function persistEquipment() { try { safeSetItem('equipmentData', JSON.stringify(equipmentData)); } catch(e) { console.warn('장비 로컬 저장 실패(용량 초과 가능):', e); } }
 
 // 오래된 base64 사진을 Storage URL로 정리 (백그라운드, 앱 시작 후 1회)
+// 마이그레이션이 이번에도 다 못 끝냈으면(=업로드가 다시 막힌 것) 관리자에게만 조용히 알림.
+// 2026-08-12: Storage 업로드가 몇 달간 실패해도 아무 표시가 없어 아무도 몰랐던 문제 재발 방지.
+function _notifyMigrationIncomplete(label, remaining) {
+  if (remaining <= 0 || !isAdmin) return;
+  try { showToast(`⚠️ ${label} 사진 ${remaining}건이 아직 클라우드에 안 올라갔습니다 (관리자 전용 알림)`, 8000); } catch (e) {}
+}
+
 async function migrateOldLogPhotos() {
   const targets = logs.filter(log =>
     (log.soundPhotos || []).some(p => typeof p === 'string' && p.startsWith('data:')) ||
@@ -3430,6 +3437,7 @@ async function migrateOldLogPhotos() {
   );
   if (!targets.length) return;
   console.log(`[사진정리] base64 남은 일지 ${targets.length}건 정리 시작`);
+  let remaining = 0;
   for (const log of targets) {
     try {
       let changed = false;
@@ -3437,7 +3445,7 @@ async function migrateOldLogPhotos() {
         for (let i = 0; i < log.soundPhotos.length; i++) {
           if (typeof log.soundPhotos[i] === 'string' && log.soundPhotos[i].startsWith('data:')) {
             const url = await uploadPhotoToStorage(log.id, 'sound', i, log.soundPhotos[i]);
-            if (url) { log.soundPhotos[i] = url; changed = true; }
+            if (url) { log.soundPhotos[i] = url; changed = true; } else { remaining++; }
           }
         }
       }
@@ -3445,7 +3453,7 @@ async function migrateOldLogPhotos() {
         for (let i = 0; i < log.stagePhotos.length; i++) {
           if (typeof log.stagePhotos[i] === 'string' && log.stagePhotos[i].startsWith('data:')) {
             const url = await uploadPhotoToStorage(log.id, 'stage', i, log.stagePhotos[i]);
-            if (url) { log.stagePhotos[i] = url; changed = true; }
+            if (url) { log.stagePhotos[i] = url; changed = true; } else { remaining++; }
           }
         }
       }
@@ -3455,6 +3463,7 @@ async function migrateOldLogPhotos() {
   }
   persistLogs();
   console.log('[사진정리] base64 사진 정리 완료');
+  _notifyMigrationIncomplete('행사일지', remaining);
 }
 
 // 오래된 base64 장비 사진을 Storage URL로 정리 (백그라운드, 앱 시작 후 1회)
@@ -3467,13 +3476,14 @@ async function migrateOldEquipPhotos() {
   });
   if (!targets.length) return;
   console.log(`[장비사진정리] base64 남은 장비 ${targets.length}건 정리 시작`);
+  let remaining = 0;
   for (const item of targets) {
     try {
       let changed = false;
       for (let i = 0; i < item.photos.length; i++) {
         if (typeof item.photos[i] === 'string' && item.photos[i].startsWith('data:')) {
           const url = await uploadEquipPhoto(item.id, item.photos[i]);
-          if (url) { item.photos[i] = url; changed = true; }
+          if (url) { item.photos[i] = url; changed = true; } else { remaining++; }
         }
       }
       if (changed) await _syncEquipmentCloud(item);
@@ -3482,6 +3492,7 @@ async function migrateOldEquipPhotos() {
   }
   persistEquipment();
   console.log('[장비사진정리] base64 사진 정리 완료');
+  _notifyMigrationIncomplete('장비', remaining);
 }
 function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
 document.getElementById('headerDate') && (document.getElementById('headerDate').textContent = fmtDate(today()));
@@ -4339,9 +4350,9 @@ async function uploadPhotoToStorage(logId, type, idx, base64, signal) {
       body: blob,
       signal
     });
-    if (!res.ok) return null;
+    if (!res.ok) { console.warn(`[사진업로드 실패] ${path} — HTTP ${res.status}: ${await res.text().catch(()=>'')}`); return null; }
     return `${STORAGE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
-  } catch(e) { return null; }
+  } catch(e) { console.warn('[사진업로드 실패] 네트워크 오류:', e); return null; }
 }
 
 // 장비 사진 → Storage 업로드 (base64 → 공개 URL). 실패 시 null.
@@ -4358,9 +4369,9 @@ async function uploadEquipPhoto(equipId, base64) {
       headers: { 'apikey': STORAGE_KEY, 'Authorization': `Bearer ${STORAGE_KEY}`, 'Content-Type': 'image/jpeg', 'x-upsert': 'true' },
       body: blob
     });
-    if (!res.ok) return null;
+    if (!res.ok) { console.warn(`[장비사진업로드 실패] ${path} — HTTP ${res.status}: ${await res.text().catch(()=>'')}`); return null; }
     return `${STORAGE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
-  } catch(e) { return null; }
+  } catch(e) { console.warn('[장비사진업로드 실패] 네트워크 오류:', e); return null; }
 }
 
 // 장비 항목의 Storage 사진 파일 삭제
