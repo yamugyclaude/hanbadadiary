@@ -4552,8 +4552,26 @@ el.appendChild(card);
 
 // ── 데이터 수집 ──
 function getFormData() {
-const log = logs.find(l => l.id === currentId);
-if (!log) return null;
+let log = logs.find(l => l.id === currentId);
+// 2026-09-02: 작성 중이던 항목이 logs 배열에서 사라지면 예전엔 여기서 null을 반환했고,
+// 화면엔 입력값이 그대로 있는데 "저장할 항목이 없습니다"만 뜨고 내용이 통째로 버려졌다.
+// (폰에서 앱 전환·화면 꺼짐으로 iOS가 페이지를 다시 로드하면 입력값은 복원되지만
+//  currentId 같은 JS 상태는 초기화되는 게 대표 경로. 그 외 경로도 결과는 같다.)
+// 폼이 실제로 열려 있으면 항목을 되살려서 입력 내용을 살린다.
+if (!log) {
+  if (!document.getElementById('pageForm')?.classList.contains('active')) return null;
+  if (!currentId) currentId = Date.now().toString();
+  console.warn(`[저장복구] logs에서 현재 항목을 못 찾아 새로 만들어 저장합니다. id=${currentId}, logs=${logs.length}건`);
+  log = {
+    id: currentId, date: today(), weather: [], rehearsals: [], equipment: [], monitorChecks: {},
+    soundPhotos: [null,null,null,null,null,null,null,null],
+    stagePhotos: [null,null,null,null,null,null,null,null],
+    createdAt: new Date().toISOString(),
+    createdBy: currentUser ? currentUser.id : 'unknown',
+    createdByName: currentUser ? currentUser.name : '알 수 없음'
+  };
+  logs.push(log);
+}
 
 const fields = ['date','eventType','eventName','clientManager','venue','engineer','stagedirector','staff1','staff2',
 'callTimeSound','callTimeStage','showTime','endTime','teardownEnd',
