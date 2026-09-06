@@ -7238,9 +7238,9 @@ toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
 // DB (soundlogs, tasks, vehicle_data 등 텍스트 데이터)
 const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
-// Storage (사진·3D 파일 — 별도 프로젝트, 용량 분리)
-const STORAGE_URL = 'https://poxafvsqxvcaewduhvxt.supabase.co';
-const STORAGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBveGFmdnNxeHZjYWV3ZHVodnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTc2NDYsImV4cCI6MjA5NzU3MzY0Nn0.xn6q_BmIG9lR-rgPzHd3S3KKgQ3LbrsjKHrgkzXswmk';
+// Storage (사진·3D 파일 — DB와 같은 프로젝트로 통합, 2026-09-06)
+const STORAGE_URL = SB_URL;
+const STORAGE_KEY = SB_KEY;
 const PHOTO_BUCKET = 'event-photos'; // Supabase Storage 버킷명 (public, Dashboard에서 생성 필요)
 
 // ── 전체 백업 / 복구 ──

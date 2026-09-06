@@ -2,6 +2,30 @@
 생성일: 2026-07-03
 ---
 
+## 2026-09-06 ✅ 성공 — Supabase DB/Storage 프로젝트 계정 통합
+### 배경
+사장님: 장비관리 데이터가 있는 DB 프로젝트(`nifmnigvrjfctdimgmda`, yamugyclaude@gmail.com 계정)와
+사진이 있는 Storage 프로젝트(`poxafvsqxvcaewduhvxt`, yamugyhanbada 계정)가 서로 다른 Supabase
+계정에 있어 커넥터 전환 없이는 동시 관리가 안 됐다. 평소 yamugyclaude 계정을 주로 쓰므로
+그쪽으로 통합 요청.
+
+### 진행
+1. 두 계정을 상호 Owner로 초대 → Supabase 대시보드 "Transfer project"로
+   `poxafvsqxvcaewduhvxt` 를 yamugyclaude 조직(jknvoletqfngqkleyksz)으로 이전 완료.
+   이제 계정 전환 없이 두 프로젝트 모두 접근 가능.
+2. 사진(`event-photos` 버킷, 85개 파일)은 프로젝트가 달라 SQL로는 못 옮김 — 실제 바이너리는
+   Storage API(별도 서비스) 경유가 필요한데, 세션 네트워크 정책상 `supabase.co` 직접 접속이
+   막혀있어 DB 프로젝트에 1회성 Edge Function(`migrate-photos`)을 배포, 그 함수가 서버사이드에서
+   기존 Storage의 public URL을 fetch → 새 프로젝트에 upload 하는 방식으로 우회. 85/85 성공 확인.
+3. `index.html`의 `STORAGE_URL`/`STORAGE_KEY`를 `SB_URL`/`SB_KEY`와 동일하게 변경 — 이제 DB·사진
+   모두 한 프로젝트(`nifmnigvrjfctdimgmda`)를 사용.
+
+### 확인 안 된 것 (후속 검토 필요)
+- 같은 Storage 계정에 있던 `ruby-files`/`note-files` 등 다른 버킷(SketchUp 플러그인 등,
+  hanbadadiary 무관 추정)은 이번에 옮기지 않음 — 그대로 `poxafvsqxvcaewduhvxt`에 남아있음.
+- `vehicle_data`/`soundlogs` 테이블 RLS 비활성화 상태는 그대로 (공용 계정 사용 전제로 사장님 확인,
+  백업 체계로 커버하기로 함).
+
 ## 2026-09-02 ✅ 성공 — 저장 시 입력 내용이 통째로 버려지던 문제 수정 (v0902-01)
 ### 배경
 사장님: "새로운 행사일지 내용 입력 후 저장하면 저장할 항목이 없다면서 기록에 안 된다."

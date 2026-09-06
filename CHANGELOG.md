@@ -13,6 +13,8 @@
 
 **📸 사진 업로드 (2026-08-12 근본 수정)**: 행사일지·장비 사진이 Storage에 업로드되는 기능이 **생긴 이후 단 한 번도 성공한 적이 없었다.** `event-photos` 버킷에 anon용 SELECT 정책이 없어서 `x-upsert:true` 업로드가 매번 RLS로 막힘. Supabase MCP로 정책 추가 후 실제 업로드 200 확인, 마이그레이션 자동 재개. 자세한 내용은 PROJECT_LOG.md 2026-08-12 항목 참고 — **로컬 저장공간 부족·행사일지 로딩 지연도 전부 이게 원인이었다.**
 
+**🗄️ Supabase 계정 통합 (2026-09-06)**: DB 프로젝트(nifmnigvrjfctdimgmda)와 Storage 프로젝트(poxafvsqxvcaewduhvxt)가 서로 다른 계정에 있어 관리가 번거로웠다. 두 계정을 같은 조직으로 합치고, `event-photos` 버킷 사진 85개를 DB 프로젝트로 이관, `STORAGE_URL`을 `SB_URL`과 동일하게 통합. 자세한 내용은 PROJECT_LOG.md 2026-09-06 항목 참고.
+
 **🔐 배포 산출물 범위 (2026-08-05 변경)**: `deploy.yml`이 더 이상 저장소 전체를 Pages에 올리지 않는다. `_site/`에 웹 자산(`index.html`, `images/`, `pdfs/`, `event-request/`, `thought-organizer/`, 로고, `.nojekyll`)만 복사해서 배포하고, `.md`나 `.claude`가 섞이면 배포를 중단시키는 가드가 있다. **문서를 새로 만들어도 웹에 안 뜨지만, 웹에 필요한 자산을 추가할 땐 `deploy.yml`의 복사 목록에 반드시 넣어야 한다.**
 
 **💾 백업 (2026-08-05 신설)**: 이전엔 백업 수단이 **전혀 없었다**. 지금은 두 가지가 있다.
