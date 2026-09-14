@@ -15,6 +15,8 @@
 
 **🗄️ Supabase 계정 통합 (2026-09-06)**: DB 프로젝트(nifmnigvrjfctdimgmda)와 Storage 프로젝트(poxafvsqxvcaewduhvxt)가 서로 다른 계정에 있어 관리가 번거로웠다. 두 계정을 같은 조직으로 합치고, `event-photos` 버킷 사진 85개를 DB 프로젝트로 이관, `STORAGE_URL`을 `SB_URL`과 동일하게 통합. 자세한 내용은 PROJECT_LOG.md 2026-09-06 항목 참고.
 
+**🖼️ 장비관리 사진 안 보임 (2026-09-14 수정)**: 위 계정 통합 때 사진 파일은 새 프로젝트로 옮겼지만, 기존 장비 데이터(`vehicle_data`)에 저장된 사진 URL 42건이 옛(휴면) 프로젝트 주소로 남아있었던 게 원인. 코드 변경 없이 DB URL만 새 프로젝트 주소로 일괄 치환. 자세한 내용은 PROJECT_LOG.md 2026-09-14 항목 참고.
+
 **🔐 배포 산출물 범위 (2026-08-05 변경)**: `deploy.yml`이 더 이상 저장소 전체를 Pages에 올리지 않는다. `_site/`에 웹 자산(`index.html`, `images/`, `pdfs/`, `event-request/`, `thought-organizer/`, 로고, `.nojekyll`)만 복사해서 배포하고, `.md`나 `.claude`가 섞이면 배포를 중단시키는 가드가 있다. **문서를 새로 만들어도 웹에 안 뜨지만, 웹에 필요한 자산을 추가할 땐 `deploy.yml`의 복사 목록에 반드시 넣어야 한다.**
 
 **💾 백업 (2026-08-05 신설)**: 이전엔 백업 수단이 **전혀 없었다**. 지금은 두 가지가 있다.

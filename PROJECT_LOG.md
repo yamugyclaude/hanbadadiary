@@ -2,6 +2,29 @@
 생성일: 2026-07-03
 ---
 
+## 2026-09-14 ✅ 성공 — 장비관리 사진 안 보이던 문제 수정 (2026-09-06 이관 후유증)
+### 배경
+사장님: "장비관리에서 사진이 안 보인다."
+
+### 원인
+2026-09-06 Supabase 계정 통합 때 사진 파일 자체(Storage 바이너리)는 새 프로젝트
+(`nifmnigvrjfctdimgmda`)로 정상 이관됐으나(storage.objects 85개 확인), **DB
+`vehicle_data`에 이미 저장돼 있던 장비(`id like 'eq_%'`)들의 `v15.photos` URL 문자열은
+옛 프로젝트(`poxafvsqxvcaewduhvxt`) 주소 그대로 남아있었다.** 옛 프로젝트가 이후
+휴면(INACTIVE) 상태가 되면서 해당 주소로는 이미지가 로드되지 않았다. 코드
+(`index.html`의 `STORAGE_URL`)는 이미 새 프로젝트를 정확히 가리키고 있었어서 원인이
+코드가 아니라 DB에 저장된 옛 URL 데이터였다.
+
+### 조치
+`vehicle_data`에서 `id like 'eq_%'`인 행의 `v15.photos` 배열만 대상으로, URL 문자열의
+호스트를 `poxafvsqxvcaewduhvxt.supabase.co` → `nifmnigvrjfctdimgmda.supabase.co`로
+일괄 치환하는 1회성 SQL UPDATE 실행 (다른 필드는 안 건드림). 코드 변경 없음, DB 데이터만
+수정.
+
+- 대상 42개 URL 전수 치환 확인 (치환 전 old_host=42/new_host=0 → 치환 후 old_host=0/new_host=42)
+- 치환된 URL 중 1건을 골라 `storage.objects`에 실제 파일 존재 확인(count=1)으로 재검증
+- 로컬 정적 이미지(`images/equipment/*.png`) 9건은 이번 문제와 무관, 정상 확인 후 손대지 않음
+
 ## 2026-09-06 ✅ 성공 — Supabase DB/Storage 프로젝트 계정 통합
 ### 배경
 사장님: 장비관리 데이터가 있는 DB 프로젝트(`nifmnigvrjfctdimgmda`, yamugyclaude@gmail.com 계정)와
