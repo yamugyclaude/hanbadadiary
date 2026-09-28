@@ -8,26 +8,26 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>행사준비 다이어리 - 한바다</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Gaegu:wght@700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
---bg: #080c18;
---surface: #0e1628;
---surface2: #141f38;
---surface3: #1b2a4a;
---border: rgba(99,130,200,0.18);
---border2: rgba(99,130,200,0.32);
---accent: #818cf8;
---accent-dim: rgba(129,140,248,0.15);
+--bg: #F7F0E3;
+--surface: #FFFDF6;
+--surface2: #F5EEDD;
+--surface3: #EFE4CC;
+--border: #E6DCC6;
+--border2: #C9B98F;
+--accent: #AD6A38;
+--accent-dim: rgba(173,106,56,0.15);
 --accent2: #f472b6;
 --accent2-dim: rgba(244,114,182,0.14);
---gold: #fbbf24;
---gold-dim: rgba(251,191,36,0.14);
---red: #f87171;
---red-dim: rgba(248,113,113,0.15);
---text: #f1f5f9;
---text2: #94a3b8;
---text-muted: #64748b;
+--gold: #B8792E;
+--gold-dim: rgba(184,121,46,0.16);
+--red: #B33F26;
+--red-dim: rgba(179,63,38,0.14);
+--text: #3B342A;
+--text2: #8A7C5E;
+--text-muted: #9C8F72;
 --safe-top: env(safe-area-inset-top, 0px);
 --safe-bot: env(safe-area-inset-bottom, 0px);
 --radius: 10px;
@@ -35,13 +35,15 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-html, body { height: 100%; font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--border) 27px, var(--border) 28px); color: var(--text); font-size: 15px; -webkit-font-smoothing: antialiased; padding-left: 26px; }
+
+.spiral-strip { position: fixed; left: 0; top: 0; bottom: 0; width: 26px; background-color: var(--surface3); border-right: 2px dashed var(--border2); z-index: 40; background-image: radial-gradient(circle at center, rgba(59,52,42,0.3) 3px, transparent 3.5px); background-size: 26px 28px; background-repeat: repeat-y; }
 
 #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100dvh; padding: 24px; }
 .login-card { width: 100%; max-width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 22px; display: flex; flex-direction: column; gap: 12px; }
-.login-card h1 { font-size: 18px; text-align: center; margin-bottom: 4px; }
+.login-card h1 { font-family: 'Gaegu', 'Noto Sans KR', sans-serif; font-size: 20px; text-align: center; margin-bottom: 4px; }
 .login-card input { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 14px; }
-.login-card button { background: var(--accent); color: #0b0f1c; font-weight: 700; border: none; border-radius: 8px; padding: 11px; font-size: 14px; cursor: pointer; }
+.login-card button { background: var(--accent); color: #FFFDF6; font-weight: 700; border: none; border-radius: 8px; padding: 11px; font-size: 14px; cursor: pointer; }
 #loginErr { color: var(--red); font-size: 12px; min-height: 14px; }
 
 #app { display: none; flex-direction: column; min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--safe-bot) + 70px); }
@@ -68,15 +70,19 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 .dday.normal { background: var(--surface3); color: var(--text-muted); }
 .empty-msg { color: var(--text-muted); font-size: 13px; padding: 14px 4px; }
 
+.month-nav { display: flex; align-items: center; justify-content: center; gap: 16px; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px dashed var(--border2); }
+.month-nav button { background: none; border: 1px solid var(--border2); color: var(--accent); border-radius: 6px; width: 30px; height: 30px; font-size: 16px; cursor: pointer; }
+.month-nav span { font-family: 'Gaegu', 'Noto Sans KR', sans-serif; font-weight: 700; font-size: 19px; min-width: 130px; text-align: center; }
+
 .event-grid { display: flex; flex-direction: column; gap: 10px; }
-.event-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; cursor: pointer; }
+.event-card { background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--accent); border-radius: 4px 14px 14px 4px; padding: 13px 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(74,63,46,0.14); }
 .event-card-top { display: flex; align-items: center; gap: 8px; }
-.event-card-name { font-size: 15px; font-weight: 700; flex: 1; }
+.event-card-name { font-family: 'Gaegu', 'Noto Sans KR', sans-serif; font-size: 17px; font-weight: 700; flex: 1; }
 .event-card-icon { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 3px 5px; }
-.event-card-date { font-size: 15px; font-weight: 700; color: var(--gold); margin-top: 4px; }
+.event-card-date { font-family: 'Gaegu', 'Noto Sans KR', sans-serif; font-size: 16px; font-weight: 700; color: var(--gold); margin-top: 4px; }
 .event-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 .progress-bar { height: 6px; background: var(--surface3); border-radius: 4px; margin-top: 9px; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+.progress-bar-fill { height: 100%; background: #E8C15A; border-radius: 4px; }
 .progress-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
 .task-groups { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
@@ -90,7 +96,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 .task-row .t-del { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; padding: 4px; }
 .add-task-btn { margin-top: 6px; background: var(--surface2); border: 1px dashed var(--border2); color: var(--text2); border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: center; }
 
-#fab { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 18px); width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #0b0f1c; font-size: 26px; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 50; }
+#fab { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 18px); width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #FFFDF6; font-size: 26px; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(74,63,46,0.35); z-index: 50; }
 #fabMenu { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 80px); display: none; flex-direction: column; gap: 8px; z-index: 50; }
 #fabMenu.open { display: flex; }
 #fabMenu button { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 10px 14px; font-size: 13px; cursor: pointer; white-space: nowrap; }
@@ -104,7 +110,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 .modal-box textarea { min-height: 60px; resize: vertical; }
 .modal-actions { display: flex; gap: 8px; margin-top: 6px; }
 .modal-actions button { flex: 1; padding: 11px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; }
-.btn-save { background: var(--accent); color: #0b0f1c; }
+.btn-save { background: var(--accent); color: #FFFDF6; }
 .btn-cancel { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2) !important; }
 .btn-delete { background: var(--red-dim); color: var(--red); }
 .staff-item { display: flex; align-items: center; gap: 8px; background: var(--surface2); border-radius: 8px; padding: 8px 10px; }
@@ -125,7 +131,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 .doc-header-bar { display: flex; gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
 .doc-header-bar button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; }
 #docContent { flex: 1; overflow-y: auto; }
-.doc-title { font-size: 17px; font-weight: 700; }
+.doc-title { font-family: 'Gaegu', 'Noto Sans KR', sans-serif; font-size: 19px; font-weight: 700; }
 .doc-generated { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
 .doc-date-header { font-size: 13px; font-weight: 700; color: var(--accent); margin: 16px 0 8px; }
 .doc-event { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
@@ -144,6 +150,8 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 </style>
 </head>
 <body>
+
+<div class="spiral-strip"></div>
 
 <div id="loginScreen">
   <div class="login-card">
@@ -174,7 +182,16 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
   <div id="content">
     <div class="event-panel">
       <div class="section-title">행사 목록</div>
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)" aria-label="이전 달">‹</button>
+        <span id="monthLabel"></span>
+        <button onclick="changeMonth(1)" aria-label="다음 달">›</button>
+      </div>
       <div class="event-grid" id="eventGrid"></div>
+      <div id="undatedSection" style="display:none;">
+        <div class="section-title" style="margin-top:14px;">날짜 미정</div>
+        <div class="event-grid" id="undatedGrid"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -323,6 +340,7 @@ let events = [];
 let tasks = [];
 let filterMode = 'all';
 let expandedEventId = null;
+let currentMonthOffset = 0;
 
 // ── 분류/기본 할일 (vehicle_data.prep_cats, PATCH-then-POST 패턴) ──
 function ensureEtc() {
@@ -476,13 +494,42 @@ function setFilter(f) {
   renderEventGrid();
 }
 
+// ── 월 페이징 ──
+function monthDate() {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + currentMonthOffset);
+  return d;
+}
+function monthLabel() {
+  const d = monthDate();
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월`;
+}
+function changeMonth(delta) {
+  currentMonthOffset += delta;
+  renderEventGrid();
+}
+function isInSelectedMonth(ev) {
+  if (!ev.date) return false;
+  const d = monthDate();
+  return Number(ev.date.slice(0,4)) === d.getFullYear() && Number(ev.date.slice(5,7)) === d.getMonth()+1;
+}
+
 function renderEventGrid() {
-  const grid = document.getElementById('eventGrid');
+  document.getElementById('monthLabel').textContent = monthLabel();
   let list = [...events];
   if (filterMode === 'progress') list = list.filter(ev => !isEventDone(ev));
   else if (filterMode === 'done') list = list.filter(ev => isEventDone(ev));
-  if (!list.length) { grid.innerHTML = '<div class="empty-msg">행사가 없습니다</div>'; return; }
-  grid.innerHTML = list.map(ev => renderEventCard(ev)).join('');
+
+  const monthList = list.filter(ev => isInSelectedMonth(ev));
+  document.getElementById('eventGrid').innerHTML = monthList.length
+    ? monthList.map(ev => renderEventCard(ev)).join('')
+    : '<div class="empty-msg">이 달에는 행사가 없습니다</div>';
+
+  const undated = list.filter(ev => !ev.date);
+  const undatedSection = document.getElementById('undatedSection');
+  undatedSection.style.display = undated.length ? '' : 'none';
+  if (undated.length) document.getElementById('undatedGrid').innerHTML = undated.map(ev => renderEventCard(ev)).join('');
 }
 
 function renderEventCard(ev) {
