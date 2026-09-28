@@ -131,6 +131,51 @@
   코드 리딩으로만 검증(await 순서 수정 후 `syncCatsToCloud()` 완료 전에는
   `refreshAll()`이 실행되지 않음을 코드상 확인).
 
+## 2026-09-28 ✅ 성공 — 행사준비 다이어리 담당자/내 할일 기능 제거
+
+### 배경
+사장님 승인 계획: 담당자별 업무 분담 없이 전 직원이 다 같이 체크리스트를 보는
+방식으로 단순화 — 담당자 드롭다운·⚙️ 담당자 명단 관리·"내 할일" 패널을 통째로
+제거.
+
+### 구현
+- 헤더: `#staffSelect` 드롭다운, ⚙️ 담당자 명단 관리 버튼(`staffSettingsBtn`) 삭제.
+  로그아웃 버튼은 유지.
+- "내 할일" 섹션(`.mytask-panel`, `renderMyTasks`, `#myTaskTitle`, `#myTaskList`)
+  전체 삭제. PC(≥768px) 레이아웃에서 `#content`의 자식이 `.event-panel` 하나만
+  남으면서 `flex:1`이 그대로 전체 너비를 채우도록 동작(별도 grid 구조 변경 불필요,
+  `.mytask-panel` 전용 미디어쿼리 규칙만 제거).
+- `staffModalOverlay` 모달, `renderStaffListBody`/`addStaff`/`removeStaff`/
+  `renderStaffSelect`/`onStaffChange`/`selectedStaff`/`loadStaff`/`syncStaffToCloud`
+  함수와 호출부(`refreshAll`, `startApp`, `openTaskModal`) 전부 삭제.
+- 할일 등록/수정 모달(`taskModalOverlay`)에서 "담당자" 라벨+`#taskAssignee` select
+  제거, `saveTask()` payload에서 `assignee` 필드 제거(이제 담당자 값을 읽지도
+  쓰지도 않음 — **DB `prep_tasks.assignee` 컬럼과 기존 저장값, `vehicle_data.
+  prep_staff` 행은 그대로 둠**, 삭제 안 함).
+- 화면상 담당자 표시 제거: 행사 카드 확장 시 할일 줄(`renderTaskGroups`의
+  `.t-meta`)과 "📄 문서 보기"(`renderDocument`)의 할일 줄에서 담당자 텍스트 삭제,
+  마감일만 표시.
+- ⚙️(분류·기본 할일 관리) 진입 경로 변경: 기존에는 ⚙️→담당자 모달→"분류·기본
+  할일 관리" 버튼으로 2단계였으나, 담당자 모달이 사라지면서 헤더 ⚙️ 버튼
+  (`catManageBtn`)이 `openCatModal()`을 직접 호출하도록 1단계로 단순화. 기능
+  자체(분류 추가/이름변경/삭제, 기본 할일 편집)는 변경 없음.
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium, `/opt/pw-browsers-1194`)로
+  390px/1280px 확인. 실제 쓰기가 일어나는 모든 동작은 `page.route()`로 가짜 행사/
+  할일/분류 데이터를 스텁 — 실제 DB(`창원마라톤대회음향` 등 실사용 데이터)는 건드리지
+  않음.
+- 확인된 것: 담당자 드롭다운·⚙️ 담당자 버튼·내 할일 패널 전부 미노출, PC에서
+  `.event-panel`이 `#content`(1280px) 대비 1232px로 사실상 전체 너비 사용, 할일
+  추가 모달에 담당자 필드/라벨 없음(`#taskAssignee` 0개), 할일 줄·문서 보기 모두
+  담당자 텍스트 없이 마감일만 표시, 헤더 ⚙️ 버튼으로 분류·기본 할일 관리 모달이
+  바로 열림.
+- 실제 Supabase 읽기 전용 호출(`page.route()`로 GET만 실통과, 쓰기는 차단)로도
+  시도했으나 이 샌드박스 환경에서 Supabase로 나가는 실제 네트워크 자체가 막혀 있어
+  "분류 목록 불러오기 실패" 토스트만 확인됨 — 코드 변경과 무관한 환경 제약(같은
+  `fetch` 패턴은 기존에도 그대로이며 실배포 환경에서는 정상 동작해왔음), 별도
+  조치 없음.
+
 ## 2026-09-14 ✅ 성공 — 장비관리 사진 안 보이던 문제 수정 (2026-09-06 이관 후유증)
 ### 배경
 사장님: "장비관리에서 사진이 안 보인다."

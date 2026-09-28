@@ -51,8 +51,7 @@ header .logo { font-size: 17px; font-weight: 700; }
 header .logo span { color: var(--accent); }
 header a.backlink { color: var(--text-muted); font-size: 12px; text-decoration: none; border: 1px solid var(--border2); border-radius: 6px; padding: 5px 9px; }
 header .spacer { flex: 1; }
-header select#staffSelect { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 700; }
-header button#staffSettingsBtn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--text-muted); font-size: 13px; padding: 6px 9px; cursor: pointer; }
+header button#catManageBtn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--text-muted); font-size: 13px; padding: 6px 9px; cursor: pointer; }
 header button#logoutBtn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--text-muted); font-size: 12px; padding: 6px 9px; cursor: pointer; }
 
 .filter-tabs { display: flex; gap: 6px; padding: 10px 14px; }
@@ -63,10 +62,6 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 
 .section-title { font-size: 14px; font-weight: 700; color: var(--text2); margin-bottom: 8px; }
 
-.mytask-list { display: flex; flex-direction: column; gap: 7px; }
-.mytask-row { display: flex; align-items: center; gap: 9px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; }
-.mytask-row .t-title { flex: 1; font-size: 13px; }
-.mytask-row .t-event { font-size: 11px; color: var(--text-muted); }
 .dday { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; white-space: nowrap; }
 .dday.red { background: var(--red-dim); color: var(--red); }
 .dday.orange { background: var(--gold-dim); color: var(--gold); }
@@ -120,7 +115,6 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 
 @media (min-width: 768px) {
   #content { flex-direction: row; align-items: flex-start; padding: 14px 24px; }
-  .mytask-panel { width: 300px; flex-shrink: 0; position: sticky; top: 14px; }
   .event-panel { flex: 1; }
   .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; align-content: start; }
 }
@@ -165,8 +159,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
     <div class="logo">🗓️ 행사준비<span>다이어리</span></div>
     <a class="backlink" href="../">← 메인</a>
     <div class="spacer"></div>
-    <select id="staffSelect" onchange="onStaffChange()"></select>
-    <button id="staffSettingsBtn" onclick="openStaffModal()" title="담당자 명단 관리">⚙️</button>
+    <button id="catManageBtn" onclick="openCatModal()" title="분류 관리">⚙️</button>
     <button id="logoutBtn" onclick="doLogout()">로그아웃</button>
   </header>
 
@@ -178,10 +171,6 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
   </div>
 
   <div id="content">
-    <div class="mytask-panel">
-      <div class="section-title" id="myTaskTitle">내 할일 (0)</div>
-      <div class="mytask-list" id="myTaskList"></div>
-    </div>
     <div class="event-panel">
       <div class="section-title">행사 목록</div>
       <div class="event-grid" id="eventGrid"></div>
@@ -225,30 +214,12 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
     <select id="taskCategory"></select>
     <label>할일 내용</label>
     <input type="text" id="taskTitle" placeholder="예: 무대 규격 확인">
-    <label>담당자</label>
-    <select id="taskAssignee"></select>
     <label>마감일</label>
     <input type="date" id="taskDue">
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('taskModalOverlay')">취소</button>
       <button class="btn-delete" id="taskDeleteBtn" style="display:none" onclick="deleteTaskConfirm()">삭제</button>
       <button class="btn-save" onclick="saveTask()">저장</button>
-    </div>
-  </div>
-</div>
-
-<!-- 담당자 명단 모달 -->
-<div class="modal-overlay" id="staffModalOverlay">
-  <div class="modal-box">
-    <h2>담당자 명단 관리</h2>
-    <div id="staffListBody" style="display:flex;flex-direction:column;gap:8px;"></div>
-    <div style="display:flex;gap:8px;">
-      <input type="text" id="newStaffName" placeholder="이름 추가">
-      <button class="btn-save" style="flex:0 0 auto;padding:9px 16px;" onclick="addStaff()">추가</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="openCatModal()">분류·기본 할일 관리</button>
-      <button class="btn-cancel" onclick="closeModal('staffModalOverlay')">닫기</button>
     </div>
   </div>
 </div>
@@ -346,71 +317,13 @@ function doLogout() {
 }
 
 // ── 상태 ──
-let staff = [];
 let cats = SEED_CATS.map(c => ({ name: c.name, items: [...c.items] }));
 let events = [];
 let tasks = [];
 let filterMode = 'all';
 let expandedEventId = null;
 
-function selectedStaff() { return localStorage.getItem('prepSelectedStaff') || ''; }
-
-// ── 담당자 명단 (vehicle_data.prep_staff, root index.html PATCH-then-POST 패턴 재사용) ──
-async function loadStaff() {
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.prep_staff&select=v15`, { headers: SB_HEADERS });
-    const rows = await res.json();
-    if (rows.length && Array.isArray(rows[0].v15)) staff = rows[0].v15;
-  } catch(e) { showToast('⚠ 담당자 명단 불러오기 실패(네트워크 확인)'); }
-  renderStaffSelect();
-}
-
-async function syncStaffToCloud() {
-  const payload = { id: 'prep_staff', v15: staff, v35: [] };
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.prep_staff`, {
-      method: 'PATCH', headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(payload)
-    });
-    const patched = await res.json();
-    if (Array.isArray(patched) && patched.length === 0) {
-      await fetch(`${SB_URL}/rest/v1/vehicle_data`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(payload) });
-    }
-  } catch(e) { showToast('⚠ 담당자 명단 저장 실패(네트워크 확인)'); }
-}
-
-function renderStaffSelect() {
-  const sel = document.getElementById('staffSelect');
-  const cur = selectedStaff();
-  sel.innerHTML = '<option value="">담당자 선택</option>' + staff.map(n => `<option value="${esc(n)}" ${n===cur?'selected':''}>${esc(n)}</option>`).join('');
-  const taskAssignee = document.getElementById('taskAssignee');
-  if (taskAssignee) taskAssignee.innerHTML = '<option value="">미배정</option>' + staff.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
-}
-
-function onStaffChange() {
-  localStorage.setItem('prepSelectedStaff', document.getElementById('staffSelect').value);
-  renderMyTasks();
-}
-
-function openStaffModal() { renderStaffListBody(); document.getElementById('staffModalOverlay').classList.add('open'); }
-function renderStaffListBody() {
-  document.getElementById('staffListBody').innerHTML = staff.map((n,i) =>
-    `<div class="staff-item"><span>${esc(n)}</span><button onclick="removeStaff(${i})">🗑</button></div>`).join('') || '<div class="empty-msg">등록된 담당자가 없습니다</div>';
-}
-function addStaff() {
-  const input = document.getElementById('newStaffName');
-  const name = input.value.trim();
-  if (!name) return;
-  if (staff.includes(name)) { showToast('이미 있는 이름입니다'); return; }
-  staff.push(name);
-  input.value = '';
-  syncStaffToCloud(); renderStaffListBody(); renderStaffSelect();
-}
-function removeStaff(i) {
-  staff.splice(i,1);
-  syncStaffToCloud(); renderStaffListBody(); renderStaffSelect();
-}
-
-// ── 분류/기본 할일 (vehicle_data.prep_cats, prep_staff와 동일한 PATCH-then-POST 패턴) ──
+// ── 분류/기본 할일 (vehicle_data.prep_cats, PATCH-then-POST 패턴) ──
 function ensureEtc() {
   const etc = cats.find(c => c.name === '기타') || { name: '기타', items: [] };
   cats = cats.filter(c => c.name !== '기타');
@@ -531,7 +444,7 @@ async function loadTasks() {
 }
 async function refreshAll() {
   await Promise.all([loadEvents(), loadTasks(), loadCats()]);
-  renderMyTasks(); renderEventGrid();
+  renderEventGrid();
 }
 
 // ── D-day ──
@@ -553,30 +466,6 @@ function isEventDone(ev) {
   const { total, pct } = eventProgress(ev);
   const pastDate = ev.date && ev.date < today();
   return pastDate || (total > 0 && pct === 100);
-}
-
-// ── 내 할일 렌더 ──
-function renderMyTasks() {
-  const name = selectedStaff();
-  const list = document.getElementById('myTaskList');
-  const titleEl = document.getElementById('myTaskTitle');
-  if (!name) { list.innerHTML = '<div class="empty-msg">상단에서 담당자를 선택하세요</div>'; titleEl.textContent = '내 할일'; return; }
-  const myTasks = tasks.filter(t => t.assignee === name && !t.done)
-    .map(t => ({ t, ev: events.find(e => e.id === t.event_id) }))
-    .sort((a,b) => (a.t.due||'9999') < (b.t.due||'9999') ? -1 : 1);
-  titleEl.textContent = `내 할일 (${myTasks.length})`;
-  if (!myTasks.length) { list.innerHTML = '<div class="empty-msg">할일이 없습니다</div>'; return; }
-  list.innerHTML = myTasks.map(({t,ev}) => {
-    const d = ddayInfo(t.due);
-    return `<div class="mytask-row">
-      <input type="checkbox" onchange="toggleTaskDone('${t.id}', true)">
-      <div class="t-title-wrap" style="flex:1;min-width:0;">
-        <div class="t-title">${esc(t.title)}</div>
-        <div class="t-event">${esc(ev ? ev.name : '')}</div>
-      </div>
-      ${t.due ? `<span class="dday ${d.cls}">${d.label}</span>` : ''}
-    </div>`;
-  }).join('');
 }
 
 // ── 행사 카드 렌더 ──
@@ -630,7 +519,7 @@ function renderTaskGroups(eventId) {
         <input type="checkbox" ${t.done?'checked':''} onchange="toggleTaskDone('${t.id}', this.checked)">
         <div class="t-body" onclick="openTaskModal('${t.id}')">
           <div class="t-title">${esc(t.title)}</div>
-          <div class="t-meta">${esc(t.assignee||'미배정')}${t.due ? ' · ' + fmtDate(t.due) : ''}</div>
+          ${t.due ? `<div class="t-meta">${fmtDate(t.due)}</div>` : ''}
         </div>
       </div>`;
     });
@@ -644,7 +533,7 @@ function renderTaskGroups(eventId) {
 async function toggleTaskDone(id, done) {
   const t = tasks.find(x => x.id === id);
   if (t) t.done = done;
-  renderMyTasks(); renderEventGrid();
+  renderEventGrid();
   try {
     await fetch(`${SB_URL}/rest/v1/prep_tasks?id=eq.${id}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ done, updated_at: new Date().toISOString() }) });
   } catch(e) { showToast('⚠ 저장 실패(네트워크 확인)'); }
@@ -711,7 +600,6 @@ let editingTaskId = null;
 function openTaskModal(id, fixedEventId) {
   editingTaskId = id || null;
   const t = id ? tasks.find(x => x.id === id) : null;
-  renderStaffSelect();
   const evSel = document.getElementById('taskEvent');
   evSel.innerHTML = events.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('');
   if (!evSel.options.length) { showToast('먼저 행사를 추가하세요'); return; }
@@ -719,7 +607,6 @@ function openTaskModal(id, fixedEventId) {
   evSel.value = t ? t.event_id : (fixedEventId || events[0].id);
   document.getElementById('taskCategory').value = t ? (t.category||'기타') : '기타';
   document.getElementById('taskTitle').value = t ? t.title : '';
-  document.getElementById('taskAssignee').value = t ? (t.assignee||'') : '';
   document.getElementById('taskDue').value = t ? (t.due||'') : '';
   document.getElementById('taskDeleteBtn').style.display = t ? 'block' : 'none';
   document.getElementById('taskModalOverlay').classList.add('open');
@@ -733,7 +620,6 @@ async function saveTask() {
     event_id: document.getElementById('taskEvent').value,
     category: document.getElementById('taskCategory').value,
     title,
-    assignee: document.getElementById('taskAssignee').value || null,
     due: document.getElementById('taskDue').value || null,
     updated_at: new Date().toISOString(),
   };
@@ -800,8 +686,8 @@ function renderDocument() {
     cats.forEach(cat => {
       ts.filter(t => resolveCategory(t.category||'기타') === cat.name).forEach(t => {
         const mark = t.done ? '✅' : '☐';
-        const due = t.due ? `, 마감 ${fmtDate(t.due)}` : '';
-        html += `<div class="doc-task-row">[${esc(cat.name)}] ${mark} ${esc(t.title)} (${esc(t.assignee||'미배정')}${due})</div>`;
+        const due = t.due ? ` (마감 ${fmtDate(t.due)})` : '';
+        html += `<div class="doc-task-row">[${esc(cat.name)}] ${mark} ${esc(t.title)}${due}</div>`;
       });
     });
     html += `</div>`;
@@ -844,7 +730,6 @@ function startApp() {
   document.getElementById('app').style.display = 'flex';
   setFilter('all');
   renderTaskCategorySelect();
-  loadStaff();
   refreshAll();
   initRealtime();
 }
