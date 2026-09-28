@@ -1138,3 +1138,20 @@ REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라�
 
 ### 배포 이력
 - 커밋: `9d6b2fe`, main 병합 예정
+
+---
+
+## 2026-09-28 ✅ 성공 — 행사준비 카드 날짜 표시 개선
+
+### 배경
+사장님: 행사 카드에서 날짜가 업체명과 한 줄에 작은 회색 글씨로 묻혀 안 보인다는 요청.
+
+### 수정
+- `event-prep/index.html` `renderEventCard()`: 날짜를 업체명 아래 별도 줄로 분리,
+  `.event-card-date`(15px, bold, `var(--gold)`) 신설. 업체명은 기존 `.event-card-sub`로
+  그대로 아래에 유지. 날짜가 없으면 날짜 줄 자체를 렌더링하지 않음(업체명만 표시).
+- D-day 배지(`.dday`)는 기존 위치(상단) 그대로 유지, 변경 없음.
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium), `page.route`로 Supabase REST 호출
+  스텁 처리(실제 DB 접근 없음). 390px/1280px 스크린샷으로 날짜 있는 행사/없는 행사 둘 다 확인.

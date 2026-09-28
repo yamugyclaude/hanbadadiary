@@ -73,6 +73,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 .event-card-top { display: flex; align-items: center; gap: 8px; }
 .event-card-name { font-size: 15px; font-weight: 700; flex: 1; }
 .event-card-icon { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 3px 5px; }
+.event-card-date { font-size: 15px; font-weight: 700; color: var(--gold); margin-top: 4px; }
 .event-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 .progress-bar { height: 6px; background: var(--surface3); border-radius: 4px; margin-top: 9px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
@@ -494,7 +495,8 @@ function renderEventCard(ev) {
       ${ev.date ? `<span class="dday ${d.cls}">${d.label}</span>` : ''}
       <button class="event-card-icon" onclick="event.stopPropagation();openEventModal('${ev.id}')">✏️</button>
     </div>
-    <div class="event-card-sub">${esc(ev.venue||'')} ${ev.date ? '· ' + fmtDate(ev.date) : ''}</div>
+    ${ev.date ? `<div class="event-card-date">${fmtDate(ev.date)}</div>` : ''}
+    <div class="event-card-sub">${esc(ev.venue||'')}</div>
     <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
     <div class="progress-label">${done}/${total} 완료 (${pct}%)</div>`;
   if (expanded) body += renderTaskGroups(ev.id);
