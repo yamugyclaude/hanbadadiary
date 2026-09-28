@@ -2,6 +2,36 @@
 생성일: 2026-07-03
 ---
 
+## 2026-09-28 ✅ 성공 — 행사준비 다이어리 신설 (event-prep)
+
+### 배경
+사장님: 직원들이 각 행사 준비 진행 상황(무대/음향/차량/섭외 등)을 한눈에 보고,
+"내 할일"을 확인할 수 있는 별도 페이지가 필요하다는 요청. 전 직원이 로그인 계정을
+하나만 공유하므로, 담당자 구분은 로그인이 아니라 화면 상단 이름 선택으로 처리.
+
+### 구현
+- 신규 파일 `event-prep/index.html` (단일 파일, 빌드 없음, root `index.html`과 동일한
+  다크 테마 CSS 변수·폰트 재사용).
+- DB: Supabase(`nifmnigvrjfctdimgmda`)에 `prep_events`, `prep_tasks` 테이블 신설
+  (RLS 활성화 + anon 전체 허용 정책, `supabase_realtime` publication에 추가).
+- 담당자 명단은 새 테이블 대신 기존 `vehicle_data` 테이블 `id='prep_staff'` 행에
+  저장(`sl_users`와 같은 PATCH-then-POST 패턴 재사용) — 전 기기 공유.
+- 로그인은 root 앱의 `sl_session`(sessionStorage)/`sl_users`(localStorage)를 그대로
+  재사용. 같은 탭에서 root → event-prep으로 이동하면 세션 유지, 새로고침 시엔
+  자체 로그인 폼(동일 계정 자격 증명 검사)으로 재확인.
+- 행사 등록 시 무대/음향/차량/섭외 카테고리별 기본 체크리스트(총 12개) 자동 생성,
+  이후 자유롭게 추가/수정/삭제 가능.
+- Realtime은 root와 동일한 수기 WebSocket 방식으로 `prep_events`/`prep_tasks` 변경 구독.
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium)로 390px/1280px 스크린샷 확인.
+- 실제 Supabase에 행사 생성 → 템플릿 12개 할일 자동 생성 → 할일 담당자 지정 →
+  체크 완료 → 새로고침 후에도 "1/12 완료(8%)"로 반영되는 것까지 실측 확인(SQL로도
+  `done=true` 재확인). 테스트로 만든 행사/할일/담당자 데이터는 검증 후 삭제.
+- Realtime WebSocket은 테스트 환경 프록시가 업그레이드 응답을 501/500으로 막아
+  로컬에서는 미검증(REST 폴링 경로는 정상 동작 확인) — 실배포(GitHub Pages) 환경에서는
+  root `index.html`과 동일한 방식이라 별도 문제 없을 것으로 예상되나 배포 후 재확인 권장.
+
 ## 2026-09-14 ✅ 성공 — 장비관리 사진 안 보이던 문제 수정 (2026-09-06 이관 후유증)
 ### 배경
 사장님: "장비관리에서 사진이 안 보인다."

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>행사준비 다이어리 - 한바다</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+--bg: #080c18;
+--surface: #0e1628;
+--surface2: #141f38;
+--surface3: #1b2a4a;
+--border: rgba(99,130,200,0.18);
+--border2: rgba(99,130,200,0.32);
+--accent: #818cf8;
+--accent-dim: rgba(129,140,248,0.15);
+--accent2: #f472b6;
+--accent2-dim: rgba(244,114,182,0.14);
+--gold: #fbbf24;
+--gold-dim: rgba(251,191,36,0.14);
+--red: #f87171;
+--red-dim: rgba(248,113,113,0.15);
+--text: #f1f5f9;
+--text2: #94a3b8;
+--text-muted: #64748b;
+--safe-top: env(safe-area-inset-top, 0px);
+--safe-bot: env(safe-area-inset-bottom, 0px);
+--radius: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; -webkit-font-smoothing: antialiased; }
+
+#loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100dvh; padding: 24px; }
+.login-card { width: 100%; max-width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 22px; display: flex; flex-direction: column; gap: 12px; }
+.login-card h1 { font-size: 18px; text-align: center; margin-bottom: 4px; }
+.login-card input { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 14px; }
+.login-card button { background: var(--accent); color: #0b0f1c; font-weight: 700; border: none; border-radius: 8px; padding: 11px; font-size: 14px; cursor: pointer; }
+#loginErr { color: var(--red); font-size: 12px; min-height: 14px; }
+
+#app { display: none; flex-direction: column; min-height: 100dvh; padding-top: var(--safe-top); padding-bottom: calc(var(--safe-bot) + 70px); }
+
+header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+header .logo { font-size: 17px; font-weight: 700; }
+header .logo span { color: var(--accent); }
+header a.backlink { color: var(--text-muted); font-size: 12px; text-decoration: none; border: 1px solid var(--border2); border-radius: 6px; padding: 5px 9px; }
+header .spacer { flex: 1; }
+header select#staffSelect { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 700; }
+header button#staffSettingsBtn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--text-muted); font-size: 13px; padding: 6px 9px; cursor: pointer; }
+header button#logoutBtn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--text-muted); font-size: 12px; padding: 6px 9px; cursor: pointer; }
+
+.filter-tabs { display: flex; gap: 6px; padding: 10px 14px; }
+.filter-tab { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.filter-tab.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+#content { display: flex; flex-direction: column; gap: 18px; padding: 0 14px 14px; }
+
+.section-title { font-size: 14px; font-weight: 700; color: var(--text2); margin-bottom: 8px; }
+
+.mytask-list { display: flex; flex-direction: column; gap: 7px; }
+.mytask-row { display: flex; align-items: center; gap: 9px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; }
+.mytask-row .t-title { flex: 1; font-size: 13px; }
+.mytask-row .t-event { font-size: 11px; color: var(--text-muted); }
+.dday { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; white-space: nowrap; }
+.dday.red { background: var(--red-dim); color: var(--red); }
+.dday.orange { background: var(--gold-dim); color: var(--gold); }
+.dday.normal { background: var(--surface3); color: var(--text-muted); }
+.empty-msg { color: var(--text-muted); font-size: 13px; padding: 14px 4px; }
+
+.event-grid { display: flex; flex-direction: column; gap: 10px; }
+.event-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; cursor: pointer; }
+.event-card-top { display: flex; align-items: center; gap: 8px; }
+.event-card-name { font-size: 15px; font-weight: 700; flex: 1; }
+.event-card-icon { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 3px 5px; }
+.event-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.progress-bar { height: 6px; background: var(--surface3); border-radius: 4px; margin-top: 9px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+.progress-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.task-groups { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+.task-cat-title { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.task-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.task-row input[type=checkbox] { width: 17px; height: 17px; flex-shrink: 0; }
+.task-row .t-body { flex: 1; min-width: 0; }
+.task-row .t-body .t-title { font-size: 13px; }
+.task-row.done .t-title { text-decoration: line-through; color: var(--text-muted); }
+.task-row .t-meta { font-size: 11px; color: var(--text-muted); }
+.task-row .t-del { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; padding: 4px; }
+.add-task-btn { margin-top: 6px; background: var(--surface2); border: 1px dashed var(--border2); color: var(--text2); border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: center; }
+
+#fab { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 18px); width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #0b0f1c; font-size: 26px; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 50; }
+#fabMenu { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 80px); display: none; flex-direction: column; gap: 8px; z-index: 50; }
+#fabMenu.open { display: flex; }
+#fabMenu button { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 10px 14px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal-box { width: 100%; max-width: 480px; background: var(--surface); border-radius: 16px 16px 0 0; padding: 18px 18px calc(18px + var(--safe-bot)); max-height: 88vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.modal-box h2 { font-size: 15px; margin-bottom: 4px; }
+.modal-box label { font-size: 12px; color: var(--text-muted); margin-bottom: -4px; }
+.modal-box input, .modal-box select, .modal-box textarea { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 9px 11px; font-size: 14px; width: 100%; font-family: inherit; }
+.modal-box textarea { min-height: 60px; resize: vertical; }
+.modal-actions { display: flex; gap: 8px; margin-top: 6px; }
+.modal-actions button { flex: 1; padding: 11px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; }
+.btn-save { background: var(--accent); color: #0b0f1c; }
+.btn-cancel { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2) !important; }
+.btn-delete { background: var(--red-dim); color: var(--red); }
+.staff-item { display: flex; align-items: center; gap: 8px; background: var(--surface2); border-radius: 8px; padding: 8px 10px; }
+.staff-item span { flex: 1; font-size: 13px; }
+.staff-item button { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; }
+
+#toast { position: fixed; left: 50%; bottom: calc(var(--safe-bot) + 90px); transform: translateX(-50%) translateY(20px); background: var(--surface3); color: var(--text); padding: 10px 18px; border-radius: 20px; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 200; white-space: nowrap; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (min-width: 768px) {
+  #content { flex-direction: row; align-items: flex-start; padding: 14px 24px; }
+  .mytask-panel { width: 300px; flex-shrink: 0; position: sticky; top: 14px; }
+  .event-panel { flex: 1; }
+  .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; align-content: start; }
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>🗓️ 행사준비 다이어리</h1>
+    <input type="text" id="loginId" placeholder="아이디" autocomplete="username">
+    <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password">
+    <div id="loginErr"></div>
+    <button onclick="doLogin()">로그인</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">🗓️ 행사준비<span>다이어리</span></div>
+    <a class="backlink" href="../">← 메인</a>
+    <div class="spacer"></div>
+    <select id="staffSelect" onchange="onStaffChange()"></select>
+    <button id="staffSettingsBtn" onclick="openStaffModal()" title="담당자 명단 관리">⚙️</button>
+    <button id="logoutBtn" onclick="doLogout()">로그아웃</button>
+  </header>
+
+  <div class="filter-tabs">
+    <div class="filter-tab active" data-f="all" onclick="setFilter('all')">전체</div>
+    <div class="filter-tab" data-f="progress" onclick="setFilter('progress')">진행중</div>
+    <div class="filter-tab" data-f="done" onclick="setFilter('done')">완료</div>
+  </div>
+
+  <div id="content">
+    <div class="mytask-panel">
+      <div class="section-title" id="myTaskTitle">내 할일 (0)</div>
+      <div class="mytask-list" id="myTaskList"></div>
+    </div>
+    <div class="event-panel">
+      <div class="section-title">행사 목록</div>
+      <div class="event-grid" id="eventGrid"></div>
+    </div>
+  </div>
+</div>
+
+<button id="fab" onclick="toggleFabMenu()">＋</button>
+<div id="fabMenu">
+  <button onclick="openEventModal()">🗓️ 행사 추가</button>
+  <button onclick="openTaskModal(null)">✅ 할일 추가</button>
+</div>
+
+<!-- 행사 모달 -->
+<div class="modal-overlay" id="eventModalOverlay">
+  <div class="modal-box">
+    <h2 id="eventModalTitle">행사 추가</h2>
+    <label>행사명</label>
+    <input type="text" id="eventName" placeholder="예: OO 가을축제">
+    <label>행사일</label>
+    <input type="date" id="eventDate">
+    <label>장소</label>
+    <input type="text" id="eventVenue" placeholder="예: 시민운동장">
+    <label>메모</label>
+    <textarea id="eventMemo" placeholder="비고"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('eventModalOverlay')">취소</button>
+      <button class="btn-delete" id="eventDeleteBtn" style="display:none" onclick="deleteEventConfirm()">삭제</button>
+      <button class="btn-save" onclick="saveEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 할일 모달 -->
+<div class="modal-overlay" id="taskModalOverlay">
+  <div class="modal-box">
+    <h2 id="taskModalTitle">할일 추가</h2>
+    <label>행사</label>
+    <select id="taskEvent"></select>
+    <label>분류</label>
+    <select id="taskCategory">
+      <option>무대</option><option>음향</option><option>차량</option><option>섭외</option><option>기타</option>
+    </select>
+    <label>할일 내용</label>
+    <input type="text" id="taskTitle" placeholder="예: 무대 규격 확인">
+    <label>담당자</label>
+    <select id="taskAssignee"></select>
+    <label>마감일</label>
+    <input type="date" id="taskDue">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('taskModalOverlay')">취소</button>
+      <button class="btn-delete" id="taskDeleteBtn" style="display:none" onclick="deleteTaskConfirm()">삭제</button>
+      <button class="btn-save" onclick="saveTask()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 담당자 명단 모달 -->
+<div class="modal-overlay" id="staffModalOverlay">
+  <div class="modal-box">
+    <h2>담당자 명단 관리</h2>
+    <div id="staffListBody" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="newStaffName" placeholder="이름 추가">
+      <button class="btn-save" style="flex:0 0 auto;padding:9px 16px;" onclick="addStaff()">추가</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('staffModalOverlay')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Supabase 설정 (root index.html과 동일) ──
+const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
+const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' };
+
+const CATS = ['무대','음향','차량','섭외','기타'];
+const DEFAULT_TEMPLATE = {
+  '무대': ['무대 규격 확인', '무대 설치 완료', '배너/현수막 확인'],
+  '음향': ['음향 장비 리스트 확정', '스피커/콘솔 세팅 확인', '마이크 점검'],
+  '차량': ['차량 배차', '상하차 인원 확보', '주차 동선 확인'],
+  '섭외': ['진행자/사회자 섭외', '견적서 발송', '계약서 확인'],
+};
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fmtDate(d) { return d ? d.replace(/-/g,'.') : ''; }
+
+let toastTimeout;
+function showToast(msg, duration = 3000) {
+  const el = document.getElementById('toast');
+  clearTimeout(toastTimeout);
+  el.textContent = msg;
+  el.classList.add('show');
+  toastTimeout = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ── 로그인 (root index.html의 sl_users/sl_session 재사용) ──
+function getUsers() { return JSON.parse(localStorage.getItem('sl_users') || '[]'); }
+
+function tryLogin(id, pw) {
+  if (id === 'hanbada' && pw === '2375') return { id: 'hanbada', name: '관리자', role: 'admin' };
+  const user = getUsers().find(u => u.id === id && u.pw === pw);
+  return user ? { id: user.id, name: user.name, role: user.role } : null;
+}
+
+async function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  if (!id || !pw) { errEl.textContent = '아이디와 비밀번호를 입력하세요'; return; }
+  let user = tryLogin(id, pw);
+  if (!user) {
+    errEl.textContent = '☁️ 확인 중...';
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.sl_users&select=v15`, { headers: SB_HEADERS });
+      const rows = await res.json();
+      if (rows.length && Array.isArray(rows[0].v15)) localStorage.setItem('sl_users', JSON.stringify(rows[0].v15));
+    } catch(e) {}
+    user = tryLogin(id, pw);
+  }
+  if (!user) { errEl.textContent = '❌ 아이디 또는 비밀번호가 틀렸습니다'; return; }
+  sessionStorage.setItem('sl_session', JSON.stringify(user));
+  startApp();
+}
+
+function doLogout() {
+  sessionStorage.removeItem('sl_session');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+// ── 상태 ──
+let staff = [];
+let events = [];
+let tasks = [];
+let filterMode = 'all';
+let expandedEventId = null;
+
+function selectedStaff() { return localStorage.getItem('prepSelectedStaff') || ''; }
+
+// ── 담당자 명단 (vehicle_data.prep_staff, root index.html PATCH-then-POST 패턴 재사용) ──
+async function loadStaff() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.prep_staff&select=v15`, { headers: SB_HEADERS });
+    const rows = await res.json();
+    if (rows.length && Array.isArray(rows[0].v15)) staff = rows[0].v15;
+  } catch(e) { showToast('⚠ 담당자 명단 불러오기 실패(네트워크 확인)'); }
+  renderStaffSelect();
+}
+
+async function syncStaffToCloud() {
+  const payload = { id: 'prep_staff', v15: staff, v35: [] };
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.prep_staff`, {
+      method: 'PATCH', headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(payload)
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(payload) });
+    }
+  } catch(e) { showToast('⚠ 담당자 명단 저장 실패(네트워크 확인)'); }
+}
+
+function renderStaffSelect() {
+  const sel = document.getElementById('staffSelect');
+  const cur = selectedStaff();
+  sel.innerHTML = '<option value="">담당자 선택</option>' + staff.map(n => `<option value="${esc(n)}" ${n===cur?'selected':''}>${esc(n)}</option>`).join('');
+  const taskAssignee = document.getElementById('taskAssignee');
+  if (taskAssignee) taskAssignee.innerHTML = '<option value="">미배정</option>' + staff.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+}
+
+function onStaffChange() {
+  localStorage.setItem('prepSelectedStaff', document.getElementById('staffSelect').value);
+  renderMyTasks();
+}
+
+function openStaffModal() { renderStaffListBody(); document.getElementById('staffModalOverlay').classList.add('open'); }
+function renderStaffListBody() {
+  document.getElementById('staffListBody').innerHTML = staff.map((n,i) =>
+    `<div class="staff-item"><span>${esc(n)}</span><button onclick="removeStaff(${i})">🗑</button></div>`).join('') || '<div class="empty-msg">등록된 담당자가 없습니다</div>';
+}
+function addStaff() {
+  const input = document.getElementById('newStaffName');
+  const name = input.value.trim();
+  if (!name) return;
+  if (staff.includes(name)) { showToast('이미 있는 이름입니다'); return; }
+  staff.push(name);
+  input.value = '';
+  syncStaffToCloud(); renderStaffListBody(); renderStaffSelect();
+}
+function removeStaff(i) {
+  staff.splice(i,1);
+  syncStaffToCloud(); renderStaffListBody(); renderStaffSelect();
+}
+
+// ── 행사/할일 데이터 ──
+async function loadEvents() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/prep_events?select=*&order=date.asc.nullslast`, { headers: SB_HEADERS });
+    events = await res.json();
+  } catch(e) { showToast('⚠ 행사 목록 불러오기 실패(네트워크 확인)'); events = []; }
+}
+async function loadTasks() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/prep_tasks?select=*`, { headers: SB_HEADERS });
+    tasks = await res.json();
+  } catch(e) { showToast('⚠ 할일 목록 불러오기 실패(네트워크 확인)'); tasks = []; }
+}
+async function refreshAll() {
+  await Promise.all([loadEvents(), loadTasks()]);
+  renderMyTasks(); renderEventGrid();
+}
+
+// ── D-day ──
+function ddayInfo(dateStr) {
+  if (!dateStr) return { label: '', cls: 'normal' };
+  const diff = Math.round((new Date(dateStr) - new Date(today())) / 86400000);
+  const label = diff === 0 ? 'D-day' : diff > 0 ? `D-${diff}` : `D+${-diff}`;
+  const cls = diff <= 2 ? 'red' : diff <= 7 ? 'orange' : 'normal';
+  return { label, cls };
+}
+
+function eventProgress(ev) {
+  const ts = tasks.filter(t => t.event_id === ev.id);
+  const total = ts.length;
+  const done = ts.filter(t => t.done).length;
+  return { total, done, pct: total ? Math.round(done/total*100) : 0 };
+}
+function isEventDone(ev) {
+  const { total, pct } = eventProgress(ev);
+  const pastDate = ev.date && ev.date < today();
+  return pastDate || (total > 0 && pct === 100);
+}
+
+// ── 내 할일 렌더 ──
+function renderMyTasks() {
+  const name = selectedStaff();
+  const list = document.getElementById('myTaskList');
+  const titleEl = document.getElementById('myTaskTitle');
+  if (!name) { list.innerHTML = '<div class="empty-msg">상단에서 담당자를 선택하세요</div>'; titleEl.textContent = '내 할일'; return; }
+  const myTasks = tasks.filter(t => t.assignee === name && !t.done)
+    .map(t => ({ t, ev: events.find(e => e.id === t.event_id) }))
+    .sort((a,b) => (a.t.due||'9999') < (b.t.due||'9999') ? -1 : 1);
+  titleEl.textContent = `내 할일 (${myTasks.length})`;
+  if (!myTasks.length) { list.innerHTML = '<div class="empty-msg">할일이 없습니다</div>'; return; }
+  list.innerHTML = myTasks.map(({t,ev}) => {
+    const d = ddayInfo(t.due);
+    return `<div class="mytask-row">
+      <input type="checkbox" onchange="toggleTaskDone('${t.id}', true)">
+      <div class="t-title-wrap" style="flex:1;min-width:0;">
+        <div class="t-title">${esc(t.title)}</div>
+        <div class="t-event">${esc(ev ? ev.name : '')}</div>
+      </div>
+      ${t.due ? `<span class="dday ${d.cls}">${d.label}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── 행사 카드 렌더 ──
+function setFilter(f) {
+  filterMode = f;
+  document.querySelectorAll('.filter-tab').forEach(el => el.classList.toggle('active', el.dataset.f === f));
+  renderEventGrid();
+}
+
+function renderEventGrid() {
+  const grid = document.getElementById('eventGrid');
+  let list = [...events];
+  if (filterMode === 'progress') list = list.filter(ev => !isEventDone(ev));
+  else if (filterMode === 'done') list = list.filter(ev => isEventDone(ev));
+  if (!list.length) { grid.innerHTML = '<div class="empty-msg">행사가 없습니다</div>'; return; }
+  grid.innerHTML = list.map(ev => renderEventCard(ev)).join('');
+}
+
+function renderEventCard(ev) {
+  const { total, done, pct } = eventProgress(ev);
+  const d = ddayInfo(ev.date);
+  const expanded = expandedEventId === ev.id;
+  let body = `<div class="event-card" onclick="toggleExpand('${ev.id}')">
+    <div class="event-card-top">
+      <div class="event-card-name">${esc(ev.name)}</div>
+      ${ev.date ? `<span class="dday ${d.cls}">${d.label}</span>` : ''}
+      <button class="event-card-icon" onclick="event.stopPropagation();openEventModal('${ev.id}')">✏️</button>
+    </div>
+    <div class="event-card-sub">${esc(ev.venue||'')} ${ev.date ? '· ' + fmtDate(ev.date) : ''}</div>
+    <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    <div class="progress-label">${done}/${total} 완료 (${pct}%)</div>`;
+  if (expanded) body += renderTaskGroups(ev.id);
+  body += `</div>`;
+  return body;
+}
+
+function toggleExpand(id) {
+  expandedEventId = expandedEventId === id ? null : id;
+  renderEventGrid();
+}
+
+function renderTaskGroups(eventId) {
+  const ts = tasks.filter(t => t.event_id === eventId);
+  let html = `<div class="task-groups" onclick="event.stopPropagation()">`;
+  CATS.forEach(cat => {
+    const catTasks = ts.filter(t => (t.category||'기타') === cat);
+    if (!catTasks.length) return;
+    html += `<div><div class="task-cat-title">${cat}</div>`;
+    catTasks.forEach(t => {
+      html += `<div class="task-row ${t.done?'done':''}">
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleTaskDone('${t.id}', this.checked)">
+        <div class="t-body" onclick="openTaskModal('${t.id}')">
+          <div class="t-title">${esc(t.title)}</div>
+          <div class="t-meta">${esc(t.assignee||'미배정')}${t.due ? ' · ' + fmtDate(t.due) : ''}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="add-task-btn" onclick="openTaskModal(null,'${eventId}')">+ 할일 추가</div></div>`;
+  return html;
+}
+
+// ── 할일 완료 토글 ──
+async function toggleTaskDone(id, done) {
+  const t = tasks.find(x => x.id === id);
+  if (t) t.done = done;
+  renderMyTasks(); renderEventGrid();
+  try {
+    await fetch(`${SB_URL}/rest/v1/prep_tasks?id=eq.${id}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ done, updated_at: new Date().toISOString() }) });
+  } catch(e) { showToast('⚠ 저장 실패(네트워크 확인)'); }
+}
+
+// ── 행사 모달 ──
+let editingEventId = null;
+function openEventModal(id) {
+  editingEventId = id || null;
+  const ev = id ? events.find(e => e.id === id) : null;
+  document.getElementById('eventModalTitle').textContent = ev ? '행사 수정' : '행사 추가';
+  document.getElementById('eventName').value = ev ? ev.name : '';
+  document.getElementById('eventDate').value = ev ? (ev.date||'') : '';
+  document.getElementById('eventVenue').value = ev ? (ev.venue||'') : '';
+  document.getElementById('eventMemo').value = ev ? (ev.memo||'') : '';
+  document.getElementById('eventDeleteBtn').style.display = ev ? 'block' : 'none';
+  document.getElementById('eventModalOverlay').classList.add('open');
+  closeFabMenu();
+}
+
+async function saveEvent() {
+  const name = document.getElementById('eventName').value.trim();
+  if (!name) { showToast('행사명을 입력하세요'); return; }
+  const payload = {
+    name,
+    date: document.getElementById('eventDate').value || null,
+    venue: document.getElementById('eventVenue').value.trim() || null,
+    memo: document.getElementById('eventMemo').value.trim() || null,
+  };
+  try {
+    if (editingEventId) {
+      await fetch(`${SB_URL}/rest/v1/prep_events?id=eq.${editingEventId}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(payload) });
+    } else {
+      const res = await fetch(`${SB_URL}/rest/v1/prep_events`, { method: 'POST', headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(payload) });
+      const rows = await res.json();
+      const newEvent = rows[0];
+      // 기본 체크리스트 템플릿 삽입
+      const templateTasks = [];
+      Object.keys(DEFAULT_TEMPLATE).forEach(cat => {
+        DEFAULT_TEMPLATE[cat].forEach(title => templateTasks.push({ event_id: newEvent.id, category: cat, title, done: false }));
+      });
+      await fetch(`${SB_URL}/rest/v1/prep_tasks`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(templateTasks) });
+    }
+    closeModal('eventModalOverlay');
+    showToast('✓ 저장 완료');
+    await refreshAll();
+  } catch(e) { showToast('❌ 저장 실패(네트워크 확인)'); }
+}
+
+async function deleteEventConfirm() {
+  if (!editingEventId) return;
+  if (!confirm('이 행사와 모든 할일을 삭제할까요?')) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/prep_events?id=eq.${editingEventId}`, { method: 'DELETE', headers: SB_HEADERS });
+    closeModal('eventModalOverlay');
+    expandedEventId = null;
+    showToast('🗑 삭제 완료');
+    await refreshAll();
+  } catch(e) { showToast('❌ 삭제 실패(네트워크 확인)'); }
+}
+
+// ── 할일 모달 ──
+let editingTaskId = null;
+function openTaskModal(id, fixedEventId) {
+  editingTaskId = id || null;
+  const t = id ? tasks.find(x => x.id === id) : null;
+  renderStaffSelect();
+  const evSel = document.getElementById('taskEvent');
+  evSel.innerHTML = events.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('');
+  if (!evSel.options.length) { showToast('먼저 행사를 추가하세요'); return; }
+  document.getElementById('taskModalTitle').textContent = t ? '할일 수정' : '할일 추가';
+  evSel.value = t ? t.event_id : (fixedEventId || events[0].id);
+  document.getElementById('taskCategory').value = t ? (t.category||'기타') : '기타';
+  document.getElementById('taskTitle').value = t ? t.title : '';
+  document.getElementById('taskAssignee').value = t ? (t.assignee||'') : '';
+  document.getElementById('taskDue').value = t ? (t.due||'') : '';
+  document.getElementById('taskDeleteBtn').style.display = t ? 'block' : 'none';
+  document.getElementById('taskModalOverlay').classList.add('open');
+  closeFabMenu();
+}
+
+async function saveTask() {
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) { showToast('할일 내용을 입력하세요'); return; }
+  const payload = {
+    event_id: document.getElementById('taskEvent').value,
+    category: document.getElementById('taskCategory').value,
+    title,
+    assignee: document.getElementById('taskAssignee').value || null,
+    due: document.getElementById('taskDue').value || null,
+    updated_at: new Date().toISOString(),
+  };
+  try {
+    if (editingTaskId) {
+      await fetch(`${SB_URL}/rest/v1/prep_tasks?id=eq.${editingTaskId}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(payload) });
+    } else {
+      payload.done = false;
+      await fetch(`${SB_URL}/rest/v1/prep_tasks`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(payload) });
+    }
+    closeModal('taskModalOverlay');
+    showToast('✓ 저장 완료');
+    await refreshAll();
+  } catch(e) { showToast('❌ 저장 실패(네트워크 확인)'); }
+}
+
+async function deleteTaskConfirm() {
+  if (!editingTaskId) return;
+  if (!confirm('이 할일을 삭제할까요?')) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/prep_tasks?id=eq.${editingTaskId}`, { method: 'DELETE', headers: SB_HEADERS });
+    closeModal('taskModalOverlay');
+    showToast('🗑 삭제 완료');
+    await refreshAll();
+  } catch(e) { showToast('❌ 삭제 실패(네트워크 확인)'); }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── FAB 메뉴 ──
+function toggleFabMenu() { document.getElementById('fabMenu').classList.toggle('open'); }
+function closeFabMenu() { document.getElementById('fabMenu').classList.remove('open'); }
+
+// ── Realtime ──
+function initRealtime() {
+  const wsUrl = `${SB_URL.replace('https://', 'wss://')}/realtime/v1/websocket?apikey=${SB_KEY}&vsn=1.0.0`;
+  let ws;
+  function connect() {
+    try { ws = new WebSocket(wsUrl); } catch(e) { setTimeout(connect, 5000); return; }
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ topic:'realtime:public:prep_events', event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'prep_events'}]}}, ref:'1' }));
+      ws.send(JSON.stringify({ topic:'realtime:public:prep_tasks', event:'phx_join', payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'prep_tasks'}]}}, ref:'2' }));
+      setInterval(() => { try { if (ws.readyState===1) ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'})); } catch(e){} }, 20000);
+    };
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.event !== 'postgres_changes') return;
+        const { table } = msg.payload.data;
+        if (table === 'prep_events' || table === 'prep_tasks') refreshAll();
+      } catch(e) {}
+    };
+    ws.onclose = () => setTimeout(connect, 3000);
+    ws.onerror = () => { try { ws.close(); } catch(e){} };
+  }
+  connect();
+}
+
+// ── 시작 ──
+function startApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  setFilter('all');
+  loadStaff();
+  refreshAll();
+  initRealtime();
+}
+
+(function init() {
+  const s = sessionStorage.getItem('sl_session');
+  if (s) { try { JSON.parse(s); startApp(); return; } catch(e) {} }
+})();
+</script>
+</body>
+</html>

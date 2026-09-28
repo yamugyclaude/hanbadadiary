@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html .nojekyll robots.txt "한바다로고2.png" _site/
-          cp -r images pdfs event-request thought-organizer _site/
+          cp -r images pdfs event-request thought-organizer event-prep _site/
 
           # 가드: .md나 .claude가 섞여 들어가면 배포 중단
           if find _site -name '*.md' -o -name '.claude' | grep -q .; then
