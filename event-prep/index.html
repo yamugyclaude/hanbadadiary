@@ -199,9 +199,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
     <label>행사</label>
     <select id="taskEvent"></select>
     <label>분류</label>
-    <select id="taskCategory">
-      <option>무대</option><option>음향</option><option>차량</option><option>섭외</option><option>기타</option>
-    </select>
+    <select id="taskCategory"></select>
     <label>할일 내용</label>
     <input type="text" id="taskTitle" placeholder="예: 무대 규격 확인">
     <label>담당자</label>
@@ -226,7 +224,23 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
       <button class="btn-save" style="flex:0 0 auto;padding:9px 16px;" onclick="addStaff()">추가</button>
     </div>
     <div class="modal-actions">
+      <button class="btn-cancel" onclick="openCatModal()">분류·기본 할일 관리</button>
       <button class="btn-cancel" onclick="closeModal('staffModalOverlay')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 분류·기본 할일 관리 모달 -->
+<div class="modal-overlay" id="catModalOverlay">
+  <div class="modal-box">
+    <h2>분류·기본 할일 관리</h2>
+    <div id="catListBody" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="newCatName" placeholder="분류 추가">
+      <button class="btn-save" style="flex:0 0 auto;padding:9px 16px;" onclick="addCat()">추가</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('catModalOverlay')">닫기</button>
     </div>
   </div>
 </div>
@@ -239,13 +253,14 @@ const SB_URL = 'https://nifmnigvrjfctdimgmda.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pZm1uaWd2cmpmY3RkaW1nbWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTUzMjksImV4cCI6MjA5MTk5MTMyOX0.XXxITbXcojeGnb-ZCT7zpibxmzn6bdQU6JQKtAanQjk';
 const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' };
 
-const CATS = ['무대','음향','차량','섭외','기타'];
-const DEFAULT_TEMPLATE = {
-  '무대': ['무대 규격 확인', '무대 설치 완료', '배너/현수막 확인'],
-  '음향': ['음향 장비 리스트 확정', '스피커/콘솔 세팅 확인', '마이크 점검'],
-  '차량': ['차량 배차', '상하차 인원 확보', '주차 동선 확인'],
-  '섭외': ['진행자/사회자 섭외', '견적서 발송', '계약서 확인'],
-};
+// 분류/기본 할일 시드값 (클라우드에 prep_cats 행이 없을 때만 사용, 이후엔 Supabase에서 로드)
+const SEED_CATS = [
+  { name: '무대', items: ['무대 규격 확인', '무대 설치 완료', '배너/현수막 확인'] },
+  { name: '음향', items: ['음향 장비 리스트 확정', '스피커/콘솔 세팅 확인', '마이크 점검'] },
+  { name: '차량', items: ['차량 배차', '상하차 인원 확보', '주차 동선 확인'] },
+  { name: '섭외', items: ['진행자/사회자 섭외', '견적서 발송', '계약서 확인'] },
+  { name: '기타', items: [] },
+];
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -298,6 +313,7 @@ function doLogout() {
 
 // ── 상태 ──
 let staff = [];
+let cats = SEED_CATS.map(c => ({ name: c.name, items: [...c.items] }));
 let events = [];
 let tasks = [];
 let filterMode = 'all';
@@ -360,6 +376,112 @@ function removeStaff(i) {
   syncStaffToCloud(); renderStaffListBody(); renderStaffSelect();
 }
 
+// ── 분류/기본 할일 (vehicle_data.prep_cats, prep_staff와 동일한 PATCH-then-POST 패턴) ──
+function ensureEtc() {
+  const etc = cats.find(c => c.name === '기타') || { name: '기타', items: [] };
+  cats = cats.filter(c => c.name !== '기타');
+  cats.push(etc);
+}
+function resolveCategory(name) { return cats.some(c => c.name === name) ? name : '기타'; }
+
+async function loadCats() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.prep_cats&select=v15`, { headers: SB_HEADERS });
+    const rows = await res.json();
+    if (rows.length && Array.isArray(rows[0].v15) && rows[0].v15.length) cats = rows[0].v15;
+    else { cats = SEED_CATS.map(c => ({ name: c.name, items: [...c.items] })); syncCatsToCloud(); }
+  } catch(e) { showToast('⚠ 분류 목록 불러오기 실패(네트워크 확인)'); }
+  ensureEtc();
+  renderTaskCategorySelect();
+}
+
+async function syncCatsToCloud() {
+  const payload = { id: 'prep_cats', v15: cats, v35: [] };
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/vehicle_data?id=eq.prep_cats`, {
+      method: 'PATCH', headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(payload)
+    });
+    const patched = await res.json();
+    if (Array.isArray(patched) && patched.length === 0) {
+      await fetch(`${SB_URL}/rest/v1/vehicle_data`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(payload) });
+    }
+  } catch(e) { showToast('⚠ 분류 저장 실패(네트워크 확인)'); }
+}
+
+function renderTaskCategorySelect() {
+  const sel = document.getElementById('taskCategory');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = cats.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  if (cats.some(c => c.name === cur)) sel.value = cur;
+}
+
+function openCatModal() { renderCatListBody(); document.getElementById('catModalOverlay').classList.add('open'); }
+function renderCatListBody() {
+  document.getElementById('catListBody').innerHTML = cats.map((cat, i) => `
+    <div class="staff-item" style="flex-direction:column;align-items:stretch;gap:6px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="text" value="${esc(cat.name)}" onchange="renameCat(${i}, this.value)" ${cat.name==='기타'?'disabled':''} style="flex:1;">
+        ${cat.name!=='기타' ? `<button onclick="deleteCat(${i})">🗑</button>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        ${cat.items.map((it,j) => `<div style="display:flex;gap:6px;align-items:center;">
+          <span style="flex:1;font-size:12px;">${esc(it)}</span>
+          <button onclick="removeCatItem(${i},${j})">✕</button>
+        </div>`).join('') || '<div class="empty-msg" style="padding:2px 0;font-size:11px;">기본 할일 없음</div>'}
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="newItem_${i}" placeholder="기본 할일 추가" style="flex:1;">
+        <button onclick="addCatItem(${i})">+</button>
+      </div>
+    </div>`).join('');
+}
+function addCat() {
+  const input = document.getElementById('newCatName');
+  const name = input.value.trim();
+  if (!name) return;
+  if (cats.some(c => c.name === name)) { showToast('이미 있는 분류명입니다'); return; }
+  cats.splice(cats.length-1, 0, { name, items: [] }); // 기타는 항상 마지막
+  input.value = '';
+  syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
+}
+async function renameCat(i, newName) {
+  newName = newName.trim();
+  const cat = cats[i];
+  if (!cat || cat.name === '기타') { renderCatListBody(); return; }
+  if (!newName || newName === cat.name) { renderCatListBody(); return; }
+  if (cats.some((c,idx) => idx!==i && c.name===newName)) { showToast('이미 있는 분류명입니다'); renderCatListBody(); return; }
+  const old = cat.name;
+  cat.name = newName;
+  syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
+  try {
+    await fetch(`${SB_URL}/rest/v1/prep_tasks?category=eq.${encodeURIComponent(old)}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ category: newName }) });
+  } catch(e) { showToast('⚠ 기존 할일 분류 갱신 실패'); }
+  await refreshAll();
+}
+async function deleteCat(i) {
+  const cat = cats[i];
+  if (!cat || cat.name === '기타') return;
+  if (!confirm(`'${cat.name}' 분류를 삭제할까요? 해당 할일은 '기타'로 이동합니다.`)) return;
+  cats.splice(i,1);
+  syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
+  try {
+    await fetch(`${SB_URL}/rest/v1/prep_tasks?category=eq.${encodeURIComponent(cat.name)}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ category: '기타' }) });
+  } catch(e) { showToast('⚠ 기존 할일 분류 갱신 실패'); }
+  await refreshAll();
+}
+function addCatItem(i) {
+  const input = document.getElementById(`newItem_${i}`);
+  const val = input.value.trim();
+  if (!val) return;
+  cats[i].items.push(val);
+  syncCatsToCloud(); renderCatListBody();
+}
+function removeCatItem(i, j) {
+  cats[i].items.splice(j,1);
+  syncCatsToCloud(); renderCatListBody();
+}
+
 // ── 행사/할일 데이터 ──
 async function loadEvents() {
   try {
@@ -374,7 +496,7 @@ async function loadTasks() {
   } catch(e) { showToast('⚠ 할일 목록 불러오기 실패(네트워크 확인)'); tasks = []; }
 }
 async function refreshAll() {
-  await Promise.all([loadEvents(), loadTasks()]);
+  await Promise.all([loadEvents(), loadTasks(), loadCats()]);
   renderMyTasks(); renderEventGrid();
 }
 
@@ -465,10 +587,10 @@ function toggleExpand(id) {
 function renderTaskGroups(eventId) {
   const ts = tasks.filter(t => t.event_id === eventId);
   let html = `<div class="task-groups" onclick="event.stopPropagation()">`;
-  CATS.forEach(cat => {
-    const catTasks = ts.filter(t => (t.category||'기타') === cat);
+  cats.forEach(cat => {
+    const catTasks = ts.filter(t => resolveCategory(t.category||'기타') === cat.name);
     if (!catTasks.length) return;
-    html += `<div><div class="task-cat-title">${cat}</div>`;
+    html += `<div><div class="task-cat-title">${esc(cat.name)}</div>`;
     catTasks.forEach(t => {
       html += `<div class="task-row ${t.done?'done':''}">
         <input type="checkbox" ${t.done?'checked':''} onchange="toggleTaskDone('${t.id}', this.checked)">
@@ -527,10 +649,10 @@ async function saveEvent() {
       const newEvent = rows[0];
       // 기본 체크리스트 템플릿 삽입
       const templateTasks = [];
-      Object.keys(DEFAULT_TEMPLATE).forEach(cat => {
-        DEFAULT_TEMPLATE[cat].forEach(title => templateTasks.push({ event_id: newEvent.id, category: cat, title, done: false }));
+      cats.forEach(cat => {
+        cat.items.forEach(title => templateTasks.push({ event_id: newEvent.id, category: cat.name, title, done: false }));
       });
-      await fetch(`${SB_URL}/rest/v1/prep_tasks`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(templateTasks) });
+      if (templateTasks.length) await fetch(`${SB_URL}/rest/v1/prep_tasks`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(templateTasks) });
     }
     closeModal('eventModalOverlay');
     showToast('✓ 저장 완료');
@@ -641,6 +763,7 @@ function startApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   setFilter('all');
+  renderTaskCategorySelect();
   loadStaff();
   refreshAll();
   initRealtime();
