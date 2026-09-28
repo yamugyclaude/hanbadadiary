@@ -124,6 +124,28 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
   .event-panel { flex: 1; }
   .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; align-content: start; }
 }
+
+#docOverlay { align-items: stretch; }
+.doc-box { max-width: 100%; width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+.doc-header-bar { display: flex; gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+.doc-header-bar button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; }
+#docContent { flex: 1; overflow-y: auto; }
+.doc-title { font-size: 17px; font-weight: 700; }
+.doc-generated { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+.doc-date-header { font-size: 13px; font-weight: 700; color: var(--accent); margin: 16px 0 8px; }
+.doc-event { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+.doc-event-title { font-size: 14px; font-weight: 700; }
+.doc-pct { color: var(--accent); }
+.doc-event-memo { font-size: 12px; color: var(--text-muted); margin: 4px 0; white-space: pre-wrap; }
+.doc-task-row { font-size: 12.5px; padding: 2px 0 2px 8px; }
+
+@media print {
+  body * { visibility: hidden; }
+  #docContent, #docContent * { visibility: visible; color: #000 !important; }
+  #docContent { position: absolute; top: 0; left: 0; width: 100%; background: #fff !important; padding: 16px; }
+  .doc-header-bar { display: none !important; }
+  .doc-event { border-bottom: 1px solid #ccc; page-break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -152,6 +174,7 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
     <div class="filter-tab active" data-f="all" onclick="setFilter('all')">전체</div>
     <div class="filter-tab" data-f="progress" onclick="setFilter('progress')">진행중</div>
     <div class="filter-tab" data-f="done" onclick="setFilter('done')">완료</div>
+    <div class="filter-tab" style="margin-left:auto;" onclick="openDocModal()">📄 문서</div>
   </div>
 
   <div id="content">
@@ -242,6 +265,17 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('catModalOverlay')">닫기</button>
     </div>
+  </div>
+</div>
+
+<!-- 문서 보기 -->
+<div class="modal-overlay" id="docOverlay">
+  <div class="modal-box doc-box">
+    <div class="doc-header-bar">
+      <button class="btn-cancel" onclick="closeModal('docOverlay')">닫기</button>
+      <button class="btn-save" onclick="window.print()">🖨️ 인쇄/PDF</button>
+    </div>
+    <div id="docContent"></div>
   </div>
 </div>
 
@@ -453,7 +487,7 @@ async function renameCat(i, newName) {
   if (cats.some((c,idx) => idx!==i && c.name===newName)) { showToast('이미 있는 분류명입니다'); renderCatListBody(); return; }
   const old = cat.name;
   cat.name = newName;
-  syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
+  await syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
   try {
     await fetch(`${SB_URL}/rest/v1/prep_tasks?category=eq.${encodeURIComponent(old)}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ category: newName }) });
   } catch(e) { showToast('⚠ 기존 할일 분류 갱신 실패'); }
@@ -464,7 +498,7 @@ async function deleteCat(i) {
   if (!cat || cat.name === '기타') return;
   if (!confirm(`'${cat.name}' 분류를 삭제할까요? 해당 할일은 '기타'로 이동합니다.`)) return;
   cats.splice(i,1);
-  syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
+  await syncCatsToCloud(); renderTaskCategorySelect(); renderCatListBody();
   try {
     await fetch(`${SB_URL}/rest/v1/prep_tasks?category=eq.${encodeURIComponent(cat.name)}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ category: '기타' }) });
   } catch(e) { showToast('⚠ 기존 할일 분류 갱신 실패'); }
@@ -728,6 +762,52 @@ async function deleteTaskConfirm() {
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── 문서 보기 ──
+function filterLabelText() { return filterMode === 'progress' ? '진행중' : filterMode === 'done' ? '완료' : '전체'; }
+
+function openDocModal() {
+  renderDocument();
+  document.getElementById('docOverlay').classList.add('open');
+}
+
+function renderDocument() {
+  let list = [...events];
+  if (filterMode === 'progress') list = list.filter(ev => !isEventDone(ev));
+  else if (filterMode === 'done') list = list.filter(ev => isEventDone(ev));
+
+  let html = `<div class="doc-title">행사준비 현황</div><div class="doc-generated">생성일 ${fmtDate(today())} · ${filterLabelText()}</div>`;
+  if (!list.length) { html += '<div class="empty-msg">행사가 없습니다</div>'; document.getElementById('docContent').innerHTML = html; return; }
+
+  let lastDateKey;
+  list.forEach(ev => {
+    const dateKey = ev.date || null;
+    if (dateKey !== lastDateKey) {
+      lastDateKey = dateKey;
+      let label = '날짜 미정';
+      if (dateKey) {
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const wd = ['일','월','화','수','목','금','토'][new Date(y, m-1, d).getDay()];
+        label = `${fmtDate(dateKey)} (${wd})`;
+      }
+      html += `<div class="doc-date-header">━━ ${esc(label)} ━━</div>`;
+    }
+    const { pct } = eventProgress(ev);
+    html += `<div class="doc-event">
+      <div class="doc-event-title">📌 ${esc(ev.name)}${ev.venue ? ' · ' + esc(ev.venue) : ''}  <span class="doc-pct">${pct}%</span></div>`;
+    if (ev.memo) html += `<div class="doc-event-memo">${esc(ev.memo)}</div>`;
+    const ts = tasks.filter(t => t.event_id === ev.id);
+    cats.forEach(cat => {
+      ts.filter(t => resolveCategory(t.category||'기타') === cat.name).forEach(t => {
+        const mark = t.done ? '✅' : '☐';
+        const due = t.due ? `, 마감 ${fmtDate(t.due)}` : '';
+        html += `<div class="doc-task-row">[${esc(cat.name)}] ${mark} ${esc(t.title)} (${esc(t.assignee||'미배정')}${due})</div>`;
+      });
+    });
+    html += `</div>`;
+  });
+  document.getElementById('docContent').innerHTML = html;
+}
 
 // ── FAB 메뉴 ──
 function toggleFabMenu() { document.getElementById('fabMenu').classList.toggle('open'); }
