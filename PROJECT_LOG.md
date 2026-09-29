@@ -1328,3 +1328,24 @@ REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라�
 - 확인: `cats` 상태가 `SEED_CATS` 폴백대로 5개 분류(`무대·음향·차량·인력배치·기타`)
   모두 `items: []`로 로드됨. ⚙️ 분류 관리 모달에 5개 전부 "기본 할일 없음"으로 표시.
   새 행사 저장 시 `prep_tasks`로 나가는 POST 요청 0건 확인(템플릿 할일 자동 생성 없음).
+
+---
+
+## 2026-09-29 ✅ 성공 — "+ 할일 추가" 버튼 우측 정렬
+
+### 배경
+분류별 할일 목록 하단 "+ 할일 추가" 버튼이 좌측에 붙어 있던 것을 우측 정렬로 바꿔달라는
+사장님 요청.
+
+### 수정 (`event-prep/index.html`, CSS 1줄)
+- `.add-task-btn`의 `display: inline-block`을 `display: block; text-align: right`로
+  변경. 부모(분류별 `div`)가 block 요소라 `text-align: right`만으로 우측 정렬됨. 마크업·
+  `onclick` 동작은 그대로.
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium, `/opt/pw-browsers/chromium-1194`).
+  `page.route()`로 `prep_events`/`prep_tasks`/`vehicle_data`를 가짜 데이터로 스텁(실제
+  Supabase 접근 없음), `hanbada`/`2375` 하드코딩 관리자 로그인으로 진입.
+- 확인: 스크린샷에서 무대·음향·차량·인력배치·기타 5개 분류 전부 "+ 할일 추가"가 카드
+  우측 끝에 정렬됨. `getBoundingClientRect()`로 버튼 우측 좌표가 부모 컨테이너 우측
+  좌표와 일치함을 수치로 확인.
