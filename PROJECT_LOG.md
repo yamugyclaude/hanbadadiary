@@ -1236,3 +1236,25 @@ REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라�
   한 줄 입력 Enter로 즉시 추가, 여러줄(일괄1~3, 빈 줄 포함) 한 번에 추가, 📅 아이콘으로
   분류 프리셋된 상세 모달 오픈 및 저장, 분류 관리(⚙️)/필터 탭/월 이동/📄 문서 보기 전부
   기존대로 동작. 스크린샷 6장(quickadd-01~06).
+
+---
+
+## 2026-09-29 ✅ 성공 — 빠른 할일 입력 한글(IME) 조합 중 Enter 오작동 수정
+
+### 배경
+감사실장이 위 빠른 입력창의 `onkeydown` 핸들러에 `event.isComposing` 체크가 없다는 걸
+발견. 한글 등 IME로 글자를 조합하는 중에 확정용 Enter를 눌러도 `keydown` 이벤트가
+먼저 발생해서 `quickAddTask()`가 조합 중인 미완성 글자로 즉시 실행될 수 있는 버그.
+
+### 수정
+- `event-prep/index.html` 574번째 줄, 분류별 빠른 입력 `<input>`의 `onkeydown` 조건에
+  `&& !event.isComposing` 추가. 파일 내 Enter로 제출하는 다른 입력은 이 한 곳뿐(grep 확인).
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium). `page.route()`로 `prep_events`/
+  `prep_tasks`/`vehicle_data` REST 호출 스텁(실제 DB 접근 없음), `quickAddTask`도 네트워크
+  POST 없이 호출 횟수만 기록하도록 교체.
+- 시나리오 1(IME 조합 중 Enter, `isComposing:true`) → 호출 0회 확인.
+- 시나리오 2(일반 Enter, `isComposing:false`) → 호출 1회로 정상 제출 확인.
+- 수정 전 코드로 되돌려 같은 테스트를 돌려서 시나리오 1이 실패(호출 1회)로 나오는 것까지
+  확인한 뒤 다시 수정 적용 — 테스트가 실제로 이 버그를 잡아내는지 교차 검증함.

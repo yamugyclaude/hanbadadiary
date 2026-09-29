@@ -571,7 +571,7 @@ function renderTaskGroups(eventId) {
       </div>`;
     });
     html += `<div class="task-quickadd">
-      <input type="text" placeholder="+ 할일 입력 후 Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();quickAddTask('${eventId}', cats[${ci}].name, this)}">
+      <input type="text" placeholder="+ 할일 입력 후 Enter" onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();quickAddTask('${eventId}', cats[${ci}].name, this)}">
       <button class="qa-icon-btn" onclick="openTaskModal(null,'${eventId}', cats[${ci}].name)" title="마감일 등 상세 입력">📅</button>
       <button class="qa-icon-btn" onclick="toggleBulkBox('bulkBox-${eventId}-${ci}')" title="여러줄 추가">📋</button>
     </div>
