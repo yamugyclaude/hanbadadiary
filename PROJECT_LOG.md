@@ -1287,3 +1287,21 @@ REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라�
 - 확인 항목: `.task-quickadd`/`.qa-icon-btn`/`.task-bulkbox` DOM에 0개, 분류별
   `.add-task-btn` 정상 렌더링(가짜 행사 1건·분류 3개 기준 3개), 버튼 클릭 시 상세 모달이
   해당 행사+분류로 프리셋되어 열림. 스크린샷: `revert-list.png`, `revert-modal.png`.
+
+## 2026-09-29 ✅ 성공 — "+ 할일 추가" 버튼 스타일 경량화
+
+### 배경
+위에서 되돌린 `.add-task-btn`이 점선 테두리 + 풀폭 박스 + 가운데 정렬로, 촘촘한
+할일 목록 사이에서 시각적으로 너무 무거워 보인다는 피드백.
+
+### 수정 (`event-prep/index.html`, CSS 한 줄)
+- `.add-task-btn`: 테두리/배경 제거, `display: inline-block`으로 좌측 정렬, 글자 크기
+  12px 유지, 색상은 `var(--accent)`(종이 테마 골드브라운)로 변경. `onclick`
+  (`openTaskModal(null, eventId, category)`)은 그대로.
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium, `/opt/pw-browsers/chromium`).
+  `page.route()`로 `prep_events`/`prep_tasks`/`vehicle_data` REST 호출을 가짜 데이터로
+  스텁(실제 Supabase에 요청 안 나감). 가짜 행사 1건으로 로그인 후 카드 렌더링 확인.
+- 확인: 분류 5개 모두 테두리 없는 작은 텍스트 링크로 표시, 좌측 정렬, 클릭 동작 유지.
+  스크린샷: `btnfix-full.png`.
