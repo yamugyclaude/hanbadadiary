@@ -1202,3 +1202,37 @@ REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라�
 ### 검증
 - 로컬 `python3 -m http.server` + Playwright(Chromium), `page.route`로 Supabase REST 호출
   스텁 처리(실제 DB 접근 없음). 390px/1280px 스크린샷으로 날짜 있는 행사/없는 행사 둘 다 확인.
+
+---
+
+## 2026-09-29 ✅ 성공 — 행사준비 카드 상시 펼침 + 빠른/일괄 할일 추가
+
+### 배경
+사장님: 카드를 클릭해서 펼쳐야만 할일 목록이 보이는 게 번거롭고, 할일 하나 추가할 때마다
+모달을 여는 것도 느리다는 요청. 상세 모달(마감일 등)은 그대로 유지하되, 더 빠른 입력 경로를 추가.
+
+### 수정
+- `event-prep/index.html` `renderEventCard()`: `expandedEventId`/`toggleExpand()` 클릭 토글
+  구조를 제거하고 `renderTaskGroups()`를 항상 렌더링. 카드 자체의 `onclick`도 제거(✏️ 수정
+  아이콘의 `event.stopPropagation()`은 그대로 두어도 무해해서 손대지 않음).
+- `renderTaskGroups()`: 할일이 하나도 없는 분류도 항상 표시하도록 변경(기존엔 할일 있는
+  분류만 노출). 분류마다 한 줄 입력(Enter로 즉시 등록, 마감일·담당자 없이) + 📅(상세 모달,
+  분류 프리셋) + 📋(여러줄 입력 박스 토글) 3요소를 추가. 기존 분류 전체용 "+ 할일 추가"
+  버튼은 분류별 UI로 대체되어 제거.
+- `openTaskModal(id, fixedEventId, fixedCategory)`: 3번째 인자로 분류 프리셋 추가(📅 아이콘에서
+  사용, 기존 FAB "✅ 할일 추가"·체크박스 옆 수정 진입은 영향 없음).
+- 신규 함수 `quickAddTask()`(단건 POST), `bulkAddTask()`(줄바꿈 분리 후 배열 POST 한 번,
+  `saveEvent()`의 템플릿 할일 삽입과 동일한 배열 POST 패턴 재사용), `toggleBulkBox()`.
+- CSS: `.task-quickadd`, `.qa-icon-btn`, `.task-bulkbox` 신설(기존 종이 다이어리 변수 재사용).
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium, `/opt/pw-browsers/chromium`).
+  `context.route()`로 `prep_events`/`prep_tasks`/`vehicle_data` REST 호출 전부를 메모리 내
+  가짜 데이터로 스텁, `context.routeWebSocket()`으로 realtime 웹소켓도 차단. 실제 Supabase
+  프로젝트(`nifmnigvrjfctdimgmda`)로 나가는 요청이 있으면 잡아서 abort하고 로그를 남기는
+  캐치올 라우트를 별도로 걸어뒀는데 테스트 내내 한 번도 걸리지 않음(`REAL_SUPABASE_REQUEST_SEEN: false`)
+  — 실제 DB에 쓰기는커녕 어떤 요청도 나가지 않았음을 확인.
+- 확인 항목: 카드가 클릭 없이 항상 펼쳐짐, 분류 5개(무대/음향/차량/섭외/기타) 전부 표시,
+  한 줄 입력 Enter로 즉시 추가, 여러줄(일괄1~3, 빈 줄 포함) 한 번에 추가, 📅 아이콘으로
+  분류 프리셋된 상세 모달 오픈 및 저장, 분류 관리(⚙️)/필터 탭/월 이동/📄 문서 보기 전부
+  기존대로 동작. 스크린샷 6장(quickadd-01~06).
