@@ -1258,3 +1258,32 @@ REST API로 직접 조회(id로)해서 확인한 결과, **실제로는 클라�
 - 시나리오 2(일반 Enter, `isComposing:false`) → 호출 1회로 정상 제출 확인.
 - 수정 전 코드로 되돌려 같은 테스트를 돌려서 시나리오 1이 실패(호출 1회)로 나오는 것까지
   확인한 뒤 다시 수정 적용 — 테스트가 실제로 이 버그를 잡아내는지 교차 검증함.
+
+---
+
+## 2026-09-29 ✅ 성공 — 빠른/일괄 할일 추가 UI 되돌림 (사장님 피드백)
+
+### 배경
+위 두 커밋(77fcdc1/8d0fd38)으로 배포된 분류별 인라인 빠른 입력(📅/📋 버튼 포함)을
+사장님이 직접 써보고 "너무 번거롭게 보인다"고 피드백. 카드 상시 펼침은 그대로 두고,
+할일 추가 UI만 예전 방식(단순 버튼 → 상세 모달)으로 되돌리기로 확정.
+
+### 수정 (`event-prep/index.html`)
+- `renderTaskGroups()`: 분류별 `.task-quickadd` 입력창 + 📅/📋 아이콘 + `.task-bulkbox`
+  블록을 제거하고, `84af651`(종이 다이어리 적용 직후, 분류별 그룹 이전 시점)의
+  `.add-task-btn` 패턴을 그대로 가져와 분류마다 하나씩 배치(`+ 할일 추가` 클릭 →
+  `openTaskModal(null, eventId, category)`로 행사+분류 프리셋된 상세 모달 오픈).
+- `quickAddTask()`, `bulkAddTask()`, `toggleBulkBox()` 함수 전부 삭제(죽은 코드로 남기지
+  않음). CSS `.task-quickadd`, `.qa-icon-btn`, `.task-bulkbox` 규칙도 전부 삭제.
+- 유지: 카드 상시 펼침(`expandedEventId`/`toggleExpand` 재도입 안 함), 할일 0개인 분류도
+  계속 표시, 월 이동/필터/⚙️ 분류 관리/📄 문서 보기 등 나머지는 손대지 않음.
+
+### 검증
+- 로컬 `python3 -m http.server` + Playwright(Chromium, `/opt/pw-browsers/chromium`).
+  `context.route()`로 `prep_events`/`prep_tasks`/`vehicle_data` REST 호출을 가짜 데이터로
+  전부 스텁, `context.routeWebSocket()`으로 realtime도 차단. GET 외 메서드(POST/PATCH 등)
+  발생 여부를 별도로 로깅했는데 테스트 내내 0건 — 실제 Supabase(`nifmnigvrjfctdimgmda`)에
+  쓰기는커녕 어떤 요청도 나가지 않았음을 확인.
+- 확인 항목: `.task-quickadd`/`.qa-icon-btn`/`.task-bulkbox` DOM에 0개, 분류별
+  `.add-task-btn` 정상 렌더링(가짜 행사 1건·분류 3개 기준 3개), 버튼 클릭 시 상세 모달이
+  해당 행사+분류로 프리셋되어 열림. 스크린샷: `revert-list.png`, `revert-modal.png`.

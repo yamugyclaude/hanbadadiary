@@ -95,12 +95,6 @@ header button#logoutBtn { background: none; border: 1px solid var(--border2); bo
 .task-row .t-meta { font-size: 11px; color: var(--text-muted); }
 .task-row .t-del { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; padding: 4px; }
 .add-task-btn { margin-top: 6px; background: var(--surface2); border: 1px dashed var(--border2); color: var(--text2); border-radius: 8px; padding: 8px; font-size: 12px; cursor: pointer; text-align: center; }
-.task-quickadd { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
-.task-quickadd input { flex: 1; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; font-family: inherit; }
-.qa-icon-btn { background: none; border: 1px solid var(--border2); color: var(--text-muted); border-radius: 6px; font-size: 13px; padding: 6px 8px; cursor: pointer; flex-shrink: 0; }
-.task-bulkbox { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
-.task-bulkbox textarea { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; font-family: inherit; min-height: 60px; resize: vertical; }
-.task-bulkbox button { align-self: flex-end; padding: 6px 12px; border-radius: 8px; border: none; font-weight: 700; font-size: 12px; cursor: pointer; background: var(--accent); color: #FFFDF6; }
 
 #fab { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 18px); width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #FFFDF6; font-size: 26px; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(74,63,46,0.35); z-index: 50; }
 #fabMenu { position: fixed; right: 18px; bottom: calc(var(--safe-bot) + 80px); display: none; flex-direction: column; gap: 8px; z-index: 50; }
@@ -570,47 +564,11 @@ function renderTaskGroups(eventId) {
         </div>
       </div>`;
     });
-    html += `<div class="task-quickadd">
-      <input type="text" placeholder="+ 할일 입력 후 Enter" onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();quickAddTask('${eventId}', cats[${ci}].name, this)}">
-      <button class="qa-icon-btn" onclick="openTaskModal(null,'${eventId}', cats[${ci}].name)" title="마감일 등 상세 입력">📅</button>
-      <button class="qa-icon-btn" onclick="toggleBulkBox('bulkBox-${eventId}-${ci}')" title="여러줄 추가">📋</button>
-    </div>
-    <div class="task-bulkbox" id="bulkBox-${eventId}-${ci}" style="display:none;">
-      <textarea id="bulkTa-${eventId}-${ci}" placeholder="한 줄에 할일 하나씩 입력"></textarea>
-      <button onclick="bulkAddTask('${eventId}', cats[${ci}].name, 'bulkTa-${eventId}-${ci}')">일괄 추가</button>
-    </div>
+    html += `<div class="add-task-btn" onclick="openTaskModal(null,'${eventId}', cats[${ci}].name)">+ 할일 추가</div>
     </div>`;
   });
   html += `</div>`;
   return html;
-}
-
-// ── 빠른/일괄 할일 추가 ──
-async function quickAddTask(eventId, category, inputEl) {
-  const title = inputEl.value.trim();
-  if (!title) return;
-  inputEl.value = '';
-  try {
-    await fetch(`${SB_URL}/rest/v1/prep_tasks`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify({ event_id: eventId, category, title, done: false }) });
-    await refreshAll();
-  } catch(e) { showToast('❌ 저장 실패(네트워크 확인)'); }
-}
-
-function toggleBulkBox(boxId) {
-  const el = document.getElementById(boxId);
-  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
-}
-
-async function bulkAddTask(eventId, category, taId) {
-  const ta = document.getElementById(taId);
-  const lines = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!lines.length) return;
-  const payload = lines.map(title => ({ event_id: eventId, category, title, done: false }));
-  try {
-    await fetch(`${SB_URL}/rest/v1/prep_tasks`, { method: 'POST', headers: SB_HEADERS, body: JSON.stringify(payload) });
-    showToast(`✓ ${lines.length}개 추가 완료`);
-    await refreshAll();
-  } catch(e) { showToast('❌ 저장 실패(네트워크 확인)'); }
 }
 
 // ── 할일 완료 토글 ──
